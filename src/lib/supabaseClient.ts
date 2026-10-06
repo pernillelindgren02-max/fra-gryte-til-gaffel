@@ -23,7 +23,13 @@ export const isSupabaseConfigured =
   !looksLikePlaceholder(url) && !looksLikePlaceholder(publishableKey)
 
 export const supabase: SupabaseClient | null = isSupabaseConfigured
-  ? createClient(url, publishableKey)
+  ? createClient(url, publishableKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    })
   : null
 
 /**

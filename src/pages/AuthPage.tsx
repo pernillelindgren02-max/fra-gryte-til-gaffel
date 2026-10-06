@@ -29,10 +29,13 @@ export function AuthPage() {
       return
     }
     if (mode === 'signup') {
+      // If confirm-email is off, onAuthStateChange already logged us in.
+      // Otherwise show tip and stay on login tab.
       setInfo(
         'Konto opprettet. Hvis e-postbekreftelse er på i Supabase, sjekk innboksen før du logger inn.',
       )
       setMode('login')
+      setPassword('')
       return
     }
     navigate(from)
@@ -54,8 +57,7 @@ export function AuthPage() {
           Supabase er ikke satt opp ennå. Lim inn{' '}
           <code>VITE_SUPABASE_URL</code> og{' '}
           <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> i <code>.env.local</code>,
-          lagre, og start Vite på nytt. Kjør deretter{' '}
-          <code>supabase/schema.sql</code> i SQL-editoren for konto-funksjoner.
+          lagre, og start Vite på nytt for å bruke innlogging.
         </p>
         <Link to="/" className="auth-page__back">
           ← Tilbake til utforsk

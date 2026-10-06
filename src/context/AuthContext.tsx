@@ -23,8 +23,18 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 function translateAuthError(message: string): string {
   const lower = message.toLowerCase()
-  if (lower.includes('invalid login')) return 'Feil e-post eller passord.'
-  if (lower.includes('already registered')) return 'E-posten er allerede registrert.'
+  if (lower.includes('invalid login') || lower.includes('invalid credentials')) {
+    return 'Feil e-post eller passord.'
+  }
+  if (lower.includes('already registered') || lower.includes('user already')) {
+    return 'E-posten er allerede registrert.'
+  }
+  if (lower.includes('email not confirmed')) {
+    return 'E-posten er ikke bekreftet ennå. Sjekk innboksen (og søppelpost).'
+  }
+  if (lower.includes('rate limit') || lower.includes('too many')) {
+    return 'For mange forsøk. Vent litt og prøv igjen.'
+  }
   if (lower.includes('password')) return 'Passordet må være minst 6 tegn.'
   if (lower.includes('email')) return 'Sjekk at e-postadressen er gyldig.'
   return message
@@ -68,13 +78,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user: session?.user ?? null,
       async signUp(email, password) {
         if (!supabase) return 'Supabase er ikke konfigurert ennå.'
-        const { error } = await supabase.auth.signUp({ email, password })
-        return error ? translateAuthError(error.message) : null
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+        })
+        if (error) return translateAuthError(error.message)
+        // Supabase quirk: existing email can return a user with empty identities
+        if (
+          data.user &&
+          Array.isArray(data.user.identities) &&
+          data.user.identities.length === 0
+        ) {
+          return 'E-posten er allerede registrert.'
+        }
+        return null
       },
       async signIn(email, password) {
         if (!supabase) return 'Supabase er ikke konfigurert ennå.'
         const { error } = await supabase.auth.signInWithPassword({
-          email,
+          email: email.trim(),
           password,
         })
         return error ? translateAuthError(error.message) : null
