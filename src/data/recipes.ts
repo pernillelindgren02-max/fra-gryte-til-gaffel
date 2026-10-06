@@ -168,7 +168,7 @@ export const recipes: Recipe[] = [
     name: 'Gnocchi med kylling og sopp',
     shortDescription:
       'Gnocchi stekes rett i pannen med kylling, sopp og fløte. 2 porsjoner.',
-    image: '/images/recipes/placeholder-dish.jpg',
+    image: '/images/recipes/gnocchi-kylling-sopp.jpg',
     timeMinutes: 20,
     mealType: 'dinner',
     preparationLevel: 'someCutting',
@@ -202,7 +202,7 @@ export const recipes: Recipe[] = [
     name: 'Nudler med peanøttsaus',
     shortDescription:
       'Kremede peanøttnudler med chili og lime — klar på et kvarter. 2 porsjoner.',
-    image: '/images/recipes/placeholder-dish.jpg',
+    image: '/images/recipes/nudler-peanottsaus.jpg',
     timeMinutes: 15,
     mealType: 'dinner',
     preparationLevel: 'noCutting',
@@ -233,7 +233,7 @@ export const recipes: Recipe[] = [
     name: 'Kremet linsegryte med søtpotet og feta',
     shortDescription:
       'Varmende gryte med kylling, røde linser og søtpotet. 2 porsjoner.',
-    image: '/images/recipes/placeholder-dish.jpg',
+    image: '/images/recipes/linsegryte-sotpotet-feta.jpg',
     timeMinutes: 30,
     mealType: 'dinner',
     preparationLevel: 'morePrep',
@@ -269,7 +269,7 @@ export const recipes: Recipe[] = [
     name: 'Enkel gyros',
     shortDescription:
       'Stekt kjøtt i pitabrød med yoghurt, feta og friske grønnsaker. 2 porsjoner.',
-    image: '/images/recipes/placeholder-dish.jpg',
+    image: '/images/recipes/enkel-gyros.jpg',
     timeMinutes: 20,
     mealType: 'dinner',
     preparationLevel: 'someCutting',
@@ -305,7 +305,7 @@ export const recipes: Recipe[] = [
     name: 'Pannekaker med varmt blåbærsyltetøy',
     shortDescription:
       'Tynne pannekaker servert med hjemmelaget blåbærsyltetøy. 2 porsjoner.',
-    image: '/images/recipes/placeholder-dish.jpg',
+    image: '/images/recipes/pannekaker-blabaer.jpg',
     timeMinutes: 30,
     mealType: 'breakfast',
     preparationLevel: 'noCutting',
@@ -338,7 +338,7 @@ export const recipes: Recipe[] = [
     name: 'Tyrkiske egg light',
     shortDescription:
       'Bløtkokte egg på yoghurt med chilismør og brød. 2 porsjoner.',
-    image: '/images/recipes/placeholder-dish.jpg',
+    image: '/images/recipes/tyrkiske-egg-light.jpg',
     timeMinutes: 15,
     mealType: 'breakfast',
     preparationLevel: 'noCutting',
@@ -371,7 +371,7 @@ export const recipes: Recipe[] = [
     name: 'Halloumi & honey toast',
     shortDescription:
       'Stekt halloumi på toast med yoghurt, honning og chili. 2 porsjoner.',
-    image: '/images/recipes/placeholder-dish.jpg',
+    image: '/images/recipes/halloumi-honey-toast.jpg',
     timeMinutes: 10,
     mealType: 'breakfast',
     preparationLevel: 'someCutting',
@@ -400,7 +400,7 @@ export const recipes: Recipe[] = [
     name: 'Crispy rice bowl med egg',
     shortDescription:
       'Sprø stekt ris med egg, avokado og chilimajones. 2 porsjoner.',
-    image: '/images/recipes/placeholder-dish.jpg',
+    image: '/images/recipes/crispy-rice-bowl.jpg',
     timeMinutes: 15,
     mealType: 'lunch',
     preparationLevel: 'someCutting',
@@ -463,7 +463,7 @@ export const recipes: Recipe[] = [
     name: 'Carrot cake oats',
     shortDescription:
       'Gulrotgrøt med kanel og yoghurt — som gulrotkake til frokost. 2 porsjoner.',
-    image: '/images/recipes/placeholder-dish.jpg',
+    image: '/images/recipes/carrot-cake-oats.jpg',
     timeMinutes: 15,
     mealType: 'breakfast',
     preparationLevel: 'someCutting',
@@ -531,7 +531,7 @@ export const recipes: Recipe[] = [
     name: 'Eplecrumble-grøt',
     shortDescription:
       'Havregrøt med stekte epler og sprø crumble-topping. 2 porsjoner.',
-    image: '/images/recipes/placeholder-dish.jpg',
+    image: '/images/recipes/eplecrumble-grot.jpg',
     timeMinutes: 15,
     mealType: 'breakfast',
     preparationLevel: 'someCutting',
