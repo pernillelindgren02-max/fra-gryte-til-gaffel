@@ -24,25 +24,23 @@ npm run dev
 
 Uten Supabase-nøkler kjører appen som før; favoritter/mapper/notater ber deg sette opp konto.
 
-## Supabase (konto, favoritter, mapper, notater)
+## Supabase (tilkobling + konto)
 
 1. Opprett et prosjekt på [supabase.com](https://supabase.com).
-2. Åpne **SQL Editor**, lim inn og kjør `supabase/schema.sql`.
-3. Under **Project Settings → API**, kopier Project URL og `anon` `public` key.
-4. Lag `.env.local` fra malen:
-
-```bash
-cp .env.example .env.local
-```
-
-Fyll inn:
+2. Under **Project Settings → API**, kopier **Project URL** og **publishable / anon public** key.
+3. Åpne **`.env.local`** i prosjektroten og lim inn:
 
 ```env
-VITE_SUPABASE_URL=https://xxxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJ...
+VITE_SUPABASE_URL=
+VITE_SUPABASE_PUBLISHABLE_KEY=
 ```
 
-5. Start Vite på nytt (`npm run dev`).
+4. Lagre og **start Vite på nytt** (`npm run dev`).
+5. Åpne nettleserkonsollen: du skal se `[Supabase] Tilkobling OK (auth.getSession).`
+
+For favoritter/mapper/notater: kjør også `supabase/schema.sql` i SQL Editor.
+
+Detaljer: se `docs/accounts-setup.md` i prosjektets Context-mappe (eller README her).
 
 I Supabase Auth kan du skru av e-postbekreftelse under Authentication → Providers → Email hvis du vil teste raskt lokalt.
 

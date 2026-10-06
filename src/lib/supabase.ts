@@ -1,17 +1,12 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-
-const url = import.meta.env.VITE_SUPABASE_URL?.trim() ?? ''
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim() ?? ''
-
-export const isSupabaseConfigured =
-  url.length > 0 &&
-  anonKey.length > 0 &&
-  !url.includes('YOUR_PROJECT') &&
-  !anonKey.includes('YOUR_ANON')
-
-export const supabase: SupabaseClient | null = isSupabaseConfigured
-  ? createClient(url, anonKey)
-  : null
+/**
+ * Shared Supabase client + types used by auth / favorites / folders / notes.
+ * Client setup lives in `supabaseClient.ts`.
+ */
+export {
+  isSupabaseConfigured,
+  supabase,
+  testSupabaseConnection,
+} from './supabaseClient'
 
 export type FolderRow = {
   id: string

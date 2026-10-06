@@ -51,10 +51,11 @@ export function AuthPage() {
       <div className="auth-page">
         <h1 className="auth-page__title">Konto</h1>
         <p className="auth-page__lead">
-          Supabase er ikke satt opp ennå. Kopier <code>.env.example</code> til{' '}
-          <code>.env.local</code>, lim inn prosjekt-URL og anon-nøkkel, kjør{' '}
-          <code>supabase/schema.sql</code> i SQL-editoren, og start Vite på
-          nytt.
+          Supabase er ikke satt opp ennå. Lim inn{' '}
+          <code>VITE_SUPABASE_URL</code> og{' '}
+          <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> i <code>.env.local</code>,
+          lagre, og start Vite på nytt. Kjør deretter{' '}
+          <code>supabase/schema.sql</code> i SQL-editoren for konto-funksjoner.
         </p>
         <Link to="/" className="auth-page__back">
           ← Tilbake til utforsk
