@@ -90,6 +90,162 @@
   color: var(--color-teal);
 }
 
+.account-list__back {
+  align-self: flex-start;
+  color: var(--color-terracotta);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  min-height: var(--tap-min);
+  display: inline-flex;
+  align-items: center;
+}
+
+.account-list__back:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.account-list__title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.account-list__heart {
+  color: var(--color-terracotta);
+  font-size: 0.9em;
+  line-height: 1;
+}
+
+.folder-library {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.folder-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.85rem 0.95rem;
+  background: var(--color-card);
+  border-radius: var(--radius-md);
+  border: 1.5px solid color-mix(in srgb, var(--color-teal) 10%, transparent);
+}
+
+.folder-tile--default {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+  border-color: color-mix(in srgb, var(--color-terracotta) 28%, transparent);
+  background: color-mix(in srgb, var(--color-terracotta) 7%, white);
+}
+
+.folder-tile--edit {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.folder-tile--edit input {
+  flex: 1 1 10rem;
+  min-height: var(--tap-min);
+  border: 1.5px solid color-mix(in srgb, var(--color-teal) 16%, transparent);
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  font: inherit;
+  background: white;
+  color: var(--color-teal);
+}
+
+.folder-tile--edit button {
+  min-height: var(--tap-min);
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, var(--color-teal) 18%, transparent);
+  background: white;
+  color: var(--color-teal);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+}
+
+.folder-tile__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-terracotta) 14%, white);
+  color: var(--color-terracotta);
+  font-size: 1.05rem;
+  flex-shrink: 0;
+}
+
+.folder-tile__main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+  min-height: 2.6rem;
+}
+
+.folder-tile__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.folder-tile__name {
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: var(--color-teal);
+}
+
+.folder-tile__count {
+  font-size: 0.84rem;
+  color: color-mix(in srgb, var(--color-teal) 65%, transparent);
+}
+
+.folder-tile__chevron {
+  color: color-mix(in srgb, var(--color-teal) 45%, transparent);
+  font-size: 1.35rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.folder-tile__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.folder-tile__actions button {
+  min-height: 2.2rem;
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, var(--color-teal) 16%, transparent);
+  background: white;
+  color: var(--color-teal);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 0.3rem 0.75rem;
+  cursor: pointer;
+}
+
 .account-list__folders {
   display: flex;
   flex-direction: column;

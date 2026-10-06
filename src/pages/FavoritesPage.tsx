@@ -1,10 +1,12 @@
-import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, type FormEvent, type MouseEvent } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { RecipeCard } from '../components/RecipeCard'
 import { useAuth } from '../context/AuthContext'
 import { useUserData } from '../context/UserDataContext'
 import { getRecipeById } from '../data/recipes'
 import './AccountLists.css'
+
+const DEFAULT_FOLDER_KEY = 'favoritter'
 
 function recipesFromIds(ids: Iterable<string>) {
   return [...ids]
@@ -12,7 +14,15 @@ function recipesFromIds(ids: Iterable<string>) {
     .filter((recipe): recipe is NonNullable<typeof recipe> => Boolean(recipe))
 }
 
+function countLabel(n: number) {
+  if (n === 0) return 'Tom'
+  if (n === 1) return '1 oppskrift'
+  return `${n} oppskrifter`
+}
+
 export function FavoritesPage() {
+  const { folderKey } = useParams<{ folderKey?: string }>()
+  const navigate = useNavigate()
   const { user, configured, loading } = useAuth()
   const {
     favoriteIds,
@@ -28,7 +38,14 @@ export function FavoritesPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
 
-  const favoriteRecipes = recipesFromIds(favoriteIds)
+  const favoriteCount = favoriteIds.size
+  const statusMessage = message ?? foldersError
+  const openFolder =
+    folderKey && folderKey !== DEFAULT_FOLDER_KEY
+      ? folders.find((f) => f.id === folderKey)
+      : null
+  const viewingDefault = folderKey === DEFAULT_FOLDER_KEY
+  const viewingFolder = viewingDefault || Boolean(openFolder)
 
   async function onCreate(event: FormEvent) {
     event.preventDefault()
@@ -47,16 +64,78 @@ export function FavoritesPage() {
     if (!window.confirm(`Slette mappen «${name}»?`)) return
     const err = await deleteFolder(id)
     setMessage(err)
+    if (!err && folderKey === id) navigate('/favoritter')
   }
 
-  const statusMessage = message ?? foldersError
+  function stopAnd(event: MouseEvent, action: () => void) {
+    event.preventDefault()
+    event.stopPropagation()
+    action()
+  }
+
+  if (user && folderKey && !viewingDefault && !openFolder && !foldersError) {
+    return (
+      <div className="account-list">
+        <Link to="/favoritter" className="account-list__back">
+          ← Alle mapper
+        </Link>
+        <p className="account-list__empty">Fant ikke mappen.</p>
+      </div>
+    )
+  }
+
+  if (user && viewingFolder) {
+    const title = viewingDefault ? 'Favoritter' : (openFolder?.name ?? '')
+    const recipes = viewingDefault
+      ? recipesFromIds(favoriteIds)
+      : recipesFromIds(folderRecipeIds[openFolder!.id] ?? [])
+
+    return (
+      <div className="account-list">
+        <Link to="/favoritter" className="account-list__back">
+          ← Alle mapper
+        </Link>
+        <header className="account-list__header">
+          <h1 className="account-list__title">
+            {viewingDefault ? (
+              <span className="account-list__title-row">
+                <span className="account-list__heart" aria-hidden="true">
+                  ♥
+                </span>
+                Favoritter
+              </span>
+            ) : (
+              title
+            )}
+          </h1>
+          <p className="account-list__lead">{countLabel(recipes.length)}</p>
+        </header>
+
+        {recipes.length === 0 ? (
+          <p className="account-list__empty">
+            {viewingDefault
+              ? 'Ingen favoritter ennå. Åpne en oppskrift og trykk Lagre.'
+              : 'Tom mappe — lagre oppskrifter hit fra detaljsiden.'}
+          </p>
+        ) : (
+          <ul className="account-list__grid">
+            {recipes.map((recipe) => (
+              <li key={recipe.id}>
+                <RecipeCard recipe={recipe} layout="grid" />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="account-list">
       <header className="account-list__header">
         <h1 className="account-list__title">Favoritter</h1>
         <p className="account-list__lead">
-          Lagrede oppskrifter og dine egne mapper. Favoritter er alltid øverst.
+          Velg en mappe. Favoritter er alltid øverst.
         </p>
       </header>
 
@@ -87,37 +166,39 @@ export function FavoritesPage() {
             <p className="account-list__message">{statusMessage}</p>
           )}
 
-          <section className="account-folder account-folder--default">
-            <div className="account-folder__head">
-              <h2 className="account-folder__title">Favoritter</h2>
-              <p className="account-folder__meta">Standardmappe · kan ikke slettes</p>
-            </div>
-            {favoriteRecipes.length === 0 ? (
-              <p className="account-list__empty">
-                Ingen favoritter ennå. Åpne en oppskrift og trykk Lagre.
-              </p>
-            ) : (
-              <ul className="account-list__grid">
-                {favoriteRecipes.map((recipe) => (
-                  <li key={recipe.id}>
-                    <RecipeCard recipe={recipe} layout="grid" />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+          <ul className="folder-library">
+            <li>
+              <Link
+                to={`/favoritter/${DEFAULT_FOLDER_KEY}`}
+                className="folder-tile folder-tile--default"
+              >
+                <span className="folder-tile__icon" aria-hidden="true">
+                  ♥
+                </span>
+                <span className="folder-tile__body">
+                  <span className="folder-tile__name">Favoritter</span>
+                  <span className="folder-tile__count">
+                    {countLabel(favoriteCount)}
+                  </span>
+                </span>
+                <span className="folder-tile__chevron" aria-hidden="true">
+                  ›
+                </span>
+              </Link>
+            </li>
 
-          {!foldersError &&
-            folders.map((folder) => {
-              const recipes = recipesFromIds(folderRecipeIds[folder.id] ?? [])
-              return (
-                <section key={folder.id} className="account-folder">
-                  <div className="account-folder__head">
-                    {editingId === folder.id ? (
-                      <div className="account-folder__edit">
+            {!foldersError &&
+              folders.map((folder) => {
+                const count = (folderRecipeIds[folder.id] ?? []).length
+                const editing = editingId === folder.id
+                return (
+                  <li key={folder.id}>
+                    {editing ? (
+                      <div className="folder-tile folder-tile--edit">
                         <input
                           value={editName}
                           onChange={(e) => setEditName(e.target.value)}
+                          aria-label="Nytt mappenavn"
                         />
                         <button
                           type="button"
@@ -133,46 +214,55 @@ export function FavoritesPage() {
                         </button>
                       </div>
                     ) : (
-                      <>
-                        <h2 className="account-folder__title">{folder.name}</h2>
-                        <div className="account-folder__actions">
+                      <div className="folder-tile">
+                        <Link
+                          to={`/favoritter/${folder.id}`}
+                          className="folder-tile__main"
+                        >
+                          <span className="folder-tile__body">
+                            <span className="folder-tile__name">
+                              {folder.name}
+                            </span>
+                            <span className="folder-tile__count">
+                              {countLabel(count)}
+                            </span>
+                          </span>
+                          <span
+                            className="folder-tile__chevron"
+                            aria-hidden="true"
+                          >
+                            ›
+                          </span>
+                        </Link>
+                        <div className="folder-tile__actions">
                           <button
                             type="button"
-                            onClick={() => {
-                              setEditingId(folder.id)
-                              setEditName(folder.name)
-                            }}
+                            onClick={(e) =>
+                              stopAnd(e, () => {
+                                setEditingId(folder.id)
+                                setEditName(folder.name)
+                              })
+                            }
                           >
                             Gi nytt navn
                           </button>
                           <button
                             type="button"
-                            onClick={() =>
-                              void onDelete(folder.id, folder.name)
+                            onClick={(e) =>
+                              stopAnd(e, () => {
+                                void onDelete(folder.id, folder.name)
+                              })
                             }
                           >
                             Slett
                           </button>
                         </div>
-                      </>
+                      </div>
                     )}
-                  </div>
-                  {recipes.length === 0 ? (
-                    <p className="account-list__empty">
-                      Tom mappe — lagre oppskrifter hit fra detaljsiden.
-                    </p>
-                  ) : (
-                    <ul className="account-list__grid">
-                      {recipes.map((recipe) => (
-                        <li key={recipe.id}>
-                          <RecipeCard recipe={recipe} layout="grid" />
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </section>
-              )
-            })}
+                  </li>
+                )
+              })}
+          </ul>
         </>
       )}
     </div>

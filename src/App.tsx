@@ -23,9 +23,16 @@ export default function App() {
                 <Route path="/" element={<ExplorePage />} />
                 <Route path="/oppskrift/:id" element={<RecipePage />} />
                 <Route path="/favoritter" element={<FavoritesPage />} />
+                <Route
+                  path="/favoritter/:folderKey"
+                  element={<FavoritesPage />}
+                />
                 <Route path="/handleliste" element={<ShoppingListPage />} />
                 <Route path="/hjemme" element={<PantryPage />} />
-                <Route path="/mapper" element={<Navigate to="/favoritter" replace />} />
+                <Route
+                  path="/mapper"
+                  element={<Navigate to="/favoritter" replace />}
+                />
                 <Route path="/konto" element={<AuthPage />} />
               </Routes>
             </div>
