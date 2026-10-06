@@ -1,29 +1,47 @@
 .app-nav {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem 0.75rem;
+  gap: 0.45rem;
   align-items: center;
-  margin-bottom: 0.85rem;
-  padding-bottom: 0.65rem;
+  margin-bottom: 0.95rem;
+  padding-bottom: 0.75rem;
   border-bottom: 1px solid color-mix(in srgb, var(--color-teal) 12%, transparent);
 }
 
 .app-nav__link {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: color-mix(in srgb, var(--color-teal) 75%, transparent);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-teal);
   text-decoration: none;
-  min-height: 2.25rem;
+  min-height: 2.35rem;
   display: inline-flex;
   align-items: center;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-pale-green) 78%, white);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.app-nav__link:hover,
+.app-nav__link:hover {
+  background: var(--color-pale-green);
+}
+
 .app-nav__link--active {
+  background: var(--color-pale-green);
   color: var(--color-teal);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--color-teal) 18%, transparent);
 }
 
 .app-nav__link--accent {
   color: var(--color-terracotta);
+  background: color-mix(in srgb, var(--color-pale-green) 55%, white);
+}
+
+.app-nav__link--accent.app-nav__link--active {
+  background: color-mix(in srgb, var(--color-terracotta) 14%, var(--color-pale-green));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--color-terracotta) 28%, transparent);
+}
+
+.app-nav__link--end {
   margin-left: auto;
 }
