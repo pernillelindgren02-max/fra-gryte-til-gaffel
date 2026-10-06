@@ -103,10 +103,26 @@
   margin-bottom: 0.75rem;
 }
 
+.account-folder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.account-folder--default {
+  padding-top: 0.25rem;
+}
+
 .account-folder__title {
   margin: 0;
   font-size: 1.05rem;
   color: var(--color-teal);
+}
+
+.account-folder__meta {
+  margin: 0;
+  font-size: 0.82rem;
+  color: color-mix(in srgb, var(--color-teal) 65%, transparent);
 }
 
 .account-folder__actions {

@@ -82,6 +82,27 @@
   color: color-mix(in srgb, var(--color-teal) 70%, transparent);
 }
 
+.recipe-page__save-btn {
+  flex-shrink: 0;
+  min-height: var(--tap-min);
+  min-width: 5.5rem;
+  border: 1.5px solid color-mix(in srgb, var(--color-teal) 18%, transparent);
+  border-radius: 999px;
+  padding: 0.45rem 1rem;
+  background: white;
+  color: var(--color-teal);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.recipe-page__save-btn--on {
+  border-color: color-mix(in srgb, var(--color-terracotta) 40%, transparent);
+  background: color-mix(in srgb, var(--color-terracotta) 10%, white);
+  color: var(--color-terracotta);
+}
+
 .recipe-page__list-btn {
   align-self: flex-start;
   min-height: var(--tap-min);

@@ -31,9 +31,6 @@ export function AppNav() {
       <Link to="/hjemme" className={linkClass(path.startsWith('/hjemme'))}>
         Hjemme
       </Link>
-      <Link to="/mapper" className={linkClass(path.startsWith('/mapper'))}>
-        Mapper
-      </Link>
       {!loading &&
         (user ? (
           <Link

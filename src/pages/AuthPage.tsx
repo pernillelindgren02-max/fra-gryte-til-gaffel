@@ -74,8 +74,7 @@ export function AuthPage() {
           Innlogget som <strong>{user.email}</strong>
         </p>
         <div className="auth-page__links">
-          <Link to="/favoritter">Mine favoritter</Link>
-          <Link to="/mapper">Mine mapper</Link>
+          <Link to="/favoritter">Mine favoritter og mapper</Link>
         </div>
         <button
           type="button"
@@ -94,7 +93,7 @@ export function AuthPage() {
         {mode === 'login' ? 'Logg inn' : 'Opprett konto'}
       </h1>
       <p className="auth-page__lead">
-        Lagre favoritter, mapper og private notater på oppskrifter.
+        Lagre favoritter og mapper, pluss private notater på oppskrifter.
       </p>
 
       <div className="auth-page__tabs" role="tablist">

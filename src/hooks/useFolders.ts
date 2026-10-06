@@ -75,21 +75,27 @@ export function useFolders() {
     void refresh()
   }, [refresh])
 
-  async function createFolder(name: string): Promise<string | null> {
-    if (!supabase || !user) return 'Du må være innlogget.'
+  async function createFolder(
+    name: string,
+  ): Promise<{ error: string | null; id?: string }> {
+    if (!supabase || !user) return { error: 'Du må være innlogget.' }
     const trimmed = name.trim()
-    if (!trimmed) return 'Gi mappen et navn.'
-    const { error: insertError } = await supabase.from('folders').insert({
-      user_id: user.id,
-      name: trimmed,
-    })
+    if (!trimmed) return { error: 'Gi mappen et navn.' }
+    const { data, error: insertError } = await supabase
+      .from('folders')
+      .insert({
+        user_id: user.id,
+        name: trimmed,
+      })
+      .select('id')
+      .single()
     if (insertError) {
       const msg = translateDbError(insertError.message)
       setError(msg)
-      return msg
+      return { error: msg }
     }
     await refresh()
-    return null
+    return { error: null, id: data?.id as string | undefined }
   }
 
   async function renameFolder(id: string, name: string): Promise<string | null> {

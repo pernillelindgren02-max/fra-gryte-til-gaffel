@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { FavoriteButton } from '../components/FavoriteButton'
 import { RecipePersonalPanel } from '../components/RecipePersonalPanel'
+import { SaveSheet } from '../components/SaveSheet'
 import { Tag } from '../components/Tag'
+import { useAuth } from '../context/AuthContext'
 import { useShoppingList } from '../context/ShoppingListContext'
+import { useUserData } from '../context/UserDataContext'
 import {
   campingStoveLabels,
   dishwashingLevelLabels,
@@ -24,7 +26,10 @@ export function RecipePage() {
   const { id } = useParams<{ id: string }>()
   const recipe = id ? getRecipeById(id) : undefined
   const { addRecipe, hasRecipe } = useShoppingList()
+  const { user } = useAuth()
+  const { isFavorite, foldersForRecipe } = useUserData()
   const [toast, setToast] = useState<string | null>(null)
+  const [saveOpen, setSaveOpen] = useState(false)
 
   useEffect(() => {
     if (!toast) return
@@ -45,6 +50,9 @@ export function RecipePage() {
 
   const ingredientCount = getIngredientCount(recipe)
   const alreadyOnList = hasRecipe(recipe.id)
+  const savedSomewhere =
+    Boolean(user) &&
+    (isFavorite(recipe.id) || foldersForRecipe(recipe.id).length > 0)
 
   function onAddToList() {
     const result = addRecipe(recipe!.id)
@@ -61,7 +69,13 @@ export function RecipePage() {
         <Link to="/" className="recipe-page__back">
           ← Alle oppskrifter
         </Link>
-        <FavoriteButton recipeId={recipe.id} />
+        <button
+          type="button"
+          className={`recipe-page__save-btn${savedSomewhere ? ' recipe-page__save-btn--on' : ''}`}
+          onClick={() => setSaveOpen(true)}
+        >
+          {savedSomewhere ? 'Lagret' : 'Lagre'}
+        </button>
       </div>
 
       <div className="recipe-page__image">
@@ -96,7 +110,9 @@ export function RecipePage() {
         <h2 className="recipe-page__section-title">Ingredienser</h2>
         <ul className="recipe-page__ingredients">
           {recipe.ingredients.map((ingredient) => (
-            <li key={`${ingredient.name}-${ingredient.unit}-${ingredient.quantity}`}>
+            <li
+              key={`${ingredient.name}-${ingredient.unit}-${ingredient.quantity}`}
+            >
               {formatIngredient(ingredient)}
             </li>
           ))}
@@ -128,6 +144,12 @@ export function RecipePage() {
           <Tag>{waterNeedLabels[recipe.waterNeed]}</Tag>
         </div>
       </section>
+
+      <SaveSheet
+        open={saveOpen}
+        recipeId={recipe.id}
+        onClose={() => setSaveOpen(false)}
+      />
 
       {toast && (
         <div className="recipe-page__toast" role="status">
