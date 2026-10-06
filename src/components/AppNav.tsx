@@ -29,7 +29,7 @@ export function AppNav() {
         Handleliste
       </Link>
       <Link to="/hjemme" className={linkClass(path.startsWith('/hjemme'))}>
-        Hjemme
+        Gryte unna
       </Link>
       {!loading &&
         (user ? (

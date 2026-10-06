@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useRecipeNote } from '../hooks/useRecipeNote'
@@ -8,24 +8,65 @@ interface RecipePersonalPanelProps {
   recipeId: string
 }
 
-/** Private notes only — folders/favorites are handled by SaveSheet. */
+/** Subtle private comment — opens compact editor only when needed. */
 export function RecipePersonalPanel({ recipeId }: RecipePersonalPanelProps) {
   const { user, configured } = useAuth()
-  const { body, loading, saving, error, saveNote, deleteNote, setBodyLocal } =
+  const { body, loading, saving, error, saveNote, deleteNote } =
     useRecipeNote(recipeId)
-  const [draftNote, setDraftNote] = useState('')
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState('')
   const [message, setMessage] = useState<string | null>(null)
 
   useEffect(() => {
-    setDraftNote(body)
-  }, [body])
+    if (!editing) setDraft(body)
+  }, [body, editing])
+
+  useEffect(() => {
+    if (!editing) return
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setEditing(false)
+    }
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [editing])
+
+  function openEditor() {
+    setDraft(body)
+    setMessage(null)
+    setEditing(true)
+  }
+
+  async function onSave(event: FormEvent) {
+    event.preventDefault()
+    const err = await saveNote(draft)
+    if (err) {
+      setMessage(err)
+      return
+    }
+    setEditing(false)
+    setMessage(null)
+  }
+
+  async function onDelete() {
+    const err = await deleteNote()
+    if (err) {
+      setMessage(err)
+      return
+    }
+    setDraft('')
+    setEditing(false)
+    setMessage(null)
+  }
 
   if (!configured) {
     return (
-      <section className="personal-panel">
-        <h2 className="personal-panel__title">Privat notat</h2>
-        <p className="personal-panel__hint">
-          Notater krever Supabase. Se README for oppsett av nøkler.
+      <section className="kommentar">
+        <p className="kommentar__hint">
+          Kommentar krever Supabase. Se README for nøkler.
         </p>
       </section>
     )
@@ -33,68 +74,109 @@ export function RecipePersonalPanel({ recipeId }: RecipePersonalPanelProps) {
 
   if (!user) {
     return (
-      <section className="personal-panel">
-        <h2 className="personal-panel__title">Privat notat</h2>
-        <p className="personal-panel__hint">
-          <Link to="/konto">Logg inn</Link> for å lagre private notater.
+      <section className="kommentar">
+        <p className="kommentar__hint">
+          <Link to="/konto">Logg inn</Link> for å legge til en kommentar.
         </p>
       </section>
     )
   }
 
-  async function onSaveNote() {
-    const err = await saveNote(draftNote)
-    setMessage(err ?? 'Notat lagret.')
-  }
-
-  async function onDeleteNote() {
-    const err = await deleteNote()
-    if (!err) {
-      setDraftNote('')
-      setBodyLocal('')
-      setMessage('Notat slettet.')
-    } else {
-      setMessage(err)
-    }
-  }
-
   return (
-    <section className="personal-panel">
-      <h2 className="personal-panel__title">Privat notat</h2>
+    <section className="kommentar">
       {loading ? (
-        <p className="personal-panel__hint">Laster notat…</p>
-      ) : (
-        <>
-          <textarea
-            className="personal-panel__textarea"
-            rows={4}
-            placeholder="Egne tips, bytter, porsjoner…"
-            value={draftNote}
-            onChange={(e) => setDraftNote(e.target.value)}
-          />
-          <div className="personal-panel__actions">
+        <p className="kommentar__hint">Laster…</p>
+      ) : body ? (
+        <div className="kommentar__existing">
+          <div className="kommentar__existing-head">
+            <h2 className="kommentar__label">Min kommentar</h2>
             <button
               type="button"
-              className="personal-panel__btn personal-panel__btn--primary"
-              onClick={() => void onSaveNote()}
-              disabled={saving}
+              className="kommentar__text-btn"
+              onClick={openEditor}
             >
-              {saving ? 'Lagrer…' : 'Lagre notat'}
+              Rediger
             </button>
-            {body && (
+          </div>
+          <p className="kommentar__body">{body}</p>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="kommentar__add"
+          onClick={openEditor}
+        >
+          Legg til kommentar
+        </button>
+      )}
+
+      {error && !editing && (
+        <p className="kommentar__message">{error}</p>
+      )}
+      {message && !editing && (
+        <p className="kommentar__message">{message}</p>
+      )}
+
+      {editing && (
+        <div className="kommentar-sheet" role="presentation">
+          <button
+            type="button"
+            className="kommentar-sheet__backdrop"
+            aria-label="Lukk"
+            onClick={() => setEditing(false)}
+          />
+          <form
+            className="kommentar-sheet__panel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="kommentar-sheet-title"
+            onSubmit={onSave}
+          >
+            <div className="kommentar-sheet__handle" aria-hidden="true" />
+            <h2 id="kommentar-sheet-title" className="kommentar-sheet__title">
+              Kommentar
+            </h2>
+            <textarea
+              className="kommentar-sheet__textarea"
+              rows={4}
+              placeholder="Egne tips, bytter, porsjoner…"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              autoFocus
+            />
+            {(message || error) && (
+              <p className="kommentar__message">{message ?? error}</p>
+            )}
+            <div className="kommentar-sheet__actions">
+              {body && (
+                <button
+                  type="button"
+                  className="kommentar-sheet__ghost"
+                  onClick={() => void onDelete()}
+                  disabled={saving}
+                >
+                  Slett
+                </button>
+              )}
               <button
                 type="button"
-                className="personal-panel__btn personal-panel__btn--ghost"
-                onClick={() => void onDeleteNote()}
+                className="kommentar-sheet__secondary"
+                onClick={() => setEditing(false)}
+                disabled={saving}
               >
-                Slett
+                Avbryt
               </button>
-            )}
-          </div>
-        </>
+              <button
+                type="submit"
+                className="kommentar-sheet__primary"
+                disabled={saving}
+              >
+                {saving ? 'Lagrer…' : 'Lagre'}
+              </button>
+            </div>
+          </form>
+        </div>
       )}
-      {error && <p className="personal-panel__message">{error}</p>}
-      {message && <p className="personal-panel__message">{message}</p>}
     </section>
   )
 }

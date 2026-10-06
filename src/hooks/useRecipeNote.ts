@@ -12,6 +12,8 @@ export function useRecipeNote(recipeId: string) {
   const refresh = useCallback(async () => {
     if (!supabase || !user) {
       setBody('')
+      setError(null)
+      setLoading(false)
       return
     }
     setLoading(true)
@@ -24,9 +26,10 @@ export function useRecipeNote(recipeId: string) {
     setLoading(false)
     if (fetchError) {
       setError(translateDbError(fetchError.message))
+      setBody('')
       return
     }
-    setBody(data?.body ?? '')
+    setBody((data?.body ?? '').trim())
     setError(null)
   }, [recipeId, user])
 
@@ -45,20 +48,33 @@ export function useRecipeNote(recipeId: string) {
         .eq('user_id', user.id)
         .eq('recipe_id', recipeId)
       setSaving(false)
-      if (delError) return translateDbError(delError.message)
+      if (delError) {
+        const msg = translateDbError(delError.message)
+        setError(msg)
+        return msg
+      }
       setBody('')
+      setError(null)
       return null
     }
 
-    const { error: upsertError } = await supabase.from('recipe_notes').upsert({
-      user_id: user.id,
-      recipe_id: recipeId,
-      body: trimmed,
-      updated_at: new Date().toISOString(),
-    })
+    const { error: upsertError } = await supabase.from('recipe_notes').upsert(
+      {
+        user_id: user.id,
+        recipe_id: recipeId,
+        body: trimmed,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id,recipe_id' },
+    )
     setSaving(false)
-    if (upsertError) return translateDbError(upsertError.message)
+    if (upsertError) {
+      const msg = translateDbError(upsertError.message)
+      setError(msg)
+      return msg
+    }
     setBody(trimmed)
+    setError(null)
     return null
   }
 
@@ -66,5 +82,14 @@ export function useRecipeNote(recipeId: string) {
     return saveNote('')
   }
 
-  return { body, loading, saving, error, saveNote, deleteNote, setBodyLocal: setBody }
+  return {
+    body,
+    loading,
+    saving,
+    error,
+    saveNote,
+    deleteNote,
+    setBodyLocal: setBody,
+    refresh,
+  }
 }

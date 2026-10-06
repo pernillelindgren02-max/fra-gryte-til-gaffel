@@ -135,7 +135,7 @@ export function FavoritesPage() {
       <header className="account-list__header">
         <h1 className="account-list__title">Favoritter</h1>
         <p className="account-list__lead">
-          Velg en mappe. Favoritter er alltid øverst.
+          Samle favorittene dine på ett sted.
         </p>
       </header>
 
