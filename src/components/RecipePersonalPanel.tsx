@@ -16,6 +16,7 @@ export function RecipePersonalPanel({ recipeId }: RecipePersonalPanelProps) {
     foldersForRecipe,
     setRecipeInFolder,
     createFolder,
+    error: foldersError,
   } = useUserData()
   const { body, loading, saving, error, saveNote, deleteNote, setBodyLocal } =
     useRecipeNote(recipeId)
@@ -90,7 +91,9 @@ export function RecipePersonalPanel({ recipeId }: RecipePersonalPanelProps) {
 
       <div className="personal-panel__block">
         <h3 className="personal-panel__subtitle">Mapper</h3>
-        {folders.length === 0 ? (
+        {foldersError ? (
+          <p className="personal-panel__hint">{foldersError}</p>
+        ) : folders.length === 0 ? (
           <p className="personal-panel__hint">
             Ingen mapper ennå. Lag f.eks. «Tur», «Ukesmeny» eller «Billig».
           </p>

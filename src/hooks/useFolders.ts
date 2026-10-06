@@ -9,36 +9,54 @@ export function useFolders() {
     Record<string, string[]>
   >({})
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
     if (!supabase || !user) {
       setFolders([])
       setFolderRecipeIds({})
+      setError(null)
       return
     }
     setLoading(true)
-    const { data: folderData } = await supabase
+    const { data: folderData, error: folderError } = await supabase
       .from('folders')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: true })
+
+    if (folderError) {
+      setFolders([])
+      setFolderRecipeIds({})
+      setError(translateDbError(folderError.message))
+      setLoading(false)
+      return
+    }
 
     const nextFolders = (folderData as FolderRow[] | null) ?? []
     setFolders(nextFolders)
 
     if (nextFolders.length === 0) {
       setFolderRecipeIds({})
+      setError(null)
       setLoading(false)
       return
     }
 
-    const { data: links } = await supabase
+    const { data: links, error: linkError } = await supabase
       .from('folder_recipes')
       .select('folder_id, recipe_id')
       .in(
         'folder_id',
         nextFolders.map((f) => f.id),
       )
+
+    if (linkError) {
+      setFolderRecipeIds({})
+      setError(translateDbError(linkError.message))
+      setLoading(false)
+      return
+    }
 
     const map: Record<string, string[]> = {}
     for (const folder of nextFolders) map[folder.id] = []
@@ -49,6 +67,7 @@ export function useFolders() {
       map[fid].push(rid)
     }
     setFolderRecipeIds(map)
+    setError(null)
     setLoading(false)
   }, [user])
 
@@ -60,11 +79,15 @@ export function useFolders() {
     if (!supabase || !user) return 'Du må være innlogget.'
     const trimmed = name.trim()
     if (!trimmed) return 'Gi mappen et navn.'
-    const { error } = await supabase.from('folders').insert({
+    const { error: insertError } = await supabase.from('folders').insert({
       user_id: user.id,
       name: trimmed,
     })
-    if (error) return translateDbError(error.message)
+    if (insertError) {
+      const msg = translateDbError(insertError.message)
+      setError(msg)
+      return msg
+    }
     await refresh()
     return null
   }
@@ -73,24 +96,32 @@ export function useFolders() {
     if (!supabase || !user) return 'Du må være innlogget.'
     const trimmed = name.trim()
     if (!trimmed) return 'Gi mappen et navn.'
-    const { error } = await supabase
+    const { error: updateError } = await supabase
       .from('folders')
       .update({ name: trimmed })
       .eq('id', id)
       .eq('user_id', user.id)
-    if (error) return translateDbError(error.message)
+    if (updateError) {
+      const msg = translateDbError(updateError.message)
+      setError(msg)
+      return msg
+    }
     await refresh()
     return null
   }
 
   async function deleteFolder(id: string): Promise<string | null> {
     if (!supabase || !user) return 'Du må være innlogget.'
-    const { error } = await supabase
+    const { error: deleteError } = await supabase
       .from('folders')
       .delete()
       .eq('id', id)
       .eq('user_id', user.id)
-    if (error) return translateDbError(error.message)
+    if (deleteError) {
+      const msg = translateDbError(deleteError.message)
+      setError(msg)
+      return msg
+    }
     await refresh()
     return null
   }
@@ -102,20 +133,29 @@ export function useFolders() {
   ): Promise<string | null> {
     if (!supabase || !user) return 'Du må være innlogget.'
     if (included) {
-      const { error } = await supabase.from('folder_recipes').insert({
+      const { error: insertError } = await supabase.from('folder_recipes').insert({
         folder_id: folderId,
         recipe_id: recipeId,
       })
-      if (error && !error.message.toLowerCase().includes('duplicate')) {
-        return translateDbError(error.message)
+      if (
+        insertError &&
+        !insertError.message.toLowerCase().includes('duplicate')
+      ) {
+        const msg = translateDbError(insertError.message)
+        setError(msg)
+        return msg
       }
     } else {
-      const { error } = await supabase
+      const { error: deleteError } = await supabase
         .from('folder_recipes')
         .delete()
         .eq('folder_id', folderId)
         .eq('recipe_id', recipeId)
-      if (error) return translateDbError(error.message)
+      if (deleteError) {
+        const msg = translateDbError(deleteError.message)
+        setError(msg)
+        return msg
+      }
     }
     await refresh()
     return null
@@ -131,6 +171,7 @@ export function useFolders() {
     folders,
     folderRecipeIds,
     loading,
+    error,
     refresh,
     createFolder,
     renameFolder,

@@ -14,6 +14,7 @@ export function FoldersPage() {
     createFolder,
     renameFolder,
     deleteFolder,
+    error: foldersError,
   } = useUserData()
   const [newName, setNewName] = useState('')
   const [message, setMessage] = useState<string | null>(null)
@@ -38,6 +39,8 @@ export function FoldersPage() {
     const err = await deleteFolder(id)
     setMessage(err)
   }
+
+  const statusMessage = message ?? foldersError
 
   return (
     <div className="account-list">
@@ -71,11 +74,13 @@ export function FoldersPage() {
             />
             <button type="submit">Opprett</button>
           </form>
-          {message && <p className="account-list__message">{message}</p>}
+          {statusMessage && (
+            <p className="account-list__message">{statusMessage}</p>
+          )}
 
-          {folders.length === 0 ? (
+          {!foldersError && folders.length === 0 ? (
             <p className="account-list__empty">Ingen mapper ennå.</p>
-          ) : (
+          ) : !foldersError ? (
             <div className="account-list__folders">
               {folders.map((folder) => {
                 const recipes = (folderRecipeIds[folder.id] ?? [])
@@ -146,7 +151,7 @@ export function FoldersPage() {
                 )
               })}
             </div>
-          )}
+          ) : null}
         </>
       )}
     </div>
