@@ -9,6 +9,24 @@ export type WaterNeed = 'almostNone' | 'some' | 'lots'
 export type TimeRange = 'upTo20' | '21to30' | '31to40' | '41to60'
 export type IngredientCountRange = '1to4' | '5to6' | '7to8' | 'moreThan8'
 
+/** Units used for shopping-list combining. null = qualitative / no amount. */
+export type IngredientUnit =
+  | 'g'
+  | 'kg'
+  | 'ml'
+  | 'dl'
+  | 'l'
+  | 'stk'
+  | 'ss'
+  | 'ts'
+  | null
+
+export interface Ingredient {
+  name: string
+  quantity: number | null
+  unit: IngredientUnit
+}
+
 export interface Recipe {
   id: string
   name: string
@@ -23,7 +41,7 @@ export interface Recipe {
   dishwashingLevel: DishwashingLevel
   campingStoveSuitability: CampingStoveSuitability
   waterNeed: WaterNeed
-  ingredients: string[]
+  ingredients: Ingredient[]
   steps: string[]
   practicalTags: string[]
 }
@@ -52,10 +70,17 @@ export const emptyFilters: FilterState = {
   waterNeeds: [],
 }
 
+function ing(
+  name: string,
+  quantity: number | null = null,
+  unit: IngredientUnit = null,
+): Ingredient {
+  return { name, quantity, unit }
+}
+
 /**
  * Real recipe library (15). Edit this file by hand to add or change recipes.
- * Filter fields that were not stated in the source are inferred — see
- * internal notes in the project store if you need the rationale.
+ * Ingredients use { name, quantity, unit } so the shopping list can combine amounts.
  */
 export const recipes: Recipe[] = [
   {
@@ -73,16 +98,16 @@ export const recipes: Recipe[] = [
     campingStoveSuitability: 'indoorBest',
     waterNeed: 'lots',
     ingredients: [
-      '250 g laksefilet',
-      '150 g jasminris',
-      '1/2 agurk',
-      '1 avokado',
-      '1/2 mango',
-      '1 gulrot',
-      '2 ss soyasaus',
-      '2 ss majones',
-      '1 ts sriracha',
-      '1/2 lime',
+      ing('laksefilet', 250, 'g'),
+      ing('jasminris', 150, 'g'),
+      ing('agurk', 0.5, 'stk'),
+      ing('avokado', 1, 'stk'),
+      ing('mango', 0.5, 'stk'),
+      ing('gulrot', 1, 'stk'),
+      ing('soyasaus', 2, 'ss'),
+      ing('majones', 2, 'ss'),
+      ing('sriracha', 1, 'ts'),
+      ing('lime', 0.5, 'stk'),
     ],
     steps: [
       'Kok risen etter anvisningen på pakken.',
@@ -108,16 +133,16 @@ export const recipes: Recipe[] = [
     campingStoveSuitability: 'adaptable',
     waterNeed: 'some',
     ingredients: [
-      '250 g kjøttdeig',
-      '1/2 gul løk',
-      '1 gulrot',
-      '1 ss tomatpuré',
-      '400 g hakkede tomater',
-      '5 lasagneplater',
-      '2 dl vann',
-      '2 ss crème fraîche',
-      '75 g revet ost',
-      'Salt og pepper',
+      ing('kjøttdeig', 250, 'g'),
+      ing('gul løk', 0.5, 'stk'),
+      ing('gulrot', 1, 'stk'),
+      ing('tomatpuré', 1, 'ss'),
+      ing('hakkede tomater', 400, 'g'),
+      ing('lasagneplater', 5, 'stk'),
+      ing('vann', 2, 'dl'),
+      ing('crème fraîche', 2, 'ss'),
+      ing('revet ost', 75, 'g'),
+      ing('salt og pepper'),
     ],
     steps: [
       'Finhakk løken og riv eller kutt gulroten smått.',
@@ -144,14 +169,14 @@ export const recipes: Recipe[] = [
     campingStoveSuitability: 'adaptable',
     waterNeed: 'lots',
     ingredients: [
-      '180 g pasta',
-      '120 g chorizo',
-      '1 sjalottløk',
-      '1,5 ss tomatpuré',
-      '1,5 dl crème fraîche',
-      '30 g parmesan',
-      '1 dl pastavann',
-      'Sort pepper',
+      ing('pasta', 180, 'g'),
+      ing('chorizo', 120, 'g'),
+      ing('sjalottløk', 1, 'stk'),
+      ing('tomatpuré', 1.5, 'ss'),
+      ing('crème fraîche', 1.5, 'dl'),
+      ing('parmesan', 30, 'g'),
+      ing('pastavann', 1, 'dl'),
+      ing('sort pepper'),
     ],
     steps: [
       'Kok pastaen og spar omtrent 1 dl av pastavannet.',
@@ -178,14 +203,14 @@ export const recipes: Recipe[] = [
     campingStoveSuitability: 'adaptable',
     waterNeed: 'almostNone',
     ingredients: [
-      '300 g gnocchi',
-      '250 g kyllingfilet',
-      '150 g sopp',
-      '1/2 gul løk',
-      '1,5 dl matfløte',
-      '30 g parmesan',
-      '1 ss smør eller olje',
-      'Salt og pepper',
+      ing('gnocchi', 300, 'g'),
+      ing('kyllingfilet', 250, 'g'),
+      ing('sopp', 150, 'g'),
+      ing('gul løk', 0.5, 'stk'),
+      ing('matfløte', 1.5, 'dl'),
+      ing('parmesan', 30, 'g'),
+      ing('smør', 1, 'ss'),
+      ing('salt og pepper'),
     ],
     steps: [
       'Skjær kylling, sopp og løk i biter.',
@@ -212,13 +237,13 @@ export const recipes: Recipe[] = [
     campingStoveSuitability: 'perfect',
     waterNeed: 'some',
     ingredients: [
-      '180 g nudler',
-      '3 ss peanøttsmør',
-      '2 ss soyasaus',
-      '1 ss chili crisp',
-      '1 ts honning',
-      'Saften av 1/2 lime',
-      '3–4 ss nudelvann',
+      ing('nudler', 180, 'g'),
+      ing('peanøttsmør', 3, 'ss'),
+      ing('soyasaus', 2, 'ss'),
+      ing('chili crisp', 1, 'ss'),
+      ing('honning', 1, 'ts'),
+      ing('lime', 0.5, 'stk'),
+      ing('nudelvann', 3.5, 'ss'),
     ],
     steps: [
       'Kok nudlene og spar litt av kokevannet.',
@@ -243,16 +268,16 @@ export const recipes: Recipe[] = [
     campingStoveSuitability: 'adaptable',
     waterNeed: 'lots',
     ingredients: [
-      '1 liten søtpotet',
-      '1 gulrot',
-      '1 dl røde linser',
-      '200 g kyllingfilet',
-      '5 dl vann',
-      '1 buljongterning',
-      '2 store never spinat',
-      '2 ss crème fraîche',
-      '50 g feta',
-      '1 ts paprikapulver',
+      ing('søtpotet', 1, 'stk'),
+      ing('gulrot', 1, 'stk'),
+      ing('røde linser', 1, 'dl'),
+      ing('kyllingfilet', 200, 'g'),
+      ing('vann', 5, 'dl'),
+      ing('buljongterning', 1, 'stk'),
+      ing('spinat', 2, 'stk'),
+      ing('crème fraîche', 2, 'ss'),
+      ing('feta', 50, 'g'),
+      ing('paprikapulver', 1, 'ts'),
     ],
     steps: [
       'Skjær kylling, søtpotet og gulrot i små biter.',
@@ -279,16 +304,16 @@ export const recipes: Recipe[] = [
     campingStoveSuitability: 'adaptable',
     waterNeed: 'almostNone',
     ingredients: [
-      '250 g lammestrimler eller kylling',
-      '2 store pitabrød',
-      '1/2 agurk',
-      '1/2 rødløk',
-      '60 g feta',
-      '1 dl gresk yoghurt',
-      '1/2 sitron',
-      '1 ts oregano',
-      '1 ts paprikapulver',
-      'Salt og pepper',
+      ing('lammestrimler eller kylling', 250, 'g'),
+      ing('pitabrød', 2, 'stk'),
+      ing('agurk', 0.5, 'stk'),
+      ing('rødløk', 0.5, 'stk'),
+      ing('feta', 60, 'g'),
+      ing('gresk yoghurt', 1, 'dl'),
+      ing('sitron', 0.5, 'stk'),
+      ing('oregano', 1, 'ts'),
+      ing('paprikapulver', 1, 'ts'),
+      ing('salt og pepper'),
     ],
     steps: [
       'Krydre kjøttet med oregano, paprikapulver, salt og pepper.',
@@ -315,14 +340,14 @@ export const recipes: Recipe[] = [
     campingStoveSuitability: 'adaptable',
     waterNeed: 'almostNone',
     ingredients: [
-      '2 egg',
-      '3 dl melk',
-      '1,5 dl hvetemel',
-      '1/4 ts salt',
-      'Smør til steking',
-      '200 g blåbær',
-      '2 ss sukker',
-      '1 ts sitronsaft',
+      ing('egg', 2, 'stk'),
+      ing('melk', 3, 'dl'),
+      ing('hvetemel', 1.5, 'dl'),
+      ing('salt', 0.25, 'ts'),
+      ing('smør til steking'),
+      ing('blåbær', 200, 'g'),
+      ing('sukker', 2, 'ss'),
+      ing('sitronsaft', 1, 'ts'),
     ],
     steps: [
       'Visp sammen egg og melk, og visp inn mel og salt.',
@@ -348,14 +373,14 @@ export const recipes: Recipe[] = [
     campingStoveSuitability: 'adaptable',
     waterNeed: 'some',
     ingredients: [
-      '4 egg',
-      '2 dl gresk yoghurt',
-      '1 liten hvitløksfedd, valgfritt',
-      '1 ss smør',
-      '1/2 ts chiliflak',
-      '1/2 ts paprikapulver',
-      'Salt',
-      '2 skiver godt brød',
+      ing('egg', 4, 'stk'),
+      ing('gresk yoghurt', 2, 'dl'),
+      ing('hvitløk', 1, 'stk'),
+      ing('smør', 1, 'ss'),
+      ing('chiliflak', 0.5, 'ts'),
+      ing('paprikapulver', 0.5, 'ts'),
+      ing('salt'),
+      ing('brødskiver', 2, 'stk'),
     ],
     steps: [
       'Kok eggene i 6–7 minutter for bløt plomme.',
@@ -381,11 +406,11 @@ export const recipes: Recipe[] = [
     campingStoveSuitability: 'perfect',
     waterNeed: 'almostNone',
     ingredients: [
-      '4 skiver brød',
-      '200 g halloumi',
-      '4 ss gresk yoghurt',
-      '2 ts honning',
-      '1/2 ts chiliflak',
+      ing('brødskiver', 4, 'stk'),
+      ing('halloumi', 200, 'g'),
+      ing('gresk yoghurt', 4, 'ss'),
+      ing('honning', 2, 'ts'),
+      ing('chiliflak', 0.5, 'ts'),
     ],
     steps: [
       'Skjær halloumien i skiver og stek den gyllen på begge sider.',
@@ -410,13 +435,13 @@ export const recipes: Recipe[] = [
     campingStoveSuitability: 'adaptable',
     waterNeed: 'almostNone',
     ingredients: [
-      '300 g kokt, kald ris',
-      '2 egg',
-      '1/2 agurk',
-      '1 avokado',
-      '2 ss soyasaus',
-      '2 ss chilimajones',
-      '1 ss olje',
+      ing('kokt kald ris', 300, 'g'),
+      ing('egg', 2, 'stk'),
+      ing('agurk', 0.5, 'stk'),
+      ing('avokado', 1, 'stk'),
+      ing('soyasaus', 2, 'ss'),
+      ing('chilimajones', 2, 'ss'),
+      ing('olje', 1, 'ss'),
     ],
     steps: [
       'Varm olje i en panne og fordel risen utover.',
@@ -442,13 +467,13 @@ export const recipes: Recipe[] = [
     campingStoveSuitability: 'perfect',
     waterNeed: 'almostNone',
     ingredients: [
-      '2 dl havregryn',
-      '4 dl melk',
-      '1 stort eple',
-      '1 ss smør',
-      '1 ts kanel',
-      '1 ss honning eller brunt sukker',
-      '4 ss gresk yoghurt',
+      ing('havregryn', 2, 'dl'),
+      ing('melk', 4, 'dl'),
+      ing('eple', 1, 'stk'),
+      ing('smør', 1, 'ss'),
+      ing('kanel', 1, 'ts'),
+      ing('honning', 1, 'ss'),
+      ing('gresk yoghurt', 4, 'ss'),
     ],
     steps: [
       'Kok havregryn og melk til grøt.',
@@ -473,13 +498,13 @@ export const recipes: Recipe[] = [
     campingStoveSuitability: 'perfect',
     waterNeed: 'almostNone',
     ingredients: [
-      '2 dl havregryn',
-      '4 dl melk',
-      '1 stor gulrot',
-      '1 ts kanel',
-      '1 ss honning',
-      '2 ss rosiner, valgfritt',
-      '4 ss gresk yoghurt',
+      ing('havregryn', 2, 'dl'),
+      ing('melk', 4, 'dl'),
+      ing('gulrot', 1, 'stk'),
+      ing('kanel', 1, 'ts'),
+      ing('honning', 1, 'ss'),
+      ing('rosiner', 2, 'ss'),
+      ing('gresk yoghurt', 4, 'ss'),
     ],
     steps: [
       'Riv gulroten fint.',
@@ -504,16 +529,16 @@ export const recipes: Recipe[] = [
     campingStoveSuitability: 'adaptable',
     waterNeed: 'almostNone',
     ingredients: [
-      '4 egg',
-      '400 g hakkede tomater',
-      '1/2 gul løk',
-      '1/2 rød paprika',
-      '1 ss tomatpuré',
-      '1 ts paprikapulver',
-      '1/2 ts chiliflak',
-      '50 g feta',
-      '1 ss olje',
-      'Salt og pepper',
+      ing('egg', 4, 'stk'),
+      ing('hakkede tomater', 400, 'g'),
+      ing('gul løk', 0.5, 'stk'),
+      ing('rød paprika', 0.5, 'stk'),
+      ing('tomatpuré', 1, 'ss'),
+      ing('paprikapulver', 1, 'ts'),
+      ing('chiliflak', 0.5, 'ts'),
+      ing('feta', 50, 'g'),
+      ing('olje', 1, 'ss'),
+      ing('salt og pepper'),
     ],
     steps: [
       'Finhakk løk og paprika.',
@@ -541,14 +566,14 @@ export const recipes: Recipe[] = [
     campingStoveSuitability: 'perfect',
     waterNeed: 'almostNone',
     ingredients: [
-      '2 dl havregryn',
-      '4 dl melk',
-      '1 stort eple',
-      '1 ss smør',
-      '1 ss brunt sukker eller honning',
-      '1 ts kanel',
-      '2 ss ekstra havregryn',
-      '4 ss gresk yoghurt',
+      ing('havregryn', 2, 'dl'),
+      ing('melk', 4, 'dl'),
+      ing('eple', 1, 'stk'),
+      ing('smør', 1, 'ss'),
+      ing('brunt sukker', 1, 'ss'),
+      ing('kanel', 1, 'ts'),
+      ing('havregryn til topping', 2, 'ss'),
+      ing('gresk yoghurt', 4, 'ss'),
     ],
     steps: [
       'Kok 2 dl havregryn og melk til grøt.',
@@ -563,6 +588,35 @@ export const recipes: Recipe[] = [
 
 export function getIngredientCount(recipe: Recipe): number {
   return recipe.ingredients.length
+}
+
+export function formatIngredient(ingredient: Ingredient): string {
+  if (ingredient.quantity == null || ingredient.unit == null) {
+    if (ingredient.quantity != null && ingredient.unit === null) {
+      return `${formatQuantityDisplay(ingredient.quantity)} ${ingredient.name}`
+    }
+    return ingredient.name
+  }
+  return `${formatQuantityDisplay(ingredient.quantity)} ${ingredient.unit} ${ingredient.name}`
+}
+
+export function formatQuantityDisplay(value: number): string {
+  const rounded = Math.round(value * 1000) / 1000
+  const whole = Math.floor(rounded + 1e-9)
+  const frac = Math.round((rounded - whole) * 1000) / 1000
+  const fracLabel =
+    frac === 0
+      ? ''
+      : frac === 0.25
+        ? '1/4'
+        : frac === 0.5
+          ? '1/2'
+          : frac === 0.75
+            ? '3/4'
+            : String(frac).replace('.', ',')
+  if (!fracLabel) return String(whole)
+  if (whole === 0) return fracLabel
+  return `${whole} ${fracLabel}`
 }
 
 export function getTimeRange(minutes: number): TimeRange | null {

@@ -82,6 +82,43 @@
   color: color-mix(in srgb, var(--color-teal) 70%, transparent);
 }
 
+.recipe-page__list-btn {
+  align-self: flex-start;
+  min-height: var(--tap-min);
+  margin-top: 0.35rem;
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1.15rem;
+  background: var(--color-terracotta);
+  color: white;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.recipe-page__list-btn:disabled {
+  background: color-mix(in srgb, var(--color-teal) 35%, white);
+  cursor: default;
+}
+
+.recipe-page__toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1.1rem + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 80;
+  max-width: min(92vw, 24rem);
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  background: var(--color-teal);
+  color: white;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-teal) 25%, transparent);
+}
+
 .recipe-page__section {
   display: flex;
   flex-direction: column;

@@ -11,7 +11,7 @@ export function searchRecipes(recipes: Recipe[], query: string): Recipe[] {
   return recipes.filter((recipe) => {
     const inName = normalize(recipe.name).includes(term)
     const inIngredients = recipe.ingredients.some((ingredient) =>
-      normalize(ingredient).includes(term),
+      normalize(ingredient.name).includes(term),
     )
     const inDescription = normalize(recipe.shortDescription).includes(term)
     return inName || inIngredients || inDescription

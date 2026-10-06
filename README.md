@@ -7,9 +7,11 @@ Norsk, mobilvennlig oppskriftsapp for begrensede kjøkken — én kokeplate, ing
 - Utforsk med søk, filtre (bunnark) og kuraterte seksjoner
 - 15 oppskrifter i `src/data/recipes.ts` med illustrasjoner
 - Detaljside med ingredienser, steg og praktiske tagger
+- Handleliste (localStorage): legg til oppskrifter, kombiner mengder, huk av kjøpt
 - Valgfri konto via **Supabase**: favoritter, mapper og private notater
 
 Oppskriftene ligger lokalt i appen. Supabase lagrer kun `recipe_id` per bruker.
+Handlelisten lagres i nettleseren (`localStorage`) og overlever oppfriskning.
 
 ## Kom i gang (uten konto)
 

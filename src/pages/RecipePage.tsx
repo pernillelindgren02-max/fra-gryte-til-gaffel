@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { FavoriteButton } from '../components/FavoriteButton'
 import { RecipePersonalPanel } from '../components/RecipePersonalPanel'
 import { Tag } from '../components/Tag'
+import { useShoppingList } from '../context/ShoppingListContext'
 import {
   campingStoveLabels,
   dishwashingLevelLabels,
@@ -11,12 +13,24 @@ import {
   storageNeedLabels,
   waterNeedLabels,
 } from '../data/filterLabels'
-import { getIngredientCount, getRecipeById } from '../data/recipes'
+import {
+  formatIngredient,
+  getIngredientCount,
+  getRecipeById,
+} from '../data/recipes'
 import './RecipePage.css'
 
 export function RecipePage() {
   const { id } = useParams<{ id: string }>()
   const recipe = id ? getRecipeById(id) : undefined
+  const { addRecipe, hasRecipe } = useShoppingList()
+  const [toast, setToast] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!toast) return
+    const timer = window.setTimeout(() => setToast(null), 2500)
+    return () => window.clearTimeout(timer)
+  }, [toast])
 
   if (!recipe) {
     return (
@@ -30,6 +44,16 @@ export function RecipePage() {
   }
 
   const ingredientCount = getIngredientCount(recipe)
+  const alreadyOnList = hasRecipe(recipe.id)
+
+  function onAddToList() {
+    const result = addRecipe(recipe!.id)
+    if (result === 'added') {
+      setToast('Lagt til i handlelisten.')
+    } else if (result === 'duplicate') {
+      setToast('Oppskriften er allerede i handlelisten.')
+    }
+  }
 
   return (
     <article className="recipe-page">
@@ -56,6 +80,14 @@ export function RecipePage() {
           <span aria-hidden="true">·</span>
           <span>{preparationLevelLabels[recipe.preparationLevel]}</span>
         </div>
+        <button
+          type="button"
+          className="recipe-page__list-btn"
+          onClick={onAddToList}
+          disabled={alreadyOnList}
+        >
+          {alreadyOnList ? 'I handlelisten' : 'Legg til i handleliste'}
+        </button>
       </header>
 
       <RecipePersonalPanel recipeId={recipe.id} />
@@ -64,7 +96,9 @@ export function RecipePage() {
         <h2 className="recipe-page__section-title">Ingredienser</h2>
         <ul className="recipe-page__ingredients">
           {recipe.ingredients.map((ingredient) => (
-            <li key={ingredient}>{ingredient}</li>
+            <li key={`${ingredient.name}-${ingredient.unit}-${ingredient.quantity}`}>
+              {formatIngredient(ingredient)}
+            </li>
           ))}
         </ul>
       </section>
@@ -94,6 +128,12 @@ export function RecipePage() {
           <Tag>{waterNeedLabels[recipe.waterNeed]}</Tag>
         </div>
       </section>
+
+      {toast && (
+        <div className="recipe-page__toast" role="status">
+          {toast}
+        </div>
+      )}
     </article>
   )
 }

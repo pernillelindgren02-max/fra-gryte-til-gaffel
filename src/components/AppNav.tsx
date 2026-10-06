@@ -15,6 +15,9 @@ export function AppNav() {
       <Link to="/favoritter" className="app-nav__link">
         Favoritter
       </Link>
+      <Link to="/handleliste" className="app-nav__link">
+        Handleliste
+      </Link>
       <Link to="/mapper" className="app-nav__link">
         Mapper
       </Link>
