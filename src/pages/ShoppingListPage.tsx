@@ -1,17 +1,23 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useShoppingList } from '../context/ShoppingListContext'
+import {
+  useShoppingList,
+  type ShoppingMultiplier,
+} from '../context/ShoppingListContext'
 import { getRecipeById, recipes } from '../data/recipes'
 import { searchRecipes } from '../utils/searchRecipes'
 import './ShoppingListPage.css'
 
+const MULTIPLIERS: ShoppingMultiplier[] = [1, 2, 3, 4]
+
 export function ShoppingListPage() {
   const {
-    recipeIds,
+    entries,
     combined,
     checkedKeys,
     addRecipe,
     removeRecipe,
+    setMultiplier,
     clearAll,
     toggleChecked,
   } = useShoppingList()
@@ -23,9 +29,13 @@ export function ShoppingListPage() {
     return searchRecipes(recipes, query).slice(0, 8)
   }, [query])
 
-  const listedRecipes = recipeIds
-    .map((id) => getRecipeById(id))
-    .filter((recipe): recipe is NonNullable<typeof recipe> => Boolean(recipe))
+  const listed = entries
+    .map((entry) => {
+      const recipe = getRecipeById(entry.recipeId)
+      if (!recipe) return null
+      return { recipe, multiplier: entry.multiplier }
+    })
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
 
   useEffect(() => {
     if (!toast) return
@@ -48,7 +58,8 @@ export function ShoppingListPage() {
       <header className="shopping__header">
         <h1 className="shopping__title">Handleliste</h1>
         <p className="shopping__lead">
-          Legg til oppskrifter, se samlede mengder og huk av det du har kjøpt.
+          Legg til oppskrifter, juster antall porsjoner (1x–4x) og se samlede
+          mengder.
         </p>
       </header>
 
@@ -75,7 +86,7 @@ export function ShoppingListPage() {
         </ul>
       )}
 
-      {listedRecipes.length > 0 && (
+      {listed.length > 0 && (
         <section className="shopping__block">
           <div className="shopping__block-head">
             <h2 className="shopping__subtitle">Oppskrifter</h2>
@@ -88,16 +99,35 @@ export function ShoppingListPage() {
             </button>
           </div>
           <ul className="shopping__recipes">
-            {listedRecipes.map((recipe) => (
-              <li key={recipe.id}>
-                <Link to={`/oppskrift/${recipe.id}`}>{recipe.name}</Link>
-                <button
-                  type="button"
-                  className="shopping__text-btn"
-                  onClick={() => removeRecipe(recipe.id)}
+            {listed.map(({ recipe, multiplier }) => (
+              <li key={recipe.id} className="shopping__recipe-card">
+                <div className="shopping__recipe-row">
+                  <Link to={`/oppskrift/${recipe.id}`}>{recipe.name}</Link>
+                  <button
+                    type="button"
+                    className="shopping__text-btn"
+                    onClick={() => removeRecipe(recipe.id)}
+                  >
+                    Fjern
+                  </button>
+                </div>
+                <div
+                  className="shopping__multipliers"
+                  role="group"
+                  aria-label={`Antall for ${recipe.name}`}
                 >
-                  Fjern
-                </button>
+                  {MULTIPLIERS.map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      className={`shopping__multiplier${multiplier === value ? ' shopping__multiplier--on' : ''}`}
+                      aria-pressed={multiplier === value}
+                      onClick={() => setMultiplier(recipe.id, value)}
+                    >
+                      {value}x
+                    </button>
+                  ))}
+                </div>
               </li>
             ))}
           </ul>
