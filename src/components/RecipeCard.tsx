@@ -9,16 +9,19 @@ import './RecipeCard.css'
 
 interface RecipeCardProps {
   recipe: Recipe
+  layout?: 'default' | 'rail'
 }
 
-export function RecipeCard({ recipe }: RecipeCardProps) {
+export function RecipeCard({ recipe, layout = 'default' }: RecipeCardProps) {
   const ingredientCount = getIngredientCount(recipe)
   const isPrimusFriendly =
     recipe.campingStoveSuitability === 'perfect' ||
     recipe.campingStoveSuitability === 'adaptable'
 
   return (
-    <article className="recipe-card">
+    <article
+      className={`recipe-card${layout === 'rail' ? ' recipe-card--rail' : ''}`}
+    >
       <Link to={`/oppskrift/${recipe.id}`} className="recipe-card__link">
         <div className="recipe-card__image" aria-hidden="true">
           <span className="recipe-card__image-label">Bildekommer</span>

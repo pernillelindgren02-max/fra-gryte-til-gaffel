@@ -4,6 +4,10 @@
   overflow: hidden;
 }
 
+.recipe-card--rail {
+  width: min(72vw, 17rem);
+}
+
 @media (hover: hover) and (pointer: fine) {
   .recipe-card {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
