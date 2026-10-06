@@ -43,7 +43,7 @@ export function FavoritesPage() {
         <ul className="account-list__grid">
           {recipes.map((recipe) => (
             <li key={recipe.id}>
-              <RecipeCard recipe={recipe} />
+              <RecipeCard recipe={recipe} layout="grid" />
             </li>
           ))}
         </ul>

@@ -10,7 +10,7 @@ import './RecipeCard.css'
 
 interface RecipeCardProps {
   recipe: Recipe
-  layout?: 'default' | 'rail'
+  layout?: 'default' | 'rail' | 'grid'
 }
 
 export function RecipeCard({ recipe, layout = 'default' }: RecipeCardProps) {
@@ -21,7 +21,7 @@ export function RecipeCard({ recipe, layout = 'default' }: RecipeCardProps) {
 
   return (
     <article
-      className={`recipe-card${layout === 'rail' ? ' recipe-card--rail' : ''}`}
+      className={`recipe-card${layout === 'rail' ? ' recipe-card--rail' : ''}${layout === 'grid' ? ' recipe-card--grid' : ''}`}
     >
       <div className="recipe-card__media">
         <Link to={`/oppskrift/${recipe.id}`} className="recipe-card__image-link">

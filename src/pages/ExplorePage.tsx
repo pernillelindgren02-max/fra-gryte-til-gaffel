@@ -68,7 +68,10 @@ export function ExplorePage() {
   return (
     <div className="explore">
       <header className="explore__hero">
-        <p className="explore__brand">Fra gryte til gaffel</p>
+        <p className="explore__brand" aria-label="Fra Gryte Til Gaffel">
+          <span className="explore__brand-line">Fra Gryte</span>
+          <span className="explore__brand-line">Til Gaffel</span>
+        </p>
         <h1 className="explore__tagline">
           God mat trenger ikke et fullt kjøkken
         </h1>
@@ -121,10 +124,10 @@ export function ExplorePage() {
               eller åpne filtre og nullstill valg.
             </p>
           ) : (
-            <ul className="explore-results__list">
+            <ul className="explore-feed">
               {matchingRecipes.map((recipe) => (
                 <li key={recipe.id}>
-                  <RecipeCard recipe={recipe} />
+                  <RecipeCard recipe={recipe} layout="grid" />
                 </li>
               ))}
             </ul>
@@ -135,10 +138,10 @@ export function ExplorePage() {
           {curatedSections.map((section) => (
             <section key={section.id} className="explore-section">
               <h2 className="explore-section__title">{section.title}</h2>
-              <ul className="explore-section__rail">
+              <ul className="explore-feed">
                 {section.recipes.map((recipe) => (
                   <li key={`${section.id}-${recipe.id}`}>
-                    <RecipeCard recipe={recipe} layout="rail" />
+                    <RecipeCard recipe={recipe} layout="grid" />
                   </li>
                 ))}
               </ul>
