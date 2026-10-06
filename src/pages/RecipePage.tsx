@@ -35,8 +35,8 @@ export function RecipePage() {
         ← Alle oppskrifter
       </Link>
 
-      <div className="recipe-page__image" aria-hidden="true">
-        <span className="recipe-page__image-label">Bildekommer</span>
+      <div className="recipe-page__image">
+        <img src={recipe.image} alt="" />
       </div>
 
       <header className="recipe-page__header">

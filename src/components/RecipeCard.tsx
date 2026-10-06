@@ -23,8 +23,8 @@ export function RecipeCard({ recipe, layout = 'default' }: RecipeCardProps) {
       className={`recipe-card${layout === 'rail' ? ' recipe-card--rail' : ''}`}
     >
       <Link to={`/oppskrift/${recipe.id}`} className="recipe-card__link">
-        <div className="recipe-card__image" aria-hidden="true">
-          <span className="recipe-card__image-label">Bildekommer</span>
+        <div className="recipe-card__image">
+          <img src={recipe.image} alt="" loading="lazy" />
         </div>
         <div className="recipe-card__body">
           <h2 className="recipe-card__title">{recipe.name}</h2>
