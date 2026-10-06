@@ -10,17 +10,43 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 0.65rem;
+  gap: 0.75rem;
   padding: 0.35rem 0.25rem 0.5rem;
 }
 
+.explore__brand-mark {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  padding: 1.15rem 1.35rem 1.05rem;
+}
+
+.explore__brand-blob {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: color-mix(
+    in srgb,
+    var(--color-soft-yellow) 72%,
+    var(--color-pale-green)
+  );
+  z-index: 0;
+  pointer-events: none;
+  transform: rotate(-1.5deg) scale(1.02);
+}
+
 .explore__brand {
+  position: relative;
+  z-index: 1;
   margin: 0;
   font-family: var(--font-brand);
-  font-weight: 700;
-  font-size: clamp(2.15rem, 9.2vw, 2.85rem);
-  line-height: 0.98;
-  letter-spacing: -0.03em;
+  font-weight: 400;
+  font-size: clamp(2.05rem, 8.8vw, 2.75rem);
+  line-height: 1.02;
+  letter-spacing: 0.01em;
   color: var(--color-terracotta);
   text-wrap: balance;
 }
@@ -173,6 +199,10 @@
   }
 
   .explore__brand {
-    font-size: 3.1rem;
+    font-size: 3rem;
+  }
+
+  .explore__brand-mark {
+    padding: 1.35rem 1.7rem 1.2rem;
   }
 }

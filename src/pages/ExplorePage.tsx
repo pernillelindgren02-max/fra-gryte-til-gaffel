@@ -68,10 +68,23 @@ export function ExplorePage() {
   return (
     <div className="explore">
       <header className="explore__hero">
-        <p className="explore__brand" aria-label="Fra Gryte Til Gaffel">
-          <span className="explore__brand-line">Fra Gryte</span>
-          <span className="explore__brand-line">Til Gaffel</span>
-        </p>
+        <div className="explore__brand-mark">
+          <svg
+            className="explore__brand-blob"
+            viewBox="0 0 320 170"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <path
+              fill="currentColor"
+              d="M48 88c-18-28 8-62 42-70 28-7 48 8 78 4 26-4 52-22 78-12 30 12 42 42 34 70-6 22 8 48-14 64-24 18-58 8-86 14-30 6-58 24-86 12-28-12-26-42-46-82Z"
+            />
+          </svg>
+          <p className="explore__brand" aria-label="Fra Gryte Til Gaffel">
+            <span className="explore__brand-line">Fra Gryte</span>
+            <span className="explore__brand-line">Til Gaffel</span>
+          </p>
+        </div>
         <h1 className="explore__tagline">
           God mat trenger ikke et fullt kjøkken
         </h1>
