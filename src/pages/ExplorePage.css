@@ -28,11 +28,7 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  color: color-mix(
-    in srgb,
-    var(--color-soft-yellow) 72%,
-    var(--color-pale-green)
-  );
+  color: #d5dba2;
   z-index: 0;
   pointer-events: none;
   transform: rotate(-1.5deg) scale(1.02);
