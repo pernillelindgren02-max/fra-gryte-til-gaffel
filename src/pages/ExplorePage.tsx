@@ -85,9 +85,7 @@ export function ExplorePage() {
             <span className="explore__brand-line">Til Gaffel</span>
           </p>
         </div>
-        <h1 className="explore__tagline">
-          God mat trenger ikke et fullt kjøkken
-        </h1>
+        <h1 className="explore__tagline">En gryte unna noe godt</h1>
       </header>
 
       <div className="explore-search">

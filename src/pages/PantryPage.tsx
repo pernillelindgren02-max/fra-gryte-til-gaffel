@@ -52,10 +52,10 @@ export function PantryPage() {
   return (
     <div className="pantry">
       <header className="pantry__header">
-        <h1 className="pantry__title">En gryte unna noe godt</h1>
+        <h1 className="pantry__title">Hva har du hjemme?</h1>
         <p className="pantry__lead">
-          Skriv inn hva du har i kjøleskapet eller skapet. Vi foreslår
-          oppskrifter som matcher ingrediensnavnene direkte.
+          Skriv inn ingredienser du har. Vi foreslår oppskrifter som matcher
+          navnene direkte fra oppskriftslisten.
         </p>
       </header>
 
