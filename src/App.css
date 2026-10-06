@@ -1,12 +1,13 @@
 .app-shell {
-  width: min(100% - 2rem, 40rem);
+  width: min(100% - (var(--space-page-x) * 2), 40rem);
   margin-inline: auto;
-  padding-block: 1.25rem 2rem;
+  padding-block: 1.15rem 2.5rem;
 }
 
 @media (min-width: 720px) {
   .app-shell {
-    width: min(100% - 3rem, 52rem);
+    --space-page-x: 1.5rem;
+    width: min(100% - (var(--space-page-x) * 2), 52rem);
     padding-block: 1.75rem 2.5rem;
   }
 }

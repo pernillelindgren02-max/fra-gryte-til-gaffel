@@ -1,11 +1,11 @@
 .tag {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.65rem;
+  padding: 0.35rem 0.7rem;
   border-radius: 999px;
   background: var(--color-pale-green);
   color: var(--color-teal);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
   line-height: 1.3;
 }
