@@ -18,6 +18,9 @@ export function AppNav() {
       <Link to="/handleliste" className="app-nav__link">
         Handleliste
       </Link>
+      <Link to="/hjemme" className="app-nav__link">
+        Hjemme
+      </Link>
       <Link to="/mapper" className="app-nav__link">
         Mapper
       </Link>

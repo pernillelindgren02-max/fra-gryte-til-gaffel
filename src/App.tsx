@@ -7,6 +7,7 @@ import { AuthPage } from './pages/AuthPage'
 import { ExplorePage } from './pages/ExplorePage'
 import { FavoritesPage } from './pages/FavoritesPage'
 import { FoldersPage } from './pages/FoldersPage'
+import { PantryPage } from './pages/PantryPage'
 import { RecipePage } from './pages/RecipePage'
 import { ShoppingListPage } from './pages/ShoppingListPage'
 import './App.css'
@@ -24,6 +25,7 @@ export default function App() {
                 <Route path="/oppskrift/:id" element={<RecipePage />} />
                 <Route path="/favoritter" element={<FavoritesPage />} />
                 <Route path="/handleliste" element={<ShoppingListPage />} />
+                <Route path="/hjemme" element={<PantryPage />} />
                 <Route path="/mapper" element={<FoldersPage />} />
                 <Route path="/konto" element={<AuthPage />} />
               </Routes>
