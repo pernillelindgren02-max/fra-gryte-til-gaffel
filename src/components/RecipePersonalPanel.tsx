@@ -17,7 +17,7 @@ export function RecipePersonalPanel({ recipeId }: RecipePersonalPanelProps) {
     setRecipeInFolder,
     createFolder,
   } = useUserData()
-  const { body, loading, saving, saveNote, deleteNote, setBodyLocal } =
+  const { body, loading, saving, error, saveNote, deleteNote, setBodyLocal } =
     useRecipeNote(recipeId)
   const [draftNote, setDraftNote] = useState('')
   const [message, setMessage] = useState<string | null>(null)
@@ -165,6 +165,7 @@ export function RecipePersonalPanel({ recipeId }: RecipePersonalPanelProps) {
         )}
       </div>
 
+      {error && <p className="personal-panel__message">{error}</p>}
       {message && <p className="personal-panel__message">{message}</p>}
     </section>
   )

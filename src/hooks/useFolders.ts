@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { supabase, type FolderRow } from '../lib/supabase'
+import { supabase, translateDbError, type FolderRow } from '../lib/supabase'
 
 export function useFolders() {
   const { user } = useAuth()
@@ -64,7 +64,7 @@ export function useFolders() {
       user_id: user.id,
       name: trimmed,
     })
-    if (error) return error.message
+    if (error) return translateDbError(error.message)
     await refresh()
     return null
   }
@@ -78,7 +78,7 @@ export function useFolders() {
       .update({ name: trimmed })
       .eq('id', id)
       .eq('user_id', user.id)
-    if (error) return error.message
+    if (error) return translateDbError(error.message)
     await refresh()
     return null
   }
@@ -90,7 +90,7 @@ export function useFolders() {
       .delete()
       .eq('id', id)
       .eq('user_id', user.id)
-    if (error) return error.message
+    if (error) return translateDbError(error.message)
     await refresh()
     return null
   }
@@ -107,7 +107,7 @@ export function useFolders() {
         recipe_id: recipeId,
       })
       if (error && !error.message.toLowerCase().includes('duplicate')) {
-        return error.message
+        return translateDbError(error.message)
       }
     } else {
       const { error } = await supabase
@@ -115,7 +115,7 @@ export function useFolders() {
         .delete()
         .eq('folder_id', folderId)
         .eq('recipe_id', recipeId)
-      if (error) return error.message
+      if (error) return translateDbError(error.message)
     }
     await refresh()
     return null

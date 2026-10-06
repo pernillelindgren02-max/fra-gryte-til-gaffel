@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { supabase } from '../lib/supabase'
+import { supabase, translateDbError } from '../lib/supabase'
 
 export function useRecipeNote(recipeId: string) {
   const { user } = useAuth()
@@ -23,7 +23,7 @@ export function useRecipeNote(recipeId: string) {
       .maybeSingle()
     setLoading(false)
     if (fetchError) {
-      setError(fetchError.message)
+      setError(translateDbError(fetchError.message))
       return
     }
     setBody(data?.body ?? '')
@@ -45,7 +45,7 @@ export function useRecipeNote(recipeId: string) {
         .eq('user_id', user.id)
         .eq('recipe_id', recipeId)
       setSaving(false)
-      if (delError) return delError.message
+      if (delError) return translateDbError(delError.message)
       setBody('')
       return null
     }
@@ -57,7 +57,7 @@ export function useRecipeNote(recipeId: string) {
       updated_at: new Date().toISOString(),
     })
     setSaving(false)
-    if (upsertError) return upsertError.message
+    if (upsertError) return translateDbError(upsertError.message)
     setBody(trimmed)
     return null
   }

@@ -1,6 +1,7 @@
 -- Fra gryte til gaffel — personal data schema
--- Run this in the Supabase SQL editor (Dashboard → SQL → New query).
+-- Run this in the Supabase SQL editor (Dashboard → SQL → New query → Run).
 -- Recipes themselves stay in the app (src/data/recipes.ts); only recipe_id is stored here.
+-- Safe to re-run: tables use IF NOT EXISTS; policies are dropped then recreated.
 
 -- Favorites
 create table if not exists public.favorites (
@@ -11,6 +12,10 @@ create table if not exists public.favorites (
 );
 
 alter table public.favorites enable row level security;
+
+drop policy if exists "favorites_select_own" on public.favorites;
+drop policy if exists "favorites_insert_own" on public.favorites;
+drop policy if exists "favorites_delete_own" on public.favorites;
 
 create policy "favorites_select_own"
   on public.favorites for select
@@ -33,6 +38,11 @@ create table if not exists public.folders (
 );
 
 alter table public.folders enable row level security;
+
+drop policy if exists "folders_select_own" on public.folders;
+drop policy if exists "folders_insert_own" on public.folders;
+drop policy if exists "folders_update_own" on public.folders;
+drop policy if exists "folders_delete_own" on public.folders;
 
 create policy "folders_select_own"
   on public.folders for select
@@ -60,6 +70,10 @@ create table if not exists public.folder_recipes (
 );
 
 alter table public.folder_recipes enable row level security;
+
+drop policy if exists "folder_recipes_select_own" on public.folder_recipes;
+drop policy if exists "folder_recipes_insert_own" on public.folder_recipes;
+drop policy if exists "folder_recipes_delete_own" on public.folder_recipes;
 
 create policy "folder_recipes_select_own"
   on public.folder_recipes for select
@@ -98,6 +112,11 @@ create table if not exists public.recipe_notes (
 );
 
 alter table public.recipe_notes enable row level security;
+
+drop policy if exists "recipe_notes_select_own" on public.recipe_notes;
+drop policy if exists "recipe_notes_insert_own" on public.recipe_notes;
+drop policy if exists "recipe_notes_update_own" on public.recipe_notes;
+drop policy if exists "recipe_notes_delete_own" on public.recipe_notes;
 
 create policy "recipe_notes_select_own"
   on public.recipe_notes for select

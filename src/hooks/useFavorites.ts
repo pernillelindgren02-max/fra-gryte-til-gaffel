@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { supabase } from '../lib/supabase'
+import { supabase, translateDbError } from '../lib/supabase'
 
 export function useFavorites() {
   const { user } = useAuth()
@@ -44,7 +44,10 @@ export function useFavorites() {
           .delete()
           .eq('user_id', user.id)
           .eq('recipe_id', recipeId)
-        if (error) return 'error'
+        if (error) {
+          console.warn('[favorites]', translateDbError(error.message))
+          return 'error'
+        }
         setFavoriteIds((prev) => {
           const next = new Set(prev)
           next.delete(recipeId)
@@ -55,7 +58,10 @@ export function useFavorites() {
           user_id: user.id,
           recipe_id: recipeId,
         })
-        if (error) return 'error'
+        if (error) {
+          console.warn('[favorites]', translateDbError(error.message))
+          return 'error'
+        }
         setFavoriteIds((prev) => new Set(prev).add(recipeId))
       }
       return 'ok'
