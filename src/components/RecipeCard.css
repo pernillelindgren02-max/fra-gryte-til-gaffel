@@ -8,6 +8,16 @@
   width: min(72vw, 17rem);
 }
 
+.recipe-card__media {
+  position: relative;
+}
+
+.recipe-card__image-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .recipe-card {
     transition: transform 0.2s ease, box-shadow 0.2s ease;

@@ -1,0 +1,120 @@
+.personal-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: 1rem;
+  background: var(--color-card);
+  border-radius: var(--radius-md);
+}
+
+.personal-panel__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-teal);
+}
+
+.personal-panel__subtitle {
+  margin: 0 0 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-teal) 70%, transparent);
+}
+
+.personal-panel__hint {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--color-teal) 78%, transparent);
+}
+
+.personal-panel__hint a {
+  color: var(--color-terracotta);
+  font-weight: 600;
+}
+
+.personal-panel__block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.personal-panel__folder-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.personal-panel__check {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.5rem;
+  font-weight: 600;
+  color: var(--color-teal);
+}
+
+.personal-panel__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+}
+
+.personal-panel__input,
+.personal-panel__textarea {
+  width: 100%;
+  border: 1.5px solid color-mix(in srgb, var(--color-teal) 16%, transparent);
+  border-radius: 0.85rem;
+  padding: 0.7rem 0.85rem;
+  background: white;
+  color: var(--color-teal);
+  font: inherit;
+}
+
+.personal-panel__textarea {
+  resize: vertical;
+  min-height: 6rem;
+}
+
+.personal-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.personal-panel__btn {
+  min-height: var(--tap-min);
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, var(--color-teal) 18%, transparent);
+  background: white;
+  color: var(--color-teal);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+}
+
+.personal-panel__btn--primary {
+  border: none;
+  background: var(--color-terracotta);
+  color: white;
+}
+
+.personal-panel__btn--ghost {
+  border: none;
+  background: transparent;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.personal-panel__message {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-teal);
+}

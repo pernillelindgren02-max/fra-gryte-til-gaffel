@@ -1,0 +1,148 @@
+import { useState, type FormEvent } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import './AuthPage.css'
+
+export function AuthPage() {
+  const { user, configured, loading, signIn, signUp, signOut } = useAuth()
+  const [mode, setMode] = useState<'login' | 'signup'>('login')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [info, setInfo] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const from =
+    (location.state as { from?: string } | null)?.from ?? '/favoritter'
+
+  async function onSubmit(event: FormEvent) {
+    event.preventDefault()
+    setError(null)
+    setInfo(null)
+    setBusy(true)
+    const action = mode === 'login' ? signIn : signUp
+    const message = await action(email.trim(), password)
+    setBusy(false)
+    if (message) {
+      setError(message)
+      return
+    }
+    if (mode === 'signup') {
+      setInfo(
+        'Konto opprettet. Hvis e-postbekreftelse er på i Supabase, sjekk innboksen før du logger inn.',
+      )
+      setMode('login')
+      return
+    }
+    navigate(from)
+  }
+
+  if (loading) {
+    return (
+      <div className="auth-page">
+        <p>Laster konto…</p>
+      </div>
+    )
+  }
+
+  if (!configured) {
+    return (
+      <div className="auth-page">
+        <h1 className="auth-page__title">Konto</h1>
+        <p className="auth-page__lead">
+          Supabase er ikke satt opp ennå. Kopier <code>.env.example</code> til{' '}
+          <code>.env.local</code>, lim inn prosjekt-URL og anon-nøkkel, kjør{' '}
+          <code>supabase/schema.sql</code> i SQL-editoren, og start Vite på
+          nytt.
+        </p>
+        <Link to="/" className="auth-page__back">
+          ← Tilbake til utforsk
+        </Link>
+      </div>
+    )
+  }
+
+  if (user) {
+    return (
+      <div className="auth-page">
+        <h1 className="auth-page__title">Konto</h1>
+        <p className="auth-page__lead">
+          Innlogget som <strong>{user.email}</strong>
+        </p>
+        <div className="auth-page__links">
+          <Link to="/favoritter">Mine favoritter</Link>
+          <Link to="/mapper">Mine mapper</Link>
+        </div>
+        <button
+          type="button"
+          className="auth-page__submit auth-page__submit--ghost"
+          onClick={() => void signOut()}
+        >
+          Logg ut
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="auth-page">
+      <h1 className="auth-page__title">
+        {mode === 'login' ? 'Logg inn' : 'Opprett konto'}
+      </h1>
+      <p className="auth-page__lead">
+        Lagre favoritter, mapper og private notater på oppskrifter.
+      </p>
+
+      <div className="auth-page__tabs" role="tablist">
+        <button
+          type="button"
+          className={`auth-page__tab${mode === 'login' ? ' auth-page__tab--on' : ''}`}
+          onClick={() => setMode('login')}
+        >
+          Logg inn
+        </button>
+        <button
+          type="button"
+          className={`auth-page__tab${mode === 'signup' ? ' auth-page__tab--on' : ''}`}
+          onClick={() => setMode('signup')}
+        >
+          Registrer
+        </button>
+      </div>
+
+      <form className="auth-page__form" onSubmit={onSubmit}>
+        <label className="auth-page__label">
+          E-post
+          <input
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </label>
+        <label className="auth-page__label">
+          Passord
+          <input
+            type="password"
+            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+            required
+            minLength={6}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </label>
+        {error && <p className="auth-page__error">{error}</p>}
+        {info && <p className="auth-page__info">{info}</p>}
+        <button type="submit" className="auth-page__submit" disabled={busy}>
+          {busy
+            ? 'Vent litt…'
+            : mode === 'login'
+              ? 'Logg inn'
+              : 'Opprett konto'}
+        </button>
+      </form>
+    </div>
+  )
+}

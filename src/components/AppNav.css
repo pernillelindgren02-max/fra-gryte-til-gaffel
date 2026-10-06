@@ -1,0 +1,29 @@
+.app-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  align-items: center;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-teal) 12%, transparent);
+}
+
+.app-nav__link {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--color-teal) 75%, transparent);
+  text-decoration: none;
+  min-height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+.app-nav__link:hover,
+.app-nav__link--active {
+  color: var(--color-teal);
+}
+
+.app-nav__link--accent {
+  color: var(--color-terracotta);
+  margin-left: auto;
+}

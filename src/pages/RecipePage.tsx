@@ -1,4 +1,6 @@
 import { Link, useParams } from 'react-router-dom'
+import { FavoriteButton } from '../components/FavoriteButton'
+import { RecipePersonalPanel } from '../components/RecipePersonalPanel'
 import { Tag } from '../components/Tag'
 import {
   campingStoveLabels,
@@ -31,9 +33,12 @@ export function RecipePage() {
 
   return (
     <article className="recipe-page">
-      <Link to="/" className="recipe-page__back">
-        ← Alle oppskrifter
-      </Link>
+      <div className="recipe-page__top">
+        <Link to="/" className="recipe-page__back">
+          ← Alle oppskrifter
+        </Link>
+        <FavoriteButton recipeId={recipe.id} />
+      </div>
 
       <div className="recipe-page__image">
         <img src={recipe.image} alt="" />
@@ -52,6 +57,8 @@ export function RecipePage() {
           <span>{preparationLevelLabels[recipe.preparationLevel]}</span>
         </div>
       </header>
+
+      <RecipePersonalPanel recipeId={recipe.id} />
 
       <section className="recipe-page__section">
         <h2 className="recipe-page__section-title">Ingredienser</h2>

@@ -2,18 +2,16 @@
 
 Norsk, mobilvennlig oppskriftsapp for begrensede kjøkken — én kokeplate, ingen ovn nødvendig. Tagline: *God mat trenger ikke et fullt kjøkken.*
 
-## Hva som finnes i MVP
+## Hva som finnes
 
-- Hjemside med merkevare, kort intro og oppskriftoversikt
-- Oppskriftskort (navn, bildeplassholder, tid, antall ingredienser, måltid, primus-indikator)
-- Flervalgfiltre (tid, forberedelser, ingredienser, oppbevaring, måltid, pris, oppvask, turvennlighet, vannbehov)
-- Nullstill alle filtre
-- Detaljside per oppskrift
-- 3 midlertidige oppskrifter i `src/data/recipes.ts`
+- Utforsk med søk, filtre (bunnark) og kuraterte seksjoner
+- 15 oppskrifter i `src/data/recipes.ts` med illustrasjoner
+- Detaljside med ingredienser, steg og praktiske tagger
+- Valgfri konto via **Supabase**: favoritter, mapper og private notater
 
-Ingen backend, innlogging eller database.
+Oppskriftene ligger lokalt i appen. Supabase lagrer kun `recipe_id` per bruker.
 
-## Kom i gang
+## Kom i gang (uten konto)
 
 ```bash
 npm install
@@ -22,16 +20,41 @@ npm run dev
 
 Åpne [http://127.0.0.1:4317](http://127.0.0.1:4317).
 
+Uten Supabase-nøkler kjører appen som før; favoritter/mapper/notater ber deg sette opp konto.
+
+## Supabase (konto, favoritter, mapper, notater)
+
+1. Opprett et prosjekt på [supabase.com](https://supabase.com).
+2. Åpne **SQL Editor**, lim inn og kjør `supabase/schema.sql`.
+3. Under **Project Settings → API**, kopier Project URL og `anon` `public` key.
+4. Lag `.env.local` fra malen:
+
+```bash
+cp .env.example .env.local
+```
+
+Fyll inn:
+
+```env
+VITE_SUPABASE_URL=https://xxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...
+```
+
+5. Start Vite på nytt (`npm run dev`).
+
+I Supabase Auth kan du skru av e-postbekreftelse under Authentication → Providers → Email hvis du vil teste raskt lokalt.
+
 ## Stack
 
 - React + Vite + TypeScript
 - React Router
 - Vanlig CSS med CSS-variabler
+- Supabase Auth + Postgres (RLS) for personlige data
 
 ## Scripts
 
-| Kommando        | Beskrivelse              |
-|-----------------|--------------------------|
-| `npm run dev`   | Utviklingsserver         |
-| `npm run build` | Produksjonsbygg          |
-| `npm run preview` | Forhåndsvis bygg       |
+| Kommando          | Beskrivelse        |
+|-------------------|--------------------|
+| `npm run dev`     | Utviklingsserver   |
+| `npm run build`   | Produksjonsbygg    |
+| `npm run preview` | Forhåndsvis bygg   |

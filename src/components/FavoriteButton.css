@@ -1,0 +1,29 @@
+.favorite-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  border: 1.5px solid color-mix(in srgb, var(--color-teal) 16%, transparent);
+  border-radius: 999px;
+  background: white;
+  color: var(--color-teal);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.favorite-btn--on {
+  color: var(--color-terracotta);
+  border-color: color-mix(in srgb, var(--color-terracotta) 35%, transparent);
+  background: color-mix(in srgb, var(--color-terracotta) 8%, white);
+}
+
+.favorite-btn--compact {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  min-width: 2.4rem;
+  min-height: 2.4rem;
+  background: color-mix(in srgb, white 88%, transparent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--color-teal) 12%, transparent);
+}

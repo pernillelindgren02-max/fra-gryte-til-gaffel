@@ -4,6 +4,7 @@ import {
   type Recipe,
 } from '../data/recipes'
 import { campingStoveLabels, mealTypeLabels } from '../data/filterLabels'
+import { FavoriteButton } from './FavoriteButton'
 import { Tag } from './Tag'
 import './RecipeCard.css'
 
@@ -22,10 +23,15 @@ export function RecipeCard({ recipe, layout = 'default' }: RecipeCardProps) {
     <article
       className={`recipe-card${layout === 'rail' ? ' recipe-card--rail' : ''}`}
     >
+      <div className="recipe-card__media">
+        <Link to={`/oppskrift/${recipe.id}`} className="recipe-card__image-link">
+          <div className="recipe-card__image">
+            <img src={recipe.image} alt="" loading="lazy" />
+          </div>
+        </Link>
+        <FavoriteButton recipeId={recipe.id} compact />
+      </div>
       <Link to={`/oppskrift/${recipe.id}`} className="recipe-card__link">
-        <div className="recipe-card__image">
-          <img src={recipe.image} alt="" loading="lazy" />
-        </div>
         <div className="recipe-card__body">
           <h2 className="recipe-card__title">{recipe.name}</h2>
           <div className="recipe-card__meta">

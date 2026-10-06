@@ -10,6 +10,13 @@
   gap: 1rem;
 }
 
+.recipe-page__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
 .recipe-page__back {
   align-self: flex-start;
   color: var(--color-terracotta);
