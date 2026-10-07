@@ -15,7 +15,7 @@ function TipCardImage({ src, title }: { src: string | null; title: string }) {
   return (
     <img
       src={src}
-      alt=""
+      alt={title}
       onError={() => setFailed(true)}
       loading="lazy"
     />

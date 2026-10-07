@@ -41,7 +41,7 @@ const DESSERT_HINT =
 
 export function isDessert(recipe: Recipe): boolean {
   if (recipe.practicalTags.some((tag) => DESSERT_HINT.test(tag))) return true
-  return DESSERT_HINT.test(`${recipe.name} ${recipe.description}`)
+  return DESSERT_HINT.test(`${recipe.name} ${recipe.shortDescription}`)
 }
 
 export interface CuratedSection {
