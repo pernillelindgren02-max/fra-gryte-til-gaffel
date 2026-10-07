@@ -19,7 +19,7 @@
   background: var(--color-pale-green);
   background-image: none;
   color: var(--color-teal);
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-teal) 10%, transparent);
+  box-shadow: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition:
