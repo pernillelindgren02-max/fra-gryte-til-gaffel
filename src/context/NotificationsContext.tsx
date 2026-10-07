@@ -18,6 +18,14 @@ import {
 } from '../lib/notificationsApi'
 import { translateDbError } from '../lib/supabase'
 
+function errorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message
+  if (err && typeof err === 'object' && 'message' in err) {
+    return String((err as { message: unknown }).message)
+  }
+  return String(err)
+}
+
 type NotificationsContextValue = {
   items: UserNotification[]
   unreadCount: number
@@ -59,9 +67,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       setItems(list)
       setError(null)
     } catch (err) {
-      setError(
-        translateDbError(err instanceof Error ? err.message : String(err)),
-      )
+      setError(translateDbError(errorMessage(err)))
     } finally {
       setLoading(false)
     }
