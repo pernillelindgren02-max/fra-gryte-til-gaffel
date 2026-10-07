@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { RecipePersonalPanel } from '../components/RecipePersonalPanel'
 import { SaveSheet } from '../components/SaveSheet'
@@ -9,15 +9,26 @@ import { useUserData } from '../context/UserDataContext'
 import {
   campingStoveLabels,
   dishwashingLevelLabels,
-  mealTypeLabels,
-  preparationLevelLabels,
   priceLevelLabels,
   storageNeedLabels,
   waterNeedLabels,
 } from '../data/filterLabels'
 import { useRecipes } from '../context/RecipesContext'
-import { formatIngredient, getIngredientCount } from '../data/recipes'
+import type { DishwashingLevel } from '../data/recipes'
+import {
+  MAX_PORTIONS,
+  MIN_PORTIONS,
+  clampPortions,
+  formatScaledIngredient,
+  portionMultiplier,
+} from '../utils/scalePortions'
 import './RecipePage.css'
+
+const dishwashingCompact: Record<DishwashingLevel, string> = {
+  almostNothing: 'Nesten ingen oppvask',
+  little: 'Lite oppvask',
+  extra: 'Litt ekstra oppvask',
+}
 
 export function RecipePage() {
   const { id } = useParams<{ id: string }>()
@@ -28,12 +39,24 @@ export function RecipePage() {
   const { isFavorite, foldersForRecipe } = useUserData()
   const [toast, setToast] = useState<string | null>(null)
   const [saveOpen, setSaveOpen] = useState(false)
+  const baseServings = recipe && recipe.servings > 0 ? recipe.servings : 2
+  const [portions, setPortions] = useState(baseServings)
+
+  useEffect(() => {
+    if (!recipe) return
+    setPortions(clampPortions(recipe.servings > 0 ? recipe.servings : 2))
+  }, [recipe?.id, recipe?.servings])
 
   useEffect(() => {
     if (!toast) return
     const timer = window.setTimeout(() => setToast(null), 2500)
     return () => window.clearTimeout(timer)
   }, [toast])
+
+  const scale = useMemo(
+    () => (recipe ? portionMultiplier(portions, baseServings) : 1),
+    [recipe, portions, baseServings],
+  )
 
   if (loading && !recipe) {
     return (
@@ -54,20 +77,35 @@ export function RecipePage() {
     )
   }
 
-  const ingredientCount = getIngredientCount(recipe)
   const alreadyOnList = hasRecipe(recipe.id)
   const savedSomewhere =
     Boolean(user) &&
     (isFavorite(recipe.id) || foldersForRecipe(recipe.id).length > 0)
 
   function onAddToList() {
-    const result = addRecipe(recipe!.id)
+    const result = addRecipe(recipe!.id, scale)
     if (result === 'added') {
-      setToast('Lagt til i handlelisten.')
+      setToast(
+        scale === 1
+          ? 'Lagt til i handlelisten.'
+          : `Lagt til i handlelisten (${portions} porsjoner).`,
+      )
     } else if (result === 'duplicate') {
       setToast('Oppskriften er allerede i handlelisten.')
     }
   }
+
+  function changePortions(next: number) {
+    setPortions(clampPortions(next))
+  }
+
+  const facts = [
+    `${recipe.timeMinutes} min`,
+    priceLevelLabels[recipe.priceLevel],
+    dishwashingCompact[recipe.dishwashingLevel],
+    campingStoveLabels[recipe.campingStoveSuitability],
+    `${portions} porsjon${portions === 1 ? '' : 'er'}`,
+  ]
 
   return (
     <article className="recipe-page">
@@ -91,15 +129,49 @@ export function RecipePage() {
       <header className="recipe-page__header">
         <h1 className="recipe-page__title">{recipe.name}</h1>
         <p className="recipe-page__description">{recipe.shortDescription}</p>
-        <div className="recipe-page__meta">
-          <span>{recipe.timeMinutes} min</span>
-          <span aria-hidden="true">·</span>
-          <span>{ingredientCount} ingredienser</span>
-          <span aria-hidden="true">·</span>
-          <span>{mealTypeLabels[recipe.mealType]}</span>
-          <span aria-hidden="true">·</span>
-          <span>{preparationLevelLabels[recipe.preparationLevel]}</span>
+
+        <p className="recipe-page__facts" aria-label="Nøkkelinfo">
+          {facts.map((fact, index) => (
+            <span key={fact}>
+              {index > 0 && (
+                <span className="recipe-page__facts-sep" aria-hidden="true">
+                  {' '}
+                  ·{' '}
+                </span>
+              )}
+              <span>{fact}</span>
+            </span>
+          ))}
+        </p>
+
+        <div
+          className="recipe-page__portions"
+          role="group"
+          aria-label="Antall porsjoner"
+        >
+          <button
+            type="button"
+            className="recipe-page__portion-btn"
+            aria-label="Færre porsjoner"
+            disabled={portions <= MIN_PORTIONS}
+            onClick={() => changePortions(portions - 1)}
+          >
+            −
+          </button>
+          <span className="recipe-page__portion-value">
+            {portions} porsjon{portions === 1 ? '' : 'er'}
+          </span>
+          <button
+            type="button"
+            className="recipe-page__portion-btn"
+            aria-label="Flere porsjoner"
+            disabled={portions >= MAX_PORTIONS}
+            onClick={() => changePortions(portions + 1)}
+          >
+            +
+          </button>
         </div>
+
         <button
           type="button"
           className="recipe-page__list-btn"
@@ -116,10 +188,8 @@ export function RecipePage() {
         <h2 className="recipe-page__section-title">Ingredienser</h2>
         <ul className="recipe-page__ingredients">
           {recipe.ingredients.map((ingredient) => (
-            <li
-              key={`${ingredient.name}-${ingredient.unit}-${ingredient.quantity}`}
-            >
-              {formatIngredient(ingredient)}
+            <li key={`${ingredient.name}-${ingredient.unit}`}>
+              {formatScaledIngredient(ingredient, scale)}
             </li>
           ))}
         </ul>

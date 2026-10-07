@@ -621,16 +621,23 @@ export function formatQuantityDisplay(value: number): string {
   const rounded = Math.round(value * 1000) / 1000
   const whole = Math.floor(rounded + 1e-9)
   const frac = Math.round((rounded - whole) * 1000) / 1000
+  const near = (target: number) => Math.abs(frac - target) < 0.015
   const fracLabel =
     frac === 0
       ? ''
-      : frac === 0.25
+      : near(0.25)
         ? '1/4'
-        : frac === 0.5
-          ? '1/2'
-          : frac === 0.75
-            ? '3/4'
-            : String(frac).replace('.', ',')
+        : near(1 / 3)
+          ? '1/3'
+          : near(0.5)
+            ? '1/2'
+            : near(2 / 3)
+              ? '2/3'
+              : near(0.75)
+                ? '3/4'
+                : Number.isInteger(frac * 10)
+                  ? String(frac).replace('.', ',')
+                  : String(Math.round(frac * 100) / 100).replace('.', ',')
   if (!fracLabel) return String(whole)
   if (whole === 0) return fracLabel
   return `${whole} ${fracLabel}`

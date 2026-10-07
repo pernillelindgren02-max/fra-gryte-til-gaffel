@@ -130,6 +130,15 @@ export function ShoppingListPage() {
                       {value}x
                     </button>
                   ))}
+                  {!MULTIPLIERS.includes(
+                    multiplier as (typeof MULTIPLIERS)[number],
+                  ) && (
+                    <span className="shopping__multiplier shopping__multiplier--on">
+                      {Number.isInteger(multiplier)
+                        ? `${multiplier}x`
+                        : `${String(multiplier).replace('.', ',')}x`}
+                    </span>
+                  )}
                 </div>
               </li>
             ))}

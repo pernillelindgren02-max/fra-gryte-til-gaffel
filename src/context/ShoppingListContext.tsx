@@ -16,11 +16,18 @@ import { useRecipes } from './RecipesContext'
 
 const STORAGE_KEY = 'fgtg-shopping-list-v2'
 
-export type ShoppingMultiplier = 1 | 2 | 3 | 4
+/** Scale vs recipe base ingredients (1 = as written). May be fractional e.g. 1.5. */
+export type ShoppingMultiplier = number
 
 export type ShoppingListEntry = {
   recipeId: string
   multiplier: ShoppingMultiplier
+}
+
+function normalizeMultiplier(value: unknown): number {
+  const n = Number(value)
+  if (!Number.isFinite(n) || n <= 0) return 1
+  return Math.round(n * 1000) / 1000
 }
 
 type ShoppingListState = {
@@ -33,7 +40,10 @@ type ShoppingListContextValue = {
   recipeIds: string[]
   checkedKeys: Set<string>
   combined: CombinedIngredient[]
-  addRecipe: (recipeId: string) => 'added' | 'duplicate' | 'missing'
+  addRecipe: (
+    recipeId: string,
+    multiplier?: ShoppingMultiplier,
+  ) => 'added' | 'duplicate' | 'missing'
   removeRecipe: (recipeId: string) => void
   setMultiplier: (recipeId: string, multiplier: ShoppingMultiplier) => void
   clearAll: () => void
@@ -62,14 +72,10 @@ function loadState(): ShoppingListState {
       const parsed = JSON.parse(rawV2) as ShoppingListState
       const entries = Array.isArray(parsed.entries)
         ? parsed.entries
-            .filter(
-              (entry): entry is ShoppingListEntry =>
-                Boolean(entry?.recipeId) &&
-                [1, 2, 3, 4].includes(Number(entry.multiplier)),
-            )
+            .filter((entry) => Boolean(entry?.recipeId))
             .map((entry) => ({
-              recipeId: entry.recipeId,
-              multiplier: Number(entry.multiplier) as ShoppingMultiplier,
+              recipeId: String(entry.recipeId),
+              multiplier: normalizeMultiplier(entry.multiplier),
             }))
         : []
       return {
@@ -131,15 +137,16 @@ export function ShoppingListProvider({ children }: { children: ReactNode }) {
   }, [entries, getById])
 
   const addRecipe = useCallback(
-    (recipeId: string) => {
+    (recipeId: string, multiplier: ShoppingMultiplier = 1) => {
       if (!getById(recipeId)) return 'missing' as const
       if (entries.some((entry) => entry.recipeId === recipeId)) {
         return 'duplicate' as const
       }
+      const scale = normalizeMultiplier(multiplier)
       setEntries((prev) =>
         prev.some((entry) => entry.recipeId === recipeId)
           ? prev
-          : [...prev, { recipeId, multiplier: 1 }],
+          : [...prev, { recipeId, multiplier: scale }],
       )
       return 'added' as const
     },
@@ -152,9 +159,12 @@ export function ShoppingListProvider({ children }: { children: ReactNode }) {
 
   const setMultiplier = useCallback(
     (recipeId: string, multiplier: ShoppingMultiplier) => {
+      const scale = normalizeMultiplier(multiplier)
       setEntries((prev) =>
         prev.map((entry) =>
-          entry.recipeId === recipeId ? { ...entry, multiplier } : entry,
+          entry.recipeId === recipeId
+            ? { ...entry, multiplier: scale }
+            : entry,
         ),
       )
     },

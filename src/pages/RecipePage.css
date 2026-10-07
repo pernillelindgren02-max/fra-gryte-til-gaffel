@@ -92,15 +92,64 @@
   color: color-mix(in srgb, var(--color-teal) 80%, transparent);
 }
 
-.recipe-page__meta {
-  display: flex;
-  flex-wrap: wrap;
+.recipe-page__facts {
+  margin: 0.15rem 0 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--color-teal) 72%, transparent);
+}
+
+.recipe-page__facts-sep {
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.recipe-page__portions {
+  display: inline-flex;
   align-items: center;
-  column-gap: 0.4rem;
-  row-gap: 0.25rem;
-  font-size: 0.92rem;
-  line-height: 1.4;
-  color: color-mix(in srgb, var(--color-teal) 70%, transparent);
+  gap: 0.55rem;
+  margin-top: 0.15rem;
+  padding: 0.25rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-pale-green) 45%, white);
+  width: fit-content;
+}
+
+.recipe-page__portion-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border: none;
+  border-radius: 999px;
+  background: white;
+  color: var(--color-teal);
+  font: inherit;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 140ms ease, opacity 140ms ease;
+}
+
+.recipe-page__portion-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.recipe-page__portion-btn:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.recipe-page__portion-value {
+  min-width: 7.5rem;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-teal);
 }
 
 .recipe-page__save-btn {
