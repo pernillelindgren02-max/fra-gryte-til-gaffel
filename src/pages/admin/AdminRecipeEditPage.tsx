@@ -192,6 +192,10 @@ export function AdminRecipeEditPage() {
       await refreshPublished()
       setMessage('Lagret.')
       if (isNew) navigate(`/admin/oppskrifter/${id}`, { replace: true })
+      if (published && notifyOnPublish) {
+        // Never auto-send — open composer so admin can edit + confirm Send.
+        navigate(`/admin/varsler?recipe=${encodeURIComponent(id)}`)
+      }
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err))
     } finally {
@@ -604,7 +608,8 @@ export function AdminRecipeEditPage() {
             checked={notifyOnPublish}
             onChange={(e) => setNotifyOnPublish(e.target.checked)}
           />
-          Varsle ved publisering (stub — sender ikke ennå)
+          Varsle brukere om denne oppskriften (åpner Varsler-komponisten etter
+          lagring — sender ikke automatisk)
         </label>
 
         <div className="admin-form__footer">

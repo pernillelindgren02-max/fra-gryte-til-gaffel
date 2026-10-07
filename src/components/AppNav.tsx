@@ -7,6 +7,7 @@ import {
 } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useNotifications } from '../context/NotificationsContext'
 import './AppNav.css'
 
 type NavItem = {
@@ -88,6 +89,7 @@ function GryteIcon() {
 
 export function AppNav() {
   const { user, loading } = useAuth()
+  const { unreadCount } = useNotifications()
   const location = useLocation()
   const path = location.pathname
   const [open, setOpen] = useState(false)
@@ -97,6 +99,13 @@ export function AppNav() {
 
   const accountLabel = user ? 'Konto' : 'Logg inn'
   const accountActive = path.startsWith('/konto')
+  const varslerActive = path.startsWith('/varsler')
+  const badgeLabel =
+    unreadCount > 0
+      ? unreadCount > 9
+        ? '9+'
+        : String(unreadCount)
+      : null
 
   useEffect(() => {
     setOpen(false)
@@ -138,10 +147,21 @@ export function AppNav() {
         aria-expanded={open}
         aria-controls={panelId}
         aria-haspopup="dialog"
-        aria-label={open ? 'Lukk meny' : 'Åpne meny'}
+        aria-label={
+          open
+            ? 'Lukk meny'
+            : badgeLabel
+              ? `Åpne meny, ${unreadCount} uleste varsler`
+              : 'Åpne meny'
+        }
         onClick={() => setOpen((value) => !value)}
       >
         <GryteIcon />
+        {badgeLabel && (
+          <span className="app-nav__badge" aria-hidden="true">
+            {badgeLabel}
+          </span>
+        )}
       </button>
 
       {open && (
@@ -189,6 +209,19 @@ export function AppNav() {
                   </Link>
                 )
               })}
+              {user && (
+                <Link
+                  to="/varsler"
+                  className={`app-nav__item${
+                    varslerActive ? ' app-nav__item--active' : ''
+                  }`}
+                  aria-current={varslerActive ? 'page' : undefined}
+                  onClick={() => setOpen(false)}
+                >
+                  Varsler
+                  {badgeLabel ? ` (${badgeLabel})` : ''}
+                </Link>
+              )}
               {!loading && (
                 <Link
                   to="/konto"

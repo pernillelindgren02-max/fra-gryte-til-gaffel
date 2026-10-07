@@ -42,6 +42,9 @@ export function translateDbError(message: string): string {
     lower.includes('schema cache') ||
     (lower.includes('relation') && lower.includes('does not exist'))
   ) {
+    if (lower.includes('notification')) {
+      return 'Varsel-tabellene mangler. Kjør supabase/notifications.sql i Supabase → SQL Editor.'
+    }
     return 'Databasetabellene mangler. Kjør supabase/schema.sql i Supabase → SQL Editor.'
   }
   if (lower.includes('permission denied') || lower.includes('rls')) {

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useNotifications } from '../context/NotificationsContext'
 import { useSiteContent } from '../context/SiteContentContext'
 import { getLastAdminPath } from '../lib/adminPath'
 import './admin/Admin.css'
@@ -10,12 +11,19 @@ export function AuthPage() {
   const { user, configured, loading, isAdmin, signIn, signUp, signOut } =
     useAuth()
   const { getCopy } = useSiteContent()
+  const {
+    notifyNewRecipes,
+    unreadCount,
+    setNotifyNewRecipes,
+    error: notifError,
+  } = useNotifications()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [prefBusy, setPrefBusy] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const from =
@@ -80,7 +88,32 @@ export function AuthPage() {
         </p>
         <div className="auth-page__links">
           <Link to="/favoritter">Mine favoritter og mapper</Link>
+          <Link to="/varsler">
+            Varsler
+            {unreadCount > 0 ? ` (${unreadCount} ulest)` : ''}
+          </Link>
         </div>
+
+        <label className="auth-page__pref">
+          <input
+            type="checkbox"
+            checked={notifyNewRecipes}
+            disabled={prefBusy}
+            onChange={(event) => {
+              void (async () => {
+                setPrefBusy(true)
+                const err = await setNotifyNewRecipes(event.target.checked)
+                setPrefBusy(false)
+                if (err) setError(err)
+              })()
+            }}
+          />
+          <span>Varsler om nye oppskrifter</span>
+        </label>
+        {(error || notifError) && (
+          <p className="auth-page__error">{error ?? notifError}</p>
+        )}
+
         {isAdmin ? (
           <Link to={getLastAdminPath()} className="admin-back-chip">
             Tilbake til admin

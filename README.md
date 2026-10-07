@@ -49,6 +49,8 @@ For oppskriftsadmin (publisering / bilder):
 
 Steg-for-steg: `docs/admin-control-centre-plan.md` i Context-mappen.
 
+For in-app-varsler: kjør `supabase/notifications.sql` (se `docs/varsler-architecture.md`).
+
 I Supabase Auth kan du skru av e-postbekreftelse under Authentication → Providers → Email hvis du vil teste raskt lokalt.
 
 ## Stack

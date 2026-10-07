@@ -112,6 +112,25 @@
   gap: 0.5rem;
 }
 
+.auth-page__pref {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0.25rem 0;
+  padding: 0.85rem 1rem;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--color-pale-green) 45%, white);
+  color: var(--color-teal);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.auth-page__pref input {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--color-terracotta);
+}
+
 .auth-page__links a,
 .auth-page__back {
   color: var(--color-terracotta);

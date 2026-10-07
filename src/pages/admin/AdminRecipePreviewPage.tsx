@@ -110,6 +110,14 @@ export function AdminRecipePreviewPage() {
               Publiser nå
             </button>
           )}
+          {published && (
+            <Link
+              to={`/admin/varsler?recipe=${encodeURIComponent(recipe.id)}`}
+              className="admin__btn admin__btn--ghost"
+            >
+              Varsle brukere…
+            </Link>
+          )}
           <Link
             to={`/oppskrift/${recipe.id}`}
             className="admin__btn admin__btn--ghost"

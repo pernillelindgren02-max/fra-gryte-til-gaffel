@@ -10,6 +10,7 @@ import { AdminGate } from './components/AdminGate'
 import { AppNav } from './components/AppNav'
 import { PathMemory } from './components/PathMemory'
 import { AuthProvider } from './context/AuthContext'
+import { NotificationsProvider } from './context/NotificationsContext'
 import { RecipesProvider } from './context/RecipesContext'
 import { ShoppingListProvider } from './context/ShoppingListContext'
 import { SiteContentProvider } from './context/SiteContentContext'
@@ -26,6 +27,7 @@ import { AdminUsersPage } from './pages/admin/AdminUsersPage'
 import { AdminNotificationsPage } from './pages/admin/AdminNotificationsPage'
 import { AdminSettingsPage } from './pages/admin/AdminSettingsPage'
 import { AuthPage } from './pages/AuthPage'
+import { NotificationsPage } from './pages/NotificationsPage'
 import { ExplorePage } from './pages/ExplorePage'
 import { FavoritesPage } from './pages/FavoritesPage'
 import { PantryPage } from './pages/PantryPage'
@@ -84,6 +86,7 @@ function AppChrome() {
         <Route path="/hjemme" element={<PantryPage />} />
         <Route path="/mapper" element={<Navigate to="/favoritter" replace />} />
         <Route path="/konto" element={<AuthPage />} />
+        <Route path="/varsler" element={<NotificationsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
@@ -96,11 +99,13 @@ export default function App() {
       <SiteContentProvider>
         <RecipesProvider>
           <UserDataProvider>
-            <ShoppingListProvider>
-              <BrowserRouter>
-                <AppChrome />
-              </BrowserRouter>
-            </ShoppingListProvider>
+            <NotificationsProvider>
+              <ShoppingListProvider>
+                <BrowserRouter>
+                  <AppChrome />
+                </BrowserRouter>
+              </ShoppingListProvider>
+            </NotificationsProvider>
           </UserDataProvider>
         </RecipesProvider>
       </SiteContentProvider>
