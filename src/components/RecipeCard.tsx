@@ -1,6 +1,7 @@
 import { usePantry } from '../context/PantryContext'
 import { getIngredientCount, type Recipe } from '../data/recipes'
 import { campingStoveLabels, mealTypeLabels } from '../data/filterLabels'
+import { trackEvent } from '../lib/analytics'
 import {
   formatPantryMatchLabel,
   matchRecipeAgainstPantry,
@@ -14,9 +15,17 @@ import './RecipeCard.css'
 interface RecipeCardProps {
   recipe: Recipe
   layout?: 'default' | 'rail' | 'grid' | 'featured'
+  /** When set (e.g. explore/search), fires explore_recipe_click on open. */
+  analyticsSource?: string | null
+  entrySource?: string | null
 }
 
-export function RecipeCard({ recipe, layout = 'default' }: RecipeCardProps) {
+export function RecipeCard({
+  recipe,
+  layout = 'default',
+  analyticsSource = null,
+  entrySource = null,
+}: RecipeCardProps) {
   const { pantry } = usePantry()
   const ingredientCount = getIngredientCount(recipe)
   const pantryMatch =
@@ -40,6 +49,15 @@ export function RecipeCard({ recipe, layout = 'default' }: RecipeCardProps) {
         <RecipeLink
           recipeId={recipe.id}
           className="recipe-card__image-link"
+          entrySource={entrySource}
+          onClick={() => {
+            if (!analyticsSource) return
+            trackEvent('explore_recipe_click', {
+              recipeId: recipe.id,
+              source: analyticsSource,
+              properties: { via: analyticsSource },
+            })
+          }}
         >
           <div className="recipe-card__image">
             <SafeImage src={recipe.image} alt="" loading="lazy" />
@@ -47,7 +65,19 @@ export function RecipeCard({ recipe, layout = 'default' }: RecipeCardProps) {
         </RecipeLink>
         <FavoriteButton recipeId={recipe.id} compact />
       </div>
-      <RecipeLink recipeId={recipe.id} className="recipe-card__link">
+      <RecipeLink
+        recipeId={recipe.id}
+        className="recipe-card__link"
+        entrySource={entrySource}
+        onClick={() => {
+          if (!analyticsSource) return
+          trackEvent('explore_recipe_click', {
+            recipeId: recipe.id,
+            source: analyticsSource,
+            properties: { via: analyticsSource },
+          })
+        }}
+      >
         <div className="recipe-card__body">
           <h2 className="recipe-card__title">{recipe.name}</h2>
           <div className="recipe-card__meta">

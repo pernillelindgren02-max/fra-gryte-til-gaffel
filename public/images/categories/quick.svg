@@ -1,10 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <!-- Dårlig tid? — clear clock -->
   <circle cx="60" cy="60" r="56" fill="#eef1df"/>
-  <circle cx="60" cy="62" r="32" fill="#fff" stroke="#255957" stroke-width="4"/>
-  <circle cx="60" cy="62" r="3" fill="#c8544f"/>
-  <path d="M60 42v20l14 8" stroke="#255957" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M50 28h20" stroke="#255957" stroke-width="3.5" stroke-linecap="round"/>
-  <path d="M60 28v6" stroke="#255957" stroke-width="3.5" stroke-linecap="round"/>
-  <path d="M84 48l6-6" stroke="#ee7939" stroke-width="3" stroke-linecap="round"/>
-  <circle cx="88" cy="40" r="2" fill="#eacd6a"/>
+  <!-- case -->
+  <circle cx="60" cy="62" r="34" fill="#fff" stroke="#255957" stroke-width="5"/>
+  <!-- crown -->
+  <rect x="52" y="22" width="16" height="8" rx="2" fill="#255957"/>
+  <path d="M60 22v-4" stroke="#255957" stroke-width="4" stroke-linecap="round"/>
+  <!-- tick marks — only 4, bold -->
+  <path d="M60 36v6" stroke="#255957" stroke-width="3" stroke-linecap="round"/>
+  <path d="M60 82v6" stroke="#255957" stroke-width="3" stroke-linecap="round"/>
+  <path d="M36 62h6" stroke="#255957" stroke-width="3" stroke-linecap="round"/>
+  <path d="M78 62h6" stroke="#255957" stroke-width="3" stroke-linecap="round"/>
+  <!-- hands pointing to ~2:00 = quick -->
+  <path d="M60 62V42" stroke="#255957" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M60 62l18 6" stroke="#c8544f" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="60" cy="62" r="4.5" fill="#c8544f"/>
 </svg>

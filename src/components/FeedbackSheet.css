@@ -1,0 +1,146 @@
+.feedback-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: color-mix(in srgb, #1a2e2c 45%, transparent);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.feedback-sheet {
+  width: min(100%, 28rem);
+  max-height: min(88vh, 36rem);
+  overflow: auto;
+  background: #f7f4ef;
+  border-radius: 1.25rem 1.25rem 0 0;
+  padding: 1.25rem 1.25rem 1.75rem;
+  box-shadow: 0 -8px 32px color-mix(in srgb, #255957 18%, transparent);
+  animation: feedback-sheet-up 0.28s ease-out;
+}
+
+@keyframes feedback-sheet-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.feedback-sheet__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.feedback-sheet__title {
+  margin: 0;
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 1.35rem;
+  color: var(--color-teal, #255957);
+}
+
+.feedback-sheet__lead {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+.feedback-sheet__close {
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-teal, #255957);
+  padding: 0.15rem 0.35rem;
+}
+
+.feedback-sheet__label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.feedback-sheet__label select,
+.feedback-sheet__label textarea {
+  font: inherit;
+  font-weight: 400;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--color-teal, #255957) 22%, transparent);
+  background: white;
+  resize: vertical;
+}
+
+.feedback-sheet__error {
+  margin: 0 0 0.65rem;
+  color: #8b2e2e;
+  font-size: 0.88rem;
+}
+
+.feedback-sheet__actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.feedback-sheet__btn {
+  border: none;
+  font: inherit;
+  font-weight: 700;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  background: var(--color-teal, #255957);
+  color: white;
+}
+
+.feedback-sheet__btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.feedback-sheet__btn--ghost {
+  background: transparent;
+  color: var(--color-teal, #255957);
+  border: 1px solid color-mix(in srgb, var(--color-teal, #255957) 25%, transparent);
+}
+
+.feedback-sheet__ok {
+  margin: 0.5rem 0 0;
+  font-weight: 600;
+  color: var(--color-teal, #255957);
+}
+
+@media (min-width: 640px) {
+  .feedback-sheet-backdrop {
+    align-items: center;
+  }
+
+  .feedback-sheet {
+    border-radius: 1.25rem;
+    animation: feedback-sheet-fade 0.22s ease-out;
+  }
+
+  @keyframes feedback-sheet-fade {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}

@@ -18,6 +18,11 @@ type NavItem = {
 const MAIN_ITEMS: NavItem[] = [
   { to: '/', label: 'Utforsk', match: (path) => path === '/' },
   {
+    to: '/tips',
+    label: 'Tips og triks',
+    match: (path) => path.startsWith('/tips'),
+  },
+  {
     to: '/favoritter',
     label: 'Favoritter',
     match: (path) => path.startsWith('/favoritter'),

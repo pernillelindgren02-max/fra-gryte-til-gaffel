@@ -46,6 +46,12 @@ export interface Recipe {
   ingredients: Ingredient[]
   steps: string[]
   practicalTags: string[]
+  /** Optional «Sett stemningen» Spotify mood (admin-curated). */
+  spotifyTitle?: string | null
+  spotifyArtist?: string | null
+  spotifyUrl?: string | null
+  /** Public URL or storage path for optional Spotify Code image. */
+  spotifyCodeImage?: string | null
 }
 
 export interface FilterState {
@@ -496,6 +502,10 @@ export const localRecipes: Recipe[] = [
       'Fordel grøten i skåler og topp med epler og yoghurt.',
     ],
     practicalTags: ['Frokost', '2 porsjoner', 'Primusvennlig'],
+    // Demo mood for local/offline Try Live (hide section when unset).
+    spotifyTitle: 'Sunday Morning',
+    spotifyArtist: 'Maroon 5',
+    spotifyUrl: 'https://open.spotify.com/track/0GO8y8jQB3aJo4Fi7DdlSj',
   },
   {
     id: 'carrot-cake-oats',

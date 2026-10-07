@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { FeedbackSheet } from '../components/FeedbackSheet'
 import { InlineError } from '../components/InlineError'
 import { useAuth } from '../context/AuthContext'
 import { useNotifications } from '../context/NotificationsContext'
+import { useOnboarding } from '../context/OnboardingContext'
 import { useSiteContent } from '../context/SiteContentContext'
 import { useToast } from '../context/ToastContext'
 import { getLastAdminPath } from '../lib/adminPath'
@@ -14,6 +16,7 @@ export function AuthPage() {
   const { user, configured, loading, isAdmin, signIn, signUp, signOut } =
     useAuth()
   const { getCopy } = useSiteContent()
+  const { openReplay } = useOnboarding()
   const {
     notifyNewRecipes,
     setNotifyNewRecipes,
@@ -28,6 +31,7 @@ export function AuthPage() {
   const [info, setInfo] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [prefBusy, setPrefBusy] = useState(false)
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const from =
@@ -84,6 +88,25 @@ export function AuthPage() {
           <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> i <code>.env.local</code>,
           lagre, og start Vite på nytt for å bruke innlogging.
         </p>
+        <button
+          type="button"
+          className="auth-page__link-btn"
+          onClick={() => openReplay()}
+        >
+          Slik fungerer appen
+        </button>
+        <button
+          type="button"
+          className="auth-page__link-btn"
+          onClick={() => setFeedbackOpen(true)}
+        >
+          Gi tilbakemelding
+        </button>
+        <FeedbackSheet
+          open={feedbackOpen}
+          onClose={() => setFeedbackOpen(false)}
+          pagePath="/konto"
+        />
         <Link to="/" className="auth-page__back">
           ← Tilbake til utforsk
         </Link>
@@ -100,7 +123,26 @@ export function AuthPage() {
         </p>
         <div className="auth-page__links">
           <Link to="/favoritter">Mine favoritter og mapper</Link>
+          <button
+            type="button"
+            className="auth-page__link-btn"
+            onClick={() => openReplay()}
+          >
+            Slik fungerer appen
+          </button>
+          <button
+            type="button"
+            className="auth-page__link-btn"
+            onClick={() => setFeedbackOpen(true)}
+          >
+            Gi tilbakemelding
+          </button>
         </div>
+        <FeedbackSheet
+          open={feedbackOpen}
+          onClose={() => setFeedbackOpen(false)}
+          pagePath="/konto"
+        />
 
         <label className="auth-page__pref">
           <input
@@ -216,6 +258,26 @@ export function AuthPage() {
               : 'Opprett konto'}
         </button>
       </form>
+
+      <button
+        type="button"
+        className="auth-page__link-btn auth-page__link-btn--below"
+        onClick={() => openReplay()}
+      >
+        Slik fungerer appen
+      </button>
+      <button
+        type="button"
+        className="auth-page__link-btn auth-page__link-btn--below"
+        onClick={() => setFeedbackOpen(true)}
+      >
+        Gi tilbakemelding
+      </button>
+      <FeedbackSheet
+        open={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+        pagePath="/konto"
+      />
     </div>
   )
 }

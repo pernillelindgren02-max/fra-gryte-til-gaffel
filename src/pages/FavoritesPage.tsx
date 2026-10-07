@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type MouseEvent } from 'react'
+import { useEffect, useState, type FormEvent, type MouseEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { RecipeCard } from '../components/RecipeCard'
 import { EmptyState } from '../components/EmptyState'
@@ -13,6 +13,7 @@ import { useUserData } from '../context/UserDataContext'
 import { useRecipes } from '../context/RecipesContext'
 import { useSiteContent } from '../context/SiteContentContext'
 import type { Recipe } from '../data/recipes'
+import { trackEvent } from '../lib/analytics'
 import './AccountLists.css'
 
 const DEFAULT_FOLDER_KEY = 'favoritter'
@@ -77,8 +78,20 @@ export function FavoritesPage() {
     }
     setMessage(null)
     setNewName('')
+    // Privacy: never send folder name — count only.
+    trackEvent('favorites_folder_create', { source: 'favorites' })
     showToast(label ? `Mappen «${label}» er opprettet.` : 'Mappe opprettet.')
   }
+
+  useEffect(() => {
+    if (!folderKey) return
+    trackEvent('favorites_folder_open', {
+      source: 'favorites',
+      properties: {
+        folder_kind: folderKey === DEFAULT_FOLDER_KEY ? 'default' : 'custom',
+      },
+    })
+  }, [folderKey])
 
   async function onRename(id: string) {
     const err = await renameFolder(id, editName)

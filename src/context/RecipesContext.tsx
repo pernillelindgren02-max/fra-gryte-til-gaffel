@@ -9,12 +9,31 @@ import {
 } from 'react'
 import { localRecipes, type Recipe } from '../data/recipes'
 import { mapRowToRecipe, type RecipeRow } from '../lib/recipeMapper'
+import { hasSpotifyMood } from '../lib/spotifyLink'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import {
   USER_ERRORS,
   logTechError,
   toUserLoadError,
 } from '../lib/userErrors'
+
+/** Dev-only: show local seed mood when cloud row has none (before SQL/admin fill). */
+function withLocalSpotifyDemo(recipes: Recipe[]): Recipe[] {
+  if (!import.meta.env.DEV) return recipes
+  const localById = new Map(localRecipes.map((r) => [r.id, r]))
+  return recipes.map((recipe) => {
+    if (hasSpotifyMood(recipe)) return recipe
+    const local = localById.get(recipe.id)
+    if (!local || !hasSpotifyMood(local)) return recipe
+    return {
+      ...recipe,
+      spotifyTitle: local.spotifyTitle ?? null,
+      spotifyArtist: local.spotifyArtist ?? null,
+      spotifyUrl: local.spotifyUrl ?? null,
+      spotifyCodeImage: local.spotifyCodeImage ?? null,
+    }
+  })
+}
 
 type RecipesContextValue = {
   recipes: Recipe[]
@@ -90,7 +109,7 @@ export function RecipesProvider({ children }: { children: ReactNode }) {
       }
 
       const url = supabaseUrl()
-      const mapped = safeMapRows(rows, url)
+      const mapped = withLocalSpotifyDemo(safeMapRows(rows, url))
       if (mapped.length === 0) {
         setRecipes(localRecipes)
         setSource('local')

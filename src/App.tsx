@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import {
   BrowserRouter,
   Navigate,
@@ -7,13 +8,19 @@ import {
   useParams,
 } from 'react-router-dom'
 import { AdminGate } from './components/AdminGate'
+import { AnalyticsBootstrap } from './components/AnalyticsBootstrap'
 import { AppNav } from './components/AppNav'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { OfflineBanner } from './components/OfflineBanner'
+import { OnboardingFlow } from './components/OnboardingFlow'
 import { PathMemory } from './components/PathMemory'
 import { RouteScroll } from './components/RouteScroll'
 import { AuthProvider } from './context/AuthContext'
 import { NotificationsProvider } from './context/NotificationsContext'
+import {
+  OnboardingProvider,
+  useOnboarding,
+} from './context/OnboardingContext'
 import { PantryProvider } from './context/PantryContext'
 import { RecipesProvider } from './context/RecipesContext'
 import { ShoppingListProvider } from './context/ShoppingListContext'
@@ -26,6 +33,10 @@ import { AdminRecipesPage } from './pages/admin/AdminRecipesPage'
 import { AdminRecipeEditPage } from './pages/admin/AdminRecipeEditPage'
 import { AdminRecipePreviewPage } from './pages/admin/AdminRecipePreviewPage'
 import { AdminExplorePage } from './pages/admin/AdminExplorePage'
+import { AdminOnboardingPage } from './pages/admin/AdminOnboardingPage'
+import { AdminTipsPage } from './pages/admin/AdminTipsPage'
+import { AdminTipEditPage } from './pages/admin/AdminTipEditPage'
+import { AdminInnsiktPage } from './pages/admin/AdminInnsiktPage'
 import { AdminCopyPage } from './pages/admin/AdminCopyPage'
 import { AdminDesignPage } from './pages/admin/AdminDesignPage'
 import { AdminUsersPage } from './pages/admin/AdminUsersPage'
@@ -37,7 +48,23 @@ import { FavoritesPage } from './pages/FavoritesPage'
 import { PantryPage } from './pages/PantryPage'
 import { RecipePage } from './pages/RecipePage'
 import { ShoppingListPage } from './pages/ShoppingListPage'
+import { TipsLandingPage } from './pages/TipsLandingPage'
+import { TipArticlePage } from './pages/TipArticlePage'
 import './App.css'
+
+function OnboardingBootstrap() {
+  const location = useLocation()
+  const { loading, mode, steps, openFirst } = useOnboarding()
+
+  useEffect(() => {
+    if (loading || mode !== null) return
+    if (location.pathname.startsWith('/admin')) return
+    if (steps.length === 0) return
+    openFirst()
+  }, [loading, mode, steps.length, location.pathname, openFirst])
+
+  return null
+}
 
 function AdminRoutes() {
   return (
@@ -65,6 +92,9 @@ function AppChrome() {
     <div className={isAdminRoute ? 'admin-root' : 'app-shell'}>
       <RouteScroll />
       <PathMemory />
+      <AnalyticsBootstrap />
+      <OnboardingBootstrap />
+      <OnboardingFlow />
       {!isAdminRoute && <OfflineBanner />}
       {!isAdminRoute && <AppNav />}
       <Routes>
@@ -78,6 +108,11 @@ function AppChrome() {
             element={<AdminRecipePreviewPage />}
           />
           <Route path="explore" element={<AdminExplorePage />} />
+          <Route path="tips" element={<AdminTipsPage />} />
+          <Route path="tips/new" element={<AdminTipEditPage />} />
+          <Route path="tips/:id" element={<AdminTipEditPage />} />
+          <Route path="onboarding" element={<AdminOnboardingPage />} />
+          <Route path="innsikt" element={<AdminInnsiktPage />} />
           <Route path="tekster" element={<AdminCopyPage />} />
           <Route path="design" element={<AdminDesignPage />} />
           <Route path="brukere" element={<AdminUsersPage />} />
@@ -95,6 +130,8 @@ function AppChrome() {
           path="/recipe/:id"
           element={<LegacyConsumerRecipeRedirect />}
         />
+        <Route path="/tips" element={<TipsLandingPage />} />
+        <Route path="/tips/:slug" element={<TipArticlePage />} />
         <Route path="/favoritter" element={<FavoritesPage />} />
         <Route path="/favoritter/:folderKey" element={<FavoritesPage />} />
         <Route path="/handleliste" element={<ShoppingListPage />} />
@@ -120,7 +157,9 @@ export default function App() {
                   <ShoppingListProvider>
                     <ToastProvider>
                       <BrowserRouter>
-                        <AppChrome />
+                        <OnboardingProvider>
+                          <AppChrome />
+                        </OnboardingProvider>
                       </BrowserRouter>
                     </ToastProvider>
                   </ShoppingListProvider>

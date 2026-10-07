@@ -11,6 +11,7 @@ import { RecipeLink } from '../components/RecipeLink'
 import { usePantry } from '../context/PantryContext'
 import { useRecipes } from '../context/RecipesContext'
 import { useSiteContent } from '../context/SiteContentContext'
+import { trackEvent } from '../lib/analytics'
 import {
   getKnownIngredientNames,
   matchRecipesByPantry,
@@ -66,6 +67,19 @@ export function PantryPage() {
       setDraft('')
       return
     }
+    // Privacy: free-text names never sent. Known vocabulary → ingredient_key only.
+    const knownHit = knownNames.find(
+      (n) => n.trim().toLowerCase() === raw.trim().toLowerCase(),
+    )
+    trackEvent('pantry_item_add', {
+      source: 'pantry',
+      properties: {
+        via: knownHit ? 'known' : 'typed',
+        ...(knownHit
+          ? { ingredient_key: knownHit.trim().toLowerCase().slice(0, 40) }
+          : {}),
+      },
+    })
     setDraft('')
     setMessage(null)
     setSuggestOpen(true)
@@ -196,7 +210,10 @@ export function PantryPage() {
                 <button
                   type="button"
                   aria-label={`Fjern ${item}`}
-                  onClick={() => removeItem(item)}
+                  onClick={() => {
+                    removeItem(item)
+                    trackEvent('pantry_item_remove', { source: 'pantry' })
+                  }}
                 >
                   ×
                 </button>
@@ -245,6 +262,17 @@ export function PantryPage() {
                 <RecipeLink
                   recipeId={recipe.id}
                   className="pantry-card__link"
+                  entrySource="pantry"
+                  onClick={() =>
+                    trackEvent('pantry_match_open', {
+                      recipeId: recipe.id,
+                      source: 'pantry',
+                      properties: {
+                        match_count: matchCount,
+                        missing_count: missing.length,
+                      },
+                    })
+                  }
                 >
                   Åpne oppskrift
                 </RecipeLink>

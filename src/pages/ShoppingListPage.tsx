@@ -9,6 +9,7 @@ import { ClearableSearchInput } from '../components/ClearableSearchInput'
 import { EmptyState } from '../components/EmptyState'
 import { RecipeLink } from '../components/RecipeLink'
 import { useToast } from '../context/ToastContext'
+import { trackEvent } from '../lib/analytics'
 import { searchRecipes } from '../utils/searchRecipes'
 import './ShoppingListPage.css'
 
@@ -46,6 +47,10 @@ export function ShoppingListPage() {
   function onPick(recipeId: string) {
     const result = addRecipe(recipeId)
     if (result === 'added') {
+      trackEvent('recipe_shopping_add', {
+        recipeId,
+        source: 'shopping',
+      })
       showToast('Oppskriften er lagt til i handlelisten.')
       setQuery('')
     } else if (result === 'duplicate') {
@@ -55,6 +60,10 @@ export function ShoppingListPage() {
 
   function onRemoveRecipe(recipeId: string, name: string) {
     removeRecipe(recipeId)
+    trackEvent('shopping_recipe_remove', {
+      recipeId,
+      source: 'shopping',
+    })
     showToast(`Fjernet «${name}» fra handlelisten.`)
   }
 

@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <!-- Få ingredienser — classic broccoli: stem + floret canopy -->
   <circle cx="60" cy="60" r="56" fill="#eef1df"/>
-  <path d="M60 28c-2 8-4 14-4 22h8c0-8-2-14-4-22Z" fill="#859400"/>
-  <path d="M48 52c-10 8-16 20-14 30 8 4 18 2 26-6" fill="#6f9b4a"/>
-  <path d="M72 52c10 8 16 20 14 30-8 4-18 2-26-6" fill="#7aa84f"/>
-  <path d="M60 50c-8 10-10 22-6 32 6 2 12 0 16-6" fill="#8fbc5c"/>
-  <circle cx="52" cy="68" r="3" fill="#d5dba2" opacity=".7"/>
-  <circle cx="70" cy="72" r="2.5" fill="#d5dba2" opacity=".7"/>
+  <!-- thick stem -->
+  <path d="M52 70h16v18c0 6-4 12-8 14-4-2-8-8-8-14V70Z" fill="#6f8200"/>
+  <!-- floret canopy — overlapping circles, readable as broccoli -->
+  <circle cx="40" cy="54" r="18" fill="#859400"/>
+  <circle cx="80" cy="54" r="18" fill="#7d9200"/>
+  <circle cx="60" cy="38" r="20" fill="#95a82a"/>
+  <circle cx="50" cy="58" r="15" fill="#859400"/>
+  <circle cx="70" cy="58" r="15" fill="#8a9e10"/>
+  <!-- one soft highlight -->
+  <circle cx="54" cy="34" r="6" fill="#d5dba2" opacity=".4"/>
 </svg>

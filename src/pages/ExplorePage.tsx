@@ -1,5 +1,10 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { ClearableSearchInput } from '../components/ClearableSearchInput'
+import {
+  searchQueryBucket,
+  trackEvent,
+  validatedSearchTerm,
+} from '../lib/analytics'
 import { EmptyState } from '../components/EmptyState'
 import { FilterSheet } from '../components/FilterSheet'
 import { InlineError } from '../components/InlineError'
@@ -245,6 +250,10 @@ export function ExplorePage() {
   function applyFilters() {
     setFilters(draftFilters)
     setFilterSheetOpen(false)
+    trackEvent('explore_filter_apply', {
+      source: 'explore',
+      properties: { active_count: countActiveFilters(draftFilters) },
+    })
   }
 
   function clearAllFilters() {
@@ -262,7 +271,53 @@ export function ExplorePage() {
     setFilters(emptyFilters)
     setDraftFilters(emptyFilters)
     window.scrollTo(0, 0)
+    trackEvent('explore_category_open', {
+      source: 'explore',
+      properties: { category_id: id },
+    })
   }
+
+  const knownSearchTerms = useMemo(() => {
+    const names = recipes.map((r) => r.name)
+    const cats = EXPLORE_CATEGORIES.flatMap((c) => [c.id, c.label])
+    return [...names, ...cats]
+  }, [recipes])
+
+  const exploreCardSource = hasSearch
+    ? 'search'
+    : categoryId
+      ? 'category'
+      : 'explore'
+
+  // Debounced search — length bucket + optional validated term (known vocab only).
+  useEffect(() => {
+    const q = searchQuery.trim()
+    if (!q) return
+    const timer = window.setTimeout(() => {
+      const resultCount = searchRecipes(filterRecipes(recipes, filters), q)
+        .length
+      const validated = validatedSearchTerm(q, knownSearchTerms)
+      trackEvent('explore_search', {
+        source: 'explore',
+        properties: {
+          query_bucket: searchQueryBucket(q),
+          q_len: Math.min(q.length, 64),
+          has_query: '1',
+          ...(validated ? { validated_term: validated } : {}),
+          zero_results: resultCount === 0 ? 1 : 0,
+          result_bucket:
+            resultCount === 0
+              ? '0'
+              : resultCount <= 3
+                ? '1-3'
+                : resultCount <= 10
+                  ? '4-10'
+                  : '11+',
+        },
+      })
+    }, 700)
+    return () => window.clearTimeout(timer)
+  }, [searchQuery, recipes, filters, knownSearchTerms])
 
   function clearCategory() {
     setCategoryId(null)
@@ -431,7 +486,12 @@ export function ExplorePage() {
             <ul className="explore-feed">
               {categoryRecipes.map((recipe) => (
                 <li key={recipe.id}>
-                  <RecipeCard recipe={recipe} layout="grid" />
+                  <RecipeCard
+                    recipe={recipe}
+                    layout="grid"
+                    analyticsSource={exploreCardSource}
+                    entrySource={exploreCardSource}
+                  />
                 </li>
               ))}
             </ul>
@@ -475,7 +535,12 @@ export function ExplorePage() {
             <ul className="explore-feed">
               {matchingRecipes.map((recipe) => (
                 <li key={recipe.id}>
-                  <RecipeCard recipe={recipe} layout="grid" />
+                  <RecipeCard
+                    recipe={recipe}
+                    layout="grid"
+                    analyticsSource={exploreCardSource}
+                    entrySource={exploreCardSource}
+                  />
                 </li>
               ))}
             </ul>
@@ -492,13 +557,23 @@ export function ExplorePage() {
                 >
                   <h2 className="explore-section__title">{block.title}</h2>
                   <div className="explore-featured">
-                    <RecipeCard recipe={block.recipe} layout="featured" />
+                    <RecipeCard
+                      recipe={block.recipe}
+                      layout="featured"
+                      analyticsSource="explore"
+                      entrySource="explore"
+                    />
                   </div>
                   {block.rest.length > 0 && (
                     <ul className="explore-feed explore-feed--after-feature">
                       {block.rest.map((recipe) => (
                         <li key={`${block.id}-${recipe.id}`}>
-                          <RecipeCard recipe={recipe} layout="grid" />
+                          <RecipeCard
+                            recipe={recipe}
+                            layout="grid"
+                            analyticsSource="explore"
+                            entrySource="explore"
+                          />
                         </li>
                       ))}
                     </ul>
@@ -519,7 +594,12 @@ export function ExplorePage() {
                   <ul className="explore-feed">
                     {block.recipes.map((recipe) => (
                       <li key={`${block.id}-${recipe.id}`}>
-                        <RecipeCard recipe={recipe} layout="grid" />
+                        <RecipeCard
+                          recipe={recipe}
+                          layout="grid"
+                          analyticsSource="explore"
+                          entrySource="explore"
+                        />
                       </li>
                     ))}
                   </ul>
@@ -536,7 +616,12 @@ export function ExplorePage() {
                 <ul className="explore-feed">
                   {block.recipes.map((recipe) => (
                     <li key={`${block.id}-${recipe.id}`}>
-                      <RecipeCard recipe={recipe} layout="grid" />
+                      <RecipeCard
+                        recipe={recipe}
+                        layout="grid"
+                        analyticsSource="explore"
+                        entrySource="explore"
+                      />
                     </li>
                   ))}
                 </ul>

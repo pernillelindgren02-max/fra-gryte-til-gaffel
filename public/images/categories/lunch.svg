@@ -1,8 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <!-- Lunsj — traditional sliced-bread sandwich (not a bun) -->
   <circle cx="60" cy="60" r="56" fill="#eef1df"/>
-  <path d="M28 58c0-6 8-12 32-12s32 6 32 12v8c0 6-8 14-32 14S28 72 28 66v-8Z" fill="#eacd6a" stroke="#255957" stroke-width="2.5"/>
-  <path d="M32 58c2 4 14 8 28 8s26-4 28-8" stroke="#c8544f" stroke-width="4" stroke-linecap="round"/>
-  <path d="M36 52c4-2 20-4 28-2" stroke="#6f9b4a" stroke-width="3" stroke-linecap="round"/>
-  <path d="M34 64h52" stroke="#255957" stroke-width="1.5" opacity=".35"/>
-  <circle cx="88" cy="44" r="5" fill="#ee7939"/>
+  <!-- bottom bread slice — rectangular with soft corners -->
+  <rect x="24" y="66" width="72" height="22" rx="5" fill="#e8c56a" stroke="#255957" stroke-width="3"/>
+  <path d="M28 70h64" stroke="#f0d878" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+  <!-- fillings -->
+  <rect x="28" y="58" width="64" height="10" rx="3" fill="#c8544f"/>
+  <path d="M30 54c6-4 14-2 20 0 8 2 14-2 22 0 6 2 12 0 18-2v8H30v-6Z" fill="#859400"/>
+  <rect x="30" y="48" width="60" height="7" rx="2.5" fill="#eacd6a"/>
+  <!-- top bread slice -->
+  <rect x="24" y="32" width="72" height="20" rx="5" fill="#e8c56a" stroke="#255957" stroke-width="3"/>
+  <path d="M30 38h20M58 36h18M84 40h6" stroke="#255957" stroke-width="2" stroke-linecap="round" opacity=".28"/>
 </svg>

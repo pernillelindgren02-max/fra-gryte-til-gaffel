@@ -3,6 +3,7 @@ import type { MouseEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useUserData } from '../context/UserDataContext'
+import { trackEvent } from '../lib/analytics'
 import { recipePath } from '../lib/recipeLinks'
 import { USER_ERRORS } from '../lib/userErrors'
 import './FavoriteButton.css'
@@ -36,6 +37,10 @@ export function FavoriteButton({ recipeId, compact = false }: FavoriteButtonProp
       showToast(USER_ERRORS.save)
       return
     }
+    trackEvent(wasLiked ? 'recipe_favorite_remove' : 'recipe_favorite_add', {
+      recipeId,
+      source: 'favorite_button',
+    })
     showToast(
       wasLiked ? 'Fjernet fra favoritter.' : 'Lagret i favoritter.',
     )

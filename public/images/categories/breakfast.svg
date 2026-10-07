@@ -1,11 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <!-- Frokost — simple soft egg + bacon -->
   <circle cx="60" cy="60" r="56" fill="#eef1df"/>
-  <ellipse cx="60" cy="72" rx="30" ry="18" fill="#fff" stroke="#255957" stroke-width="3"/>
-  <ellipse cx="60" cy="68" rx="22" ry="12" fill="#eacd6a"/>
-  <ellipse cx="60" cy="66" rx="16" ry="8" fill="#f0d878"/>
-  <circle cx="52" cy="64" r="3" fill="#c8544f"/>
-  <circle cx="64" cy="62" r="2.5" fill="#ee7939"/>
-  <path d="M78 48c8-2 14 2 16 10" stroke="#255957" stroke-width="2.5" stroke-linecap="round"/>
-  <path d="M44 44c0-8 8-14 16-12" stroke="#859400" stroke-width="3" stroke-linecap="round"/>
-  <ellipse cx="48" cy="38" rx="5" ry="3" fill="#6f9b4a"/>
+  <!-- soft plate hint -->
+  <ellipse cx="62" cy="68" rx="36" ry="28" fill="#fff" stroke="#255957" stroke-width="3"/>
+  <!-- bacon strips — wavy, clear fat streak -->
+  <path d="M28 48c12-10 28-8 34 6" stroke="#c8544f" stroke-width="10" stroke-linecap="round"/>
+  <path d="M30 50c10-8 24-6 30 4" stroke="#f0a090" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M26 62c14-10 30-8 36 6" stroke="#ee7939" stroke-width="9" stroke-linecap="round"/>
+  <path d="M28 63c12-8 26-6 32 4" stroke="#f5c4a0" stroke-width="3" stroke-linecap="round"/>
+  <!-- fried egg — soft irregular white + clear yolk -->
+  <path d="M58 50c-6-10 0-20 12-22 10-1 22 6 22 18 1 10-6 20-16 22-12 2-20-6-18-18Z" fill="#fff" stroke="#255957" stroke-width="2.5"/>
+  <circle cx="74" cy="60" r="11" fill="#eacd6a"/>
+  <circle cx="77" cy="57" r="3" fill="#f5e08a" opacity=".8"/>
 </svg>

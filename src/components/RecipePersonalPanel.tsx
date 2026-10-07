@@ -52,6 +52,14 @@ export function RecipePersonalPanel({ recipeId }: RecipePersonalPanelProps) {
       showToast(err)
       return
     }
+    // Privacy: never send note text — count only.
+    void import('../lib/analytics').then(({ trackEvent }) =>
+      trackEvent('note_save', {
+        recipeId,
+        source: 'recipe',
+        properties: { char_bucket: draft.trim().length > 120 ? 'long' : 'short' },
+      }),
+    )
     setEditing(false)
     setMessage(null)
     showToast('Kommentar lagret.')

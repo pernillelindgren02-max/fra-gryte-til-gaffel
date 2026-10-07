@@ -3,8 +3,10 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { RecipePersonalPanel } from '../components/RecipePersonalPanel'
 import { SaveSheet } from '../components/SaveSheet'
 import { SafeImage } from '../components/SafeImage'
+import { SettStemningen } from '../components/SettStemningen'
 import { RecipeDetailSkeleton } from '../components/skeleton'
 import { Tag } from '../components/Tag'
+import { trackEvent } from '../lib/analytics'
 import { getLastAppPath } from '../lib/adminPath'
 import { backLabelForPath, recipePath } from '../lib/recipeLinks'
 import { useAuth } from '../context/AuthContext'
@@ -46,7 +48,12 @@ export function RecipePage() {
   const { isFavorite, foldersForRecipe } = useUserData()
   const navigate = useNavigate()
   const [saveOpen, setSaveOpen] = useState(false)
-  const fromState = (location.state as { from?: string } | null)?.from
+  const locState = location.state as {
+    from?: string
+    entry?: string
+  } | null
+  const fromState = locState?.from
+  const entryHint = locState?.entry
   const backTo =
     fromState && !fromState.startsWith(recipePath(id ?? ''))
       ? fromState
@@ -60,6 +67,34 @@ export function RecipePage() {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [id])
+
+  useEffect(() => {
+    if (!recipe) return
+    const entry =
+      entryHint &&
+      ['search', 'explore', 'category', 'pantry', 'tips', 'favorites'].includes(
+        entryHint,
+      )
+        ? entryHint
+        : fromState?.startsWith('/')
+          ? fromState.startsWith('/tips')
+            ? 'tips'
+            : fromState === '/hjemme'
+              ? 'pantry'
+              : fromState === '/' || fromState.startsWith('/?')
+                ? 'explore'
+                : fromState.startsWith('/favoritter')
+                  ? 'favorites'
+                  : 'app'
+          : typeof document !== 'undefined' && document.referrer
+            ? 'deep_link'
+            : 'direct'
+    trackEvent('recipe_view', {
+      recipeId: recipe.id,
+      source: entry,
+      properties: entry === 'search' ? { via: 'search' } : undefined,
+    })
+  }, [recipe?.id])
 
   function goBack() {
     // Prefer history back so the previous screen can restore its scroll
@@ -86,7 +121,14 @@ export function RecipePage() {
     showToast(
       `Porsjoner: ${portions} porsjon${portions === 1 ? '' : 'er'}.`,
     )
-  }, [portions, showToast])
+    if (recipe) {
+      trackEvent('recipe_portions_change', {
+        recipeId: recipe.id,
+        source: 'recipe',
+        properties: { portions },
+      })
+    }
+  }, [portions, showToast, recipe?.id])
 
   const scale = useMemo(
     () => (recipe ? portionMultiplier(portions, baseServings) : 1),
@@ -127,6 +169,11 @@ export function RecipePage() {
     }
     const result = addRecipe(recipe!.id, scale)
     if (result === 'added') {
+      trackEvent('recipe_shopping_add', {
+        recipeId: recipe!.id,
+        source: 'recipe',
+        properties: { portions },
+      })
       showToast(
         scale === 1
           ? 'Lagt til i handlelisten.'
@@ -223,6 +270,8 @@ export function RecipePage() {
       </header>
 
       <RecipePersonalPanel recipeId={recipe.id} />
+
+      <SettStemningen recipe={recipe} />
 
       <section className="recipe-page__section">
         <h2 className="recipe-page__section-title">Ingredienser</h2>

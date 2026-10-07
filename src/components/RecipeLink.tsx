@@ -8,6 +8,8 @@ type RecipeLinkProps = {
   className?: string
   children: ReactNode
   onClick?: () => void
+  /** Optional entry source for analytics (search / explore / pantry…). */
+  entrySource?: string | null
 }
 
 /** Internal recipe link that remembers the source route for Back. */
@@ -16,6 +18,7 @@ export function RecipeLink({
   className,
   children,
   onClick,
+  entrySource = null,
 }: RecipeLinkProps) {
   const location = useLocation()
   const from = `${location.pathname}${location.search}`
@@ -23,7 +26,7 @@ export function RecipeLink({
   return (
     <Link
       to={recipePath(recipeId)}
-      state={{ from }}
+      state={{ from, entry: entrySource ?? undefined }}
       className={className}
       onClick={() => {
         // Lock Explore scroll before the recipe page forces scroll-to-top.

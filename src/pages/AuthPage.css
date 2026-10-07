@@ -139,14 +139,33 @@
 }
 
 .auth-page__links a,
-.auth-page__back {
+.auth-page__back,
+.auth-page__link-btn {
   color: var(--color-terracotta);
   font-weight: 600;
   text-decoration: none;
 }
 
+.auth-page__link-btn {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 2.5rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.auth-page__link-btn--below {
+  margin-top: 0.35rem;
+}
+
 .auth-page__links a:hover,
-.auth-page__back:hover {
+.auth-page__back:hover,
+.auth-page__link-btn:hover {
   text-decoration: underline;
   text-underline-offset: 3px;
 }

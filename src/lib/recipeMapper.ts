@@ -30,6 +30,10 @@ export type RecipeRow = {
   image_path: string | null
   is_published: boolean
   notify_on_publish?: boolean
+  spotify_title?: string | null
+  spotify_artist?: string | null
+  spotify_url?: string | null
+  spotify_code_image?: string | null
   created_at?: string
   updated_at?: string
 }
@@ -54,7 +58,14 @@ function asStringArray(value: unknown): string[] {
   return value.map((item) => String(item))
 }
 
+function asOptionalText(value: unknown): string | null {
+  if (value == null) return null
+  const text = String(value).trim()
+  return text.length > 0 ? text : null
+}
+
 export function mapRowToRecipe(row: RecipeRow, supabaseUrl?: string): Recipe {
+  const codePath = asOptionalText(row.spotify_code_image)
   return {
     id: row.id,
     name: row.name,
@@ -73,6 +84,12 @@ export function mapRowToRecipe(row: RecipeRow, supabaseUrl?: string): Recipe {
     ingredients: asIngredients(row.ingredients),
     steps: asStringArray(row.steps),
     practicalTags: asStringArray(row.practical_tags),
+    spotifyTitle: asOptionalText(row.spotify_title),
+    spotifyArtist: asOptionalText(row.spotify_artist),
+    spotifyUrl: asOptionalText(row.spotify_url),
+    spotifyCodeImage: codePath
+      ? recipeImageUrl(codePath, supabaseUrl)
+      : null,
   }
 }
 
@@ -111,5 +128,18 @@ export function mapRecipeToRow(
     image_path: imagePath,
     is_published: extras.is_published,
     notify_on_publish: extras.notify_on_publish ?? false,
+    spotify_title: recipe.spotifyTitle?.trim() || null,
+    spotify_artist: recipe.spotifyArtist?.trim() || null,
+    spotify_url: recipe.spotifyUrl?.trim() || null,
+    spotify_code_image: (() => {
+      const raw = recipe.spotifyCodeImage?.trim()
+      if (!raw) return null
+      if (raw.includes('/recipe-images/')) {
+        return raw.split('/recipe-images/').pop() ?? null
+      }
+      if (raw.startsWith('/images/')) return raw.replace(/^\/images\/recipes\//, '')
+      if (raw.startsWith('http')) return raw
+      return raw
+    })(),
   }
 }

@@ -76,6 +76,12 @@ export function SaveSheet({ open, recipeId, onClose }: SaveSheetProps) {
       showToast(USER_ERRORS.save)
       return
     }
+    void import('../lib/analytics').then(({ trackEvent }) =>
+      trackEvent(wasLiked ? 'recipe_favorite_remove' : 'recipe_favorite_add', {
+        recipeId,
+        source: 'save_sheet',
+      }),
+    )
     showToast(
       wasLiked ? 'Fjernet fra favoritter.' : 'Lagret i favoritter.',
     )

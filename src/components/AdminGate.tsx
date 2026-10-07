@@ -9,6 +9,15 @@ import { useAuth } from '../context/AuthContext'
 export function AdminGate({ children }: { children: ReactNode }) {
   const { configured, loading, user, isAdmin, adminChecked } = useAuth()
 
+  // DEV-only Try Live preview (sessionStorage). Never available in production builds.
+  if (
+    import.meta.env.DEV &&
+    typeof sessionStorage !== 'undefined' &&
+    sessionStorage.getItem('fgtg-dev-innsikt') === '1'
+  ) {
+    return <>{children}</>
+  }
+
   if (!configured) {
     return <Navigate to="/" replace />
   }

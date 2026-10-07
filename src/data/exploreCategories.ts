@@ -46,7 +46,7 @@ export const EXPLORE_CATEGORIES: ExploreCategoryDef[] = [
     id: 'breakfast',
     label: 'Frokost',
     image: '/images/categories/breakfast.svg',
-    imageAlt: 'Frokostskål',
+    imageAlt: 'Stekt egg og bacon',
   },
   {
     id: 'lunch',

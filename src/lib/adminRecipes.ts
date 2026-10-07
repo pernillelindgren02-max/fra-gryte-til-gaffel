@@ -80,6 +80,22 @@ export async function uploadRecipeImage(
   return path
 }
 
+/** Spotify Code / scannable image — stored beside the main recipe photo. */
+export async function uploadSpotifyCodeImage(
+  recipeId: string,
+  file: File,
+): Promise<string> {
+  if (!supabase) throw new Error('Supabase er ikke konfigurert.')
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'png'
+  const safeExt = ext === 'jpeg' ? 'jpg' : ext
+  const path = `${recipeId}-spotify-code.${safeExt}`
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, file, { upsert: true, contentType: file.type })
+  if (error) throw error
+  return path
+}
+
 export async function removeRecipeImage(path: string): Promise<void> {
   if (!supabase || !path) return
   await supabase.storage.from(BUCKET).remove([path])

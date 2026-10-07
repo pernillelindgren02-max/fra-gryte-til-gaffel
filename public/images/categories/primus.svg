@@ -1,10 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <!-- Perfekt til primus — bold camping stove silhouette -->
   <circle cx="60" cy="60" r="56" fill="#eef1df"/>
-  <ellipse cx="60" cy="92" rx="28" ry="6" fill="#d5dba2"/>
-  <path d="M38 70h44c2 0 4 2 4 4v4H34v-4c0-2 2-4 4-4Z" fill="#255957"/>
-  <path d="M42 48h36c3 0 5 2 5 5v17H37V53c0-3 2-5 5-5Z" fill="#255957"/>
-  <path d="M48 48c0-10 6-18 12-18s12 8 12 18" stroke="#c8544f" stroke-width="3" stroke-linecap="round"/>
-  <path d="M55 30c2-6 6-10 10-12" stroke="#ee7939" stroke-width="2.5" stroke-linecap="round"/>
-  <path d="M62 28c1-5 4-8 8-10" stroke="#eacd6a" stroke-width="2.5" stroke-linecap="round"/>
-  <circle cx="60" cy="58" r="4" fill="#eacd6a"/>
+  <!-- three legs -->
+  <path d="M36 90 L48 68" stroke="#255957" stroke-width="5" stroke-linecap="round"/>
+  <path d="M84 90 L72 68" stroke="#255957" stroke-width="5" stroke-linecap="round"/>
+  <path d="M60 94 L60 72" stroke="#255957" stroke-width="5" stroke-linecap="round"/>
+  <!-- round burner base -->
+  <ellipse cx="60" cy="68" rx="28" ry="10" fill="#255957"/>
+  <!-- pot -->
+  <rect x="38" y="42" width="44" height="28" rx="8" fill="#255957"/>
+  <rect x="34" y="38" width="52" height="10" rx="4" fill="#1e4a48"/>
+  <!-- handle -->
+  <path d="M48 38c0-16 8-24 12-24s12 8 12 24" stroke="#c8544f" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <!-- single clear flame above rim -->
+  <ellipse cx="60" cy="32" rx="5" ry="9" fill="#ee7939"/>
+  <ellipse cx="60" cy="30" rx="2.5" ry="5" fill="#eacd6a"/>
+  <!-- control knob -->
+  <circle cx="60" cy="56" r="6" fill="#eacd6a"/>
 </svg>

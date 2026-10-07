@@ -7,6 +7,7 @@ import {
   slugifyId,
   supabasePublicUrl,
   uploadRecipeImage,
+  uploadSpotifyCodeImage,
   upsertRecipeRow,
 } from '../../lib/adminRecipes'
 import { mapRecipeToRow, mapRowToRecipe } from '../../lib/recipeMapper'
@@ -54,6 +55,7 @@ export function AdminRecipeEditPage() {
   const { refresh: refreshPublished } = useRecipes()
   const [draft, setDraft] = useState<Recipe>(emptyDraftRecipe())
   const [imagePath, setImagePath] = useState<string | null>(null)
+  const [spotifyCodePath, setSpotifyCodePath] = useState<string | null>(null)
   const [published, setPublishedFlag] = useState(false)
   const [notifyOnPublish, setNotifyOnPublish] = useState(false)
   const [tagsText, setTagsText] = useState('')
@@ -77,6 +79,7 @@ export function AdminRecipeEditPage() {
         const recipe = mapRowToRecipe(row, supabasePublicUrl())
         setDraft(recipe)
         setImagePath(row.image_path)
+        setSpotifyCodePath(row.spotify_code_image ?? null)
         setPublishedFlag(row.is_published)
         setNotifyOnPublish(Boolean(row.notify_on_publish))
         setTagsText(recipe.practicalTags.join(', '))
@@ -153,6 +156,42 @@ export function AdminRecipeEditPage() {
     }
   }
 
+  async function onUploadSpotifyCode(file: File | null) {
+    if (!file) return
+    const id = draft.id.trim() || slugifyId(draft.name)
+    if (!id) {
+      setMessage('Gi oppskriften et id/navn før bildeopplasting.')
+      return
+    }
+    setSaving(true)
+    try {
+      const path = await uploadSpotifyCodeImage(id, file)
+      setSpotifyCodePath(path)
+      setDraft((prev) => ({
+        ...prev,
+        spotifyCodeImage: recipeImageUrl(path, supabasePublicUrl()),
+      }))
+      setMessage('Spotify-kode lastet opp.')
+    } catch (err) {
+      setMessage(toUserSaveError(err, 'admin'))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function onClearSpotifyCode() {
+    setSaving(true)
+    try {
+      if (spotifyCodePath) await removeRecipeImage(spotifyCodePath)
+      setSpotifyCodePath(null)
+      setDraft((prev) => ({ ...prev, spotifyCodeImage: null }))
+    } catch (err) {
+      setMessage(toUserSaveError(err, 'admin'))
+    } finally {
+      setSaving(false)
+    }
+  }
+
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
     const id = (draft.id.trim() || slugifyId(draft.name)).trim()
@@ -181,6 +220,12 @@ export function AdminRecipeEditPage() {
       ingredients: draft.ingredients.filter((i) => i.name.trim()),
       steps: draft.steps.map((s) => s.trim()).filter(Boolean),
       practicalTags,
+      spotifyTitle: draft.spotifyTitle?.trim() || null,
+      spotifyArtist: draft.spotifyArtist?.trim() || null,
+      spotifyUrl: draft.spotifyUrl?.trim() || null,
+      spotifyCodeImage: spotifyCodePath
+        ? recipeImageUrl(spotifyCodePath, supabasePublicUrl())
+        : draft.spotifyCodeImage?.trim() || null,
     }
     setSaving(true)
     try {
@@ -189,6 +234,10 @@ export function AdminRecipeEditPage() {
         is_published: published,
         notify_on_publish: notifyOnPublish,
       })
+      // Prefer stored storage path for code image when available.
+      if (spotifyCodePath) {
+        row.spotify_code_image = spotifyCodePath
+      }
       await upsertRecipeRow(row)
       await refreshPublished()
       setMessage('Lagret.')
@@ -412,6 +461,62 @@ export function AdminRecipeEditPage() {
           >
             Fjern bilde
           </button>
+        </fieldset>
+
+        <fieldset className="admin-form__block">
+          <legend>Sett stemningen (Spotify)</legend>
+          <p className="admin__muted">
+            Valgfritt. Vises på oppskriftssiden hvis minst ett felt er fylt.
+            Bruk en åpen Spotify-lenke (open.spotify.com) eller spotify:-URI.
+          </p>
+          <label className="admin-form__field">
+            <span>Sang-tittel</span>
+            <input
+              value={draft.spotifyTitle ?? ''}
+              onChange={(e) => updateField('spotifyTitle', e.target.value)}
+              placeholder="F.eks. Sunday Morning"
+            />
+          </label>
+          <label className="admin-form__field">
+            <span>Artist</span>
+            <input
+              value={draft.spotifyArtist ?? ''}
+              onChange={(e) => updateField('spotifyArtist', e.target.value)}
+              placeholder="F.eks. Maroon 5"
+            />
+          </label>
+          <label className="admin-form__field">
+            <span>Spotify-lenke (track URL)</span>
+            <input
+              type="url"
+              value={draft.spotifyUrl ?? ''}
+              onChange={(e) => updateField('spotifyUrl', e.target.value)}
+              placeholder="https://open.spotify.com/track/…"
+            />
+          </label>
+          <label className="admin-form__field">
+            <span>Spotify Code-bilde (valgfritt)</span>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) =>
+                void onUploadSpotifyCode(e.target.files?.[0] ?? null)
+              }
+            />
+          </label>
+          {draft.spotifyCodeImage ? (
+            <div className="admin-form__spotify-code">
+              <img src={draft.spotifyCodeImage} alt="" />
+              <button
+                type="button"
+                className="admin__btn admin__btn--ghost"
+                onClick={() => void onClearSpotifyCode()}
+                disabled={saving}
+              >
+                Fjern Spotify-kode
+              </button>
+            </div>
+          ) : null}
         </fieldset>
 
         <fieldset className="admin-form__block">

@@ -2,9 +2,11 @@ import { useEffect, useLayoutEffect, useRef } from 'react'
 import { useLocation, useNavigationType } from 'react-router-dom'
 import { freezeExploreScroll } from '../lib/exploreSession'
 
-function isRecipeDetailPath(pathname: string): boolean {
+function isDetailPath(pathname: string): boolean {
   return (
-    pathname.startsWith('/oppskrift/') || pathname.startsWith('/recipe/')
+    pathname.startsWith('/oppskrift/') ||
+    pathname.startsWith('/recipe/') ||
+    /^\/tips\/[^/]+$/.test(pathname)
   )
 }
 
@@ -38,7 +40,7 @@ export function RouteScroll() {
     const prev = prevRef.current
     const prevY = positions.current[prev.key]
 
-    if (isRecipeDetailPath(location.pathname)) {
+    if (isDetailPath(location.pathname)) {
       // Preserve Explore scroll before we force the window to top.
       if (prev.pathname === '/' && typeof prevY === 'number' && prevY > 0) {
         freezeExploreScroll(prevY)

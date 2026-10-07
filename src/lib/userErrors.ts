@@ -40,6 +40,20 @@ export function extractTechMessage(err: unknown): string {
 export function logTechError(scope: string, err: unknown): void {
   const detail = extractTechMessage(err)
   console.warn(`[${scope}]`, detail || err)
+  // Product analytics — metadata only, never full stack dumps in properties.
+  try {
+    void import('./analytics').then(({ trackEvent }) => {
+      trackEvent('tech_client_error', {
+        source: 'client',
+        properties: {
+          scope: scope.slice(0, 40),
+          kind: detail.slice(0, 60) || 'unknown',
+        },
+      })
+    })
+  } catch {
+    /* never block */
+  }
 }
 
 export function isNetworkError(err?: unknown): boolean {
