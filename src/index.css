@@ -44,18 +44,7 @@ body,
 
 body {
   margin: 0;
-  background:
-    radial-gradient(
-      ellipse 80% 50% at 10% -10%,
-      color-mix(in srgb, var(--color-soft-yellow) 35%, transparent),
-      transparent 55%
-    ),
-    radial-gradient(
-      ellipse 70% 45% at 100% 0%,
-      color-mix(in srgb, var(--color-pale-green) 40%, transparent),
-      transparent 50%
-    ),
-    var(--color-bg);
+  background: var(--color-bg);
   min-height: 100vh;
 }
 
