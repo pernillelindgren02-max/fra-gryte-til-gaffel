@@ -92,9 +92,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
           setNotifyFlag(next)
           return null
         } catch (err) {
-          return translateDbError(
-            err instanceof Error ? err.message : String(err),
-          )
+          return translateDbError(errorMessage(err))
         }
       },
       async markRead(notificationId) {
