@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react'
 import { FilterSheet } from '../components/FilterSheet'
 import { RecipeCard } from '../components/RecipeCard'
+import { InlineError } from '../components/InlineError'
 import {
   ExploreResultsSkeleton,
   ExploreSkeleton,
 } from '../components/skeleton'
 import { useRecipes } from '../context/RecipesContext'
+import { USER_ERRORS } from '../lib/userErrors'
 import { useSiteContent } from '../context/SiteContentContext'
 import { emptyFilters, type FilterState, type Recipe } from '../data/recipes'
 import { buildCuratedSections } from '../utils/curatedRecipes'
@@ -105,7 +107,7 @@ function buildExploreBlocks(
 }
 
 export function ExplorePage() {
-  const { recipes, loading, error } = useRecipes()
+  const { recipes, loading, error, refresh } = useRecipes()
   const { explore, getCopy, theme } = useSiteContent()
   const [searchQuery, setSearchQuery] = useState('')
   const [filters, setFilters] = useState<FilterState>(emptyFilters)
@@ -178,12 +180,14 @@ export function ExplorePage() {
       </header>
 
       {error && !loading && (
-        <p className="explore-results__empty" role="status">
-          {getCopy(
-            'explore.cloud_fallback',
-            'Kunne ikke hente oppskrifter fra skyen — viser lokal kopi.',
-          )}
-        </p>
+        <InlineError
+          message={
+            error === USER_ERRORS.cloudFallback
+              ? getCopy('explore.cloud_fallback', USER_ERRORS.cloudFallback)
+              : error
+          }
+          onRetry={() => void refresh()}
+        />
       )}
 
       <div className="explore-search">

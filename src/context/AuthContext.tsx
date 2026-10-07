@@ -40,7 +40,11 @@ function translateAuthError(message: string): string {
   }
   if (lower.includes('password')) return 'Passordet må være minst 6 tegn.'
   if (lower.includes('email')) return 'Sjekk at e-postadressen er gyldig.'
-  return message
+  if (lower.includes('failed to fetch') || lower.includes('network')) {
+    return 'Det ser ut som forbindelsen er borte. Sjekk nettet og prøv igjen.'
+  }
+  // Never surface raw Supabase / stack text in the UI
+  return 'Kunne ikke fullføre innloggingen. Prøv igjen.'
 }
 
 async function fetchIsAdmin(userId: string): Promise<boolean> {

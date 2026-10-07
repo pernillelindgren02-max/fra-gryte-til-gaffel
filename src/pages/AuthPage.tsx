@@ -1,9 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { InlineError } from '../components/InlineError'
 import { useAuth } from '../context/AuthContext'
 import { useNotifications } from '../context/NotificationsContext'
 import { useSiteContent } from '../context/SiteContentContext'
+import { useToast } from '../context/ToastContext'
 import { getLastAdminPath } from '../lib/adminPath'
+import { USER_ERRORS, toUserSaveError } from '../lib/userErrors'
 import './admin/Admin.css'
 import './AuthPage.css'
 
@@ -15,7 +18,9 @@ export function AuthPage() {
     notifyNewRecipes,
     setNotifyNewRecipes,
     error: notifError,
+    refresh: refreshNotif,
   } = useNotifications()
+  const { showToast } = useToast()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -37,7 +42,15 @@ export function AuthPage() {
     const message = await action(email.trim(), password)
     setBusy(false)
     if (message) {
-      setError(message)
+      const calm = toUserSaveError(message, 'auth')
+      // Keep short Norwegian auth hints (wrong password etc.) when already calm
+      setError(
+        message.length < 100 && !message.includes('{')
+          ? message
+          : calm === USER_ERRORS.save
+            ? USER_ERRORS.load
+            : calm,
+      )
       return
     }
     if (mode === 'signup') {
@@ -99,7 +112,13 @@ export function AuthPage() {
                 setPrefBusy(true)
                 const err = await setNotifyNewRecipes(event.target.checked)
                 setPrefBusy(false)
-                if (err) setError(err)
+                if (err) {
+                  setError(err)
+                  showToast(err)
+                } else {
+                  setError(null)
+                  showToast('Preferanse lagret.')
+                }
               })()
             }}
           />
@@ -109,8 +128,15 @@ export function AuthPage() {
           Når dette er på, kan du få beskjed om nye oppskrifter senere (push).
           Det er ingen varsel-innboks i appen.
         </p>
-        {typeof (error ?? notifError) === 'string' && (error ?? notifError) && (
-          <p className="auth-page__error">{error ?? notifError}</p>
+        {notifError && (
+          <InlineError
+            compact
+            message={notifError}
+            onRetry={() => void refreshNotif()}
+          />
+        )}
+        {error && !notifError && (
+          <p className="auth-page__error">{error}</p>
         )}
 
         {isAdmin ? (

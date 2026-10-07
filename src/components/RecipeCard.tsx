@@ -7,6 +7,7 @@ import {
   matchRecipeAgainstPantry,
 } from '../utils/matchPantryRecipes'
 import { FavoriteButton } from './FavoriteButton'
+import { SafeImage } from './SafeImage'
 import { Tag } from './Tag'
 import './RecipeCard.css'
 
@@ -41,7 +42,7 @@ export function RecipeCard({ recipe, layout = 'default' }: RecipeCardProps) {
           className="recipe-card__image-link"
         >
           <div className="recipe-card__image">
-            <img src={recipe.image} alt="" loading="lazy" />
+            <SafeImage src={recipe.image} alt="" loading="lazy" />
           </div>
         </Link>
         <FavoriteButton recipeId={recipe.id} compact />

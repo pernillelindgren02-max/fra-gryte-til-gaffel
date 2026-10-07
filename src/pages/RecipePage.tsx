@@ -2,8 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { RecipePersonalPanel } from '../components/RecipePersonalPanel'
 import { SaveSheet } from '../components/SaveSheet'
+import { SafeImage } from '../components/SafeImage'
 import { RecipeDetailSkeleton } from '../components/skeleton'
 import { Tag } from '../components/Tag'
+import { USER_ERRORS } from '../lib/userErrors'
 import { useAuth } from '../context/AuthContext'
 import { useShoppingList } from '../context/ShoppingListContext'
 import { useToast } from '../context/ToastContext'
@@ -79,7 +81,7 @@ export function RecipePage() {
   if (!recipe) {
     return (
       <div className="recipe-page recipe-page--missing">
-        <p>Fant ikke oppskriften.</p>
+        <p>{USER_ERRORS.recipeMissing}</p>
         <Link to="/" className="recipe-page__back">
           Tilbake til oversikten
         </Link>
@@ -133,7 +135,7 @@ export function RecipePage() {
       </div>
 
       <div className="recipe-page__image">
-        <img src={recipe.image} alt="" />
+        <SafeImage src={recipe.image} alt="" loading="eager" />
       </div>
 
       <header className="recipe-page__header">

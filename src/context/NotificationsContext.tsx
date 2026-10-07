@@ -12,15 +12,11 @@ import {
   fetchNotifyPreference,
   saveNotifyPreference,
 } from '../lib/notificationsApi'
-import { translateDbError } from '../lib/supabase'
-
-function errorMessage(err: unknown): string {
-  if (err instanceof Error) return err.message
-  if (err && typeof err === 'object' && 'message' in err) {
-    return String((err as { message: unknown }).message)
-  }
-  return String(err)
-}
+import {
+  USER_ERRORS,
+  toUserLoadError,
+  toUserSaveError,
+} from '../lib/userErrors'
 
 type NotificationsContextValue = {
   notifyNewRecipes: boolean
@@ -54,7 +50,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       setNotifyFlag(prefs)
       setError(null)
     } catch (err) {
-      setError(translateDbError(errorMessage(err)))
+      setError(toUserLoadError(err, 'notifications.pref'))
     } finally {
       setLoading(false)
     }
@@ -71,13 +67,14 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       error,
       refresh,
       async setNotifyNewRecipes(next) {
-        if (!user) return 'Du må være innlogget.'
+        if (!user) return USER_ERRORS.login
         try {
           await saveNotifyPreference(user.id, next)
           setNotifyFlag(next)
+          setError(null)
           return null
         } catch (err) {
-          return translateDbError(errorMessage(err))
+          return toUserSaveError(err, 'notifications.save')
         }
       },
     }),

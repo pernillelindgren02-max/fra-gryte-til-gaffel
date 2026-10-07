@@ -25,6 +25,7 @@ import {
 import { useRecipes } from '../../context/RecipesContext'
 import { recipeImageUrl } from '../../data/recipes'
 import './Admin.css'
+import { toUserSaveError } from '../../lib/userErrors'
 
 const UNITS: IngredientUnit[] = [
   'g',
@@ -82,7 +83,7 @@ export function AdminRecipeEditPage() {
         setIdLocked(true)
       } catch (err) {
         if (active) {
-          setMessage(err instanceof Error ? err.message : String(err))
+          setMessage(toUserSaveError(err, "admin"))
         }
       } finally {
         if (active) setLoading(false)
@@ -123,7 +124,7 @@ export function AdminRecipeEditPage() {
       }))
       setMessage('Bilde lastet opp.')
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : String(err))
+      setMessage(toUserSaveError(err, "admin"))
     } finally {
       setSaving(false)
     }
@@ -146,7 +147,7 @@ export function AdminRecipeEditPage() {
         image: '/images/recipes/placeholder-dish.jpg',
       }))
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : String(err))
+      setMessage(toUserSaveError(err, "admin"))
     } finally {
       setSaving(false)
     }
@@ -197,7 +198,7 @@ export function AdminRecipeEditPage() {
         navigate(`/admin/varsler?recipe=${encodeURIComponent(id)}`)
       }
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : String(err))
+      setMessage(toUserSaveError(err, "admin"))
     } finally {
       setSaving(false)
     }

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useUserData } from '../context/UserDataContext'
+import { USER_ERRORS } from '../lib/userErrors'
 import './SaveSheet.css'
 
 interface SaveSheetProps {
@@ -70,7 +71,8 @@ export function SaveSheet({ open, recipeId, onClose }: SaveSheetProps) {
       return
     }
     if (result === 'error') {
-      setMessage('Kunne ikke oppdatere Favoritter.')
+      setMessage(USER_ERRORS.save)
+      showToast(USER_ERRORS.save)
       return
     }
     showToast(
@@ -88,14 +90,17 @@ export function SaveSheet({ open, recipeId, onClose }: SaveSheetProps) {
     setBusy(true)
     const err = await setRecipeInFolder(folderId, recipeId, next)
     setBusy(false)
-    setMessage(err)
-    if (!err) {
-      showToast(
-        next
-          ? `Lagret i «${folderName}».`
-          : `Fjernet fra «${folderName}».`,
-      )
+    if (err) {
+      setMessage(err)
+      showToast(err)
+      return
     }
+    setMessage(null)
+    showToast(
+      next
+        ? `Lagret i «${folderName}».`
+        : `Fjernet fra «${folderName}».`,
+    )
   }
 
   async function onCreateFolder(event: FormEvent) {
@@ -108,13 +113,16 @@ export function SaveSheet({ open, recipeId, onClose }: SaveSheetProps) {
     const { error, id } = await createFolder(newName)
     if (error || !id) {
       setBusy(false)
-      setMessage(error ?? 'Kunne ikke lage mappe.')
+      const msg = error ?? USER_ERRORS.save
+      setMessage(msg)
+      showToast(msg)
       return
     }
     const addErr = await setRecipeInFolder(id, recipeId, true)
     setBusy(false)
     if (addErr) {
       setMessage(addErr)
+      showToast(addErr)
       return
     }
     const createdName = newName.trim()

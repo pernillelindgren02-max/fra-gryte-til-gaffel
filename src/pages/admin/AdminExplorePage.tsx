@@ -12,6 +12,7 @@ import {
 import { useSiteContent } from '../../context/SiteContentContext'
 import type { RecipeRow } from '../../lib/recipeMapper'
 import './Admin.css'
+import { toUserSaveError } from '../../lib/userErrors'
 
 export function AdminExplorePage() {
   const { refresh: refreshSite } = useSiteContent()
@@ -35,7 +36,7 @@ export function AdminExplorePage() {
         setSettings(next)
         setRecipes(rows.filter((r) => r.is_published || true))
       } catch (err) {
-        if (active) setMessage(err instanceof Error ? err.message : String(err))
+        if (active) setMessage(toUserSaveError(err, "admin"))
       } finally {
         if (active) setLoading(false)
       }
@@ -65,7 +66,7 @@ export function AdminExplorePage() {
       await refreshSite()
       setMessage('Explore-innstillingene er lagret.')
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : String(err))
+      setMessage(toUserSaveError(err, "admin"))
     } finally {
       setSaving(false)
     }

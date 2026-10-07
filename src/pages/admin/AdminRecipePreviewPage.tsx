@@ -9,6 +9,7 @@ import { mapRowToRecipe } from '../../lib/recipeMapper'
 import type { Recipe } from '../../data/recipes'
 import { useRecipes } from '../../context/RecipesContext'
 import './Admin.css'
+import { toUserSaveError } from '../../lib/userErrors'
 
 export function AdminRecipePreviewPage() {
   const { id } = useParams<{ id: string }>()
@@ -34,7 +35,7 @@ export function AdminRecipePreviewPage() {
         setRecipe(mapRowToRecipe(row, supabasePublicUrl()))
         setPublishedFlag(row.is_published)
       } catch (err) {
-        if (active) setMessage(err instanceof Error ? err.message : String(err))
+        if (active) setMessage(toUserSaveError(err, "admin"))
       } finally {
         if (active) setLoading(false)
       }
@@ -60,7 +61,7 @@ export function AdminRecipePreviewPage() {
       await refresh()
       setMessage('Publisert.')
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : String(err))
+      setMessage(toUserSaveError(err, "admin"))
     } finally {
       setBusy(false)
     }

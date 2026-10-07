@@ -1,7 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import { useRecipeNote } from '../hooks/useRecipeNote'
+import { USER_ERRORS } from '../lib/userErrors'
+import { InlineError } from './InlineError'
 import './RecipePersonalPanel.css'
 
 interface RecipePersonalPanelProps {
@@ -11,7 +14,8 @@ interface RecipePersonalPanelProps {
 /** Subtle private comment — opens compact editor only when needed. */
 export function RecipePersonalPanel({ recipeId }: RecipePersonalPanelProps) {
   const { user, configured } = useAuth()
-  const { body, loading, saving, error, saveNote, deleteNote } =
+  const { showToast } = useToast()
+  const { body, loading, saving, error, saveNote, deleteNote, refresh } =
     useRecipeNote(recipeId)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
@@ -45,16 +49,21 @@ export function RecipePersonalPanel({ recipeId }: RecipePersonalPanelProps) {
     const err = await saveNote(draft)
     if (err) {
       setMessage(err)
+      showToast(err)
       return
     }
     setEditing(false)
     setMessage(null)
+    showToast('Kommentar lagret.')
   }
 
   async function onDelete() {
+    const previous = draft
     const err = await deleteNote()
     if (err) {
+      setDraft(previous)
       setMessage(err)
+      showToast(err)
       return
     }
     setDraft('')
@@ -111,9 +120,13 @@ export function RecipePersonalPanel({ recipeId }: RecipePersonalPanelProps) {
       )}
 
       {error && !editing && (
-        <p className="kommentar__message">{error}</p>
+        <InlineError
+          compact
+          message={error}
+          onRetry={() => void refresh()}
+        />
       )}
-      {message && !editing && (
+      {message && !editing && !error && (
         <p className="kommentar__message">{message}</p>
       )}
 
@@ -145,7 +158,18 @@ export function RecipePersonalPanel({ recipeId }: RecipePersonalPanelProps) {
               autoFocus
             />
             {(message || error) && (
-              <p className="kommentar__message">{message ?? error}</p>
+              <InlineError
+                compact
+                message={message ?? error}
+                onRetry={
+                  error
+                    ? () => {
+                        void refresh()
+                      }
+                    : undefined
+                }
+                retryLabel={USER_ERRORS.retry}
+              />
             )}
             <div className="kommentar-sheet__actions">
               {body && (

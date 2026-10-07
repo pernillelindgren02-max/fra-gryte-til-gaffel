@@ -8,6 +8,8 @@ import {
 } from 'react-router-dom'
 import { AdminGate } from './components/AdminGate'
 import { AppNav } from './components/AppNav'
+import { ErrorBoundary } from './components/ErrorBoundary'
+import { OfflineBanner } from './components/OfflineBanner'
 import { PathMemory } from './components/PathMemory'
 import { AuthProvider } from './context/AuthContext'
 import { NotificationsProvider } from './context/NotificationsContext'
@@ -56,6 +58,7 @@ function AppChrome() {
   return (
     <div className={isAdminRoute ? 'admin-root' : 'app-shell'}>
       <PathMemory />
+      {!isAdminRoute && <OfflineBanner />}
       {!isAdminRoute && <AppNav />}
       <Routes>
         <Route path="/admin" element={<AdminRoutes />}>
@@ -96,24 +99,26 @@ function AppChrome() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <SiteContentProvider>
-        <RecipesProvider>
-          <UserDataProvider>
-            <NotificationsProvider>
-              <PantryProvider>
-                <ShoppingListProvider>
-                  <ToastProvider>
-                    <BrowserRouter>
-                      <AppChrome />
-                    </BrowserRouter>
-                  </ToastProvider>
-                </ShoppingListProvider>
-              </PantryProvider>
-            </NotificationsProvider>
-          </UserDataProvider>
-        </RecipesProvider>
-      </SiteContentProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <SiteContentProvider>
+          <RecipesProvider>
+            <UserDataProvider>
+              <NotificationsProvider>
+                <PantryProvider>
+                  <ShoppingListProvider>
+                    <ToastProvider>
+                      <BrowserRouter>
+                        <AppChrome />
+                      </BrowserRouter>
+                    </ToastProvider>
+                  </ShoppingListProvider>
+                </PantryProvider>
+              </NotificationsProvider>
+            </UserDataProvider>
+          </RecipesProvider>
+        </SiteContentProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   )
 }

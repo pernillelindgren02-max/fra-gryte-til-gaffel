@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { fetchAdminUsers, type AdminUserRow } from '../../lib/siteContentApi'
 import './Admin.css'
+import { toUserSaveError } from '../../lib/userErrors'
 
 function maskEmail(email: string | null): string {
   if (!email) return '—'
@@ -26,7 +27,7 @@ export function AdminUsersPage() {
           setError(null)
         }
       } catch (err) {
-        if (active) setError(err instanceof Error ? err.message : String(err))
+        if (active) setError(toUserSaveError(err, "admin"))
       } finally {
         if (active) setLoading(false)
       }

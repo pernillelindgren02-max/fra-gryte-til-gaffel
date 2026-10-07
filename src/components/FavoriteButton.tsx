@@ -3,6 +3,7 @@ import type { MouseEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useUserData } from '../context/UserDataContext'
+import { USER_ERRORS } from '../lib/userErrors'
 import './FavoriteButton.css'
 
 interface FavoriteButtonProps {
@@ -31,7 +32,7 @@ export function FavoriteButton({ recipeId, compact = false }: FavoriteButtonProp
       return
     }
     if (result === 'error') {
-      showToast('Kunne ikke oppdatere favoritter.')
+      showToast(USER_ERRORS.save)
       return
     }
     showToast(

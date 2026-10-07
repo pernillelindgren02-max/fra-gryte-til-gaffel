@@ -12,6 +12,7 @@ import {
   combineIngredients,
   type CombinedIngredient,
 } from '../utils/combineIngredients'
+import { logTechError } from '../lib/userErrors'
 import { useRecipes } from './RecipesContext'
 
 const STORAGE_KEY = 'fgtg-shopping-list-v2'
@@ -114,10 +115,14 @@ export function ShoppingListProvider({ children }: { children: ReactNode }) {
   const [checkedKeys, setCheckedKeys] = useState<string[]>(initial.checkedKeys)
 
   useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ entries, checkedKeys } satisfies ShoppingListState),
-    )
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ entries, checkedKeys } satisfies ShoppingListState),
+      )
+    } catch (err) {
+      logTechError('shopping.persist', err)
+    }
   }, [entries, checkedKeys])
 
   const recipeIds = useMemo(

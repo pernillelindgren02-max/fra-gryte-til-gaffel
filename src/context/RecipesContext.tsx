@@ -10,6 +10,11 @@ import {
 import { localRecipes, type Recipe } from '../data/recipes'
 import { mapRowToRecipe, type RecipeRow } from '../lib/recipeMapper'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
+import {
+  USER_ERRORS,
+  logTechError,
+  toUserLoadError,
+} from '../lib/userErrors'
 
 type RecipesContextValue = {
   recipes: Recipe[]
@@ -24,6 +29,19 @@ const RecipesContext = createContext<RecipesContextValue | null>(null)
 
 function supabaseUrl(): string {
   return (import.meta.env.VITE_SUPABASE_URL ?? '').trim()
+}
+
+function safeMapRows(rows: RecipeRow[], url: string): Recipe[] {
+  const mapped: Recipe[] = []
+  for (const row of rows) {
+    try {
+      if (!row || typeof row !== 'object' || !row.id) continue
+      mapped.push(mapRowToRecipe(row, url))
+    } catch (err) {
+      logTechError('RecipesContext.map', err)
+    }
+  }
+  return mapped
 }
 
 export function RecipesProvider({ children }: { children: ReactNode }) {
@@ -46,35 +64,51 @@ export function RecipesProvider({ children }: { children: ReactNode }) {
     }
 
     setLoading(true)
-    const { data, error: fetchError } = await supabase
-      .from('recipes')
-      .select('*')
-      .eq('is_published', true)
-      .order('name', { ascending: true })
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('is_published', true)
+        .order('name', { ascending: true })
 
-    if (fetchError) {
-      // Table missing or RLS — fall back to local seed so the app still works.
-      setRecipes(localRecipes)
-      setSource('local')
-      setError(fetchError.message)
-      setLoading(false)
-      return
-    }
+      if (fetchError) {
+        logTechError('RecipesContext.fetch', fetchError)
+        setRecipes(localRecipes)
+        setSource('local')
+        setError(USER_ERRORS.cloudFallback)
+        setLoading(false)
+        return
+      }
 
-    const rows = (data as RecipeRow[] | null) ?? []
-    if (rows.length === 0) {
-      setRecipes(localRecipes)
-      setSource('local')
+      const rows = (data as RecipeRow[] | null) ?? []
+      if (!Array.isArray(rows) || rows.length === 0) {
+        setRecipes(localRecipes)
+        setSource('local')
+        setError(null)
+        setLoading(false)
+        return
+      }
+
+      const url = supabaseUrl()
+      const mapped = safeMapRows(rows, url)
+      if (mapped.length === 0) {
+        setRecipes(localRecipes)
+        setSource('local')
+        setError(USER_ERRORS.cloudFallback)
+        setLoading(false)
+        return
+      }
+
+      setRecipes(mapped)
+      setSource('supabase')
       setError(null)
       setLoading(false)
-      return
+    } catch (err) {
+      setRecipes(localRecipes)
+      setSource('local')
+      setError(toUserLoadError(err, 'RecipesContext'))
+      setLoading(false)
     }
-
-    const url = supabaseUrl()
-    setRecipes(rows.map((row) => mapRowToRecipe(row, url)))
-    setSource('supabase')
-    setError(null)
-    setLoading(false)
   }, [])
 
   useEffect(() => {

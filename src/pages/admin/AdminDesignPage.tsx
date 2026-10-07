@@ -8,6 +8,7 @@ import {
 import { applyThemeToDocument, validateTheme } from '../../lib/themeValidate'
 import { useSiteContent } from '../../context/SiteContentContext'
 import './Admin.css'
+import { toUserSaveError } from '../../lib/userErrors'
 
 const LABELS: Record<keyof AppThemeTokens, string> = {
   terracotta: 'Terracotta (primær CTA)',
@@ -68,7 +69,7 @@ export function AdminDesignPage() {
       await refresh()
       setMessage('Design lagret.')
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : String(err))
+      setMessage(toUserSaveError(err, "admin"))
     } finally {
       setSaving(false)
     }

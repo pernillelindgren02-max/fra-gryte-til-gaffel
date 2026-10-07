@@ -1,6 +1,7 @@
 import { useState, type FormEvent, type MouseEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { RecipeCard } from '../components/RecipeCard'
+import { InlineError } from '../components/InlineError'
 import {
   FolderListSkeleton,
   FolderRecipesSkeleton,
@@ -46,6 +47,7 @@ export function FavoritesPage() {
     createFolder,
     renameFolder,
     deleteFolder,
+    refresh,
     error: foldersError,
   } = useUserData()
   const [newName, setNewName] = useState('')
@@ -54,7 +56,6 @@ export function FavoritesPage() {
   const [editName, setEditName] = useState('')
 
   const favoriteCount = favoriteIds.size
-  const statusMessage = message ?? foldersError
   const openFolder =
     folderKey && folderKey !== DEFAULT_FOLDER_KEY
       ? folders.find((f) => f.id === folderKey)
@@ -68,30 +69,39 @@ export function FavoritesPage() {
     event.preventDefault()
     const label = newName.trim()
     const { error } = await createFolder(newName)
-    setMessage(error)
-    if (!error) {
-      setNewName('')
-      showToast(label ? `Mappen «${label}» er opprettet.` : 'Mappe opprettet.')
+    if (error) {
+      setMessage(error)
+      showToast(error)
+      return
     }
+    setMessage(null)
+    setNewName('')
+    showToast(label ? `Mappen «${label}» er opprettet.` : 'Mappe opprettet.')
   }
 
   async function onRename(id: string) {
     const err = await renameFolder(id, editName)
-    setMessage(err)
-    if (!err) {
-      setEditingId(null)
-      showToast('Mappen er omdøpt.')
+    if (err) {
+      setMessage(err)
+      showToast(err)
+      return
     }
+    setMessage(null)
+    setEditingId(null)
+    showToast('Mappen er omdøpt.')
   }
 
   async function onDelete(id: string, name: string) {
     if (!window.confirm(`Slette mappen «${name}»?`)) return
     const err = await deleteFolder(id)
-    setMessage(err)
-    if (!err) {
-      showToast(`Mappen «${name}» er slettet.`)
-      if (folderKey === id) navigate('/favoritter')
+    if (err) {
+      setMessage(err)
+      showToast(err)
+      return
     }
+    setMessage(null)
+    showToast(`Mappen «${name}» er slettet.`)
+    if (folderKey === id) navigate('/favoritter')
   }
 
   function stopAnd(event: MouseEvent, action: () => void) {
@@ -215,8 +225,14 @@ export function FavoritesPage() {
             />
             <button type="submit">Opprett</button>
           </form>
-          {statusMessage && (
-            <p className="account-list__message">{statusMessage}</p>
+          {foldersError && (
+            <InlineError
+              message={foldersError}
+              onRetry={() => void refresh()}
+            />
+          )}
+          {message && !foldersError && (
+            <p className="account-list__message">{message}</p>
           )}
 
           {folderMetaLoading || favoritesMetaLoading ? (

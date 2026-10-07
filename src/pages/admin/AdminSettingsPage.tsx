@@ -4,6 +4,7 @@ import {
   saveAdminSetting,
 } from '../../lib/siteContentApi'
 import './Admin.css'
+import { toUserSaveError } from '../../lib/userErrors'
 
 export function AdminSettingsPage() {
   const [migrationConfirmed, setMigrationConfirmed] = useState(false)
@@ -25,7 +26,7 @@ export function AdminSettingsPage() {
             : Boolean(settings.show_cloud_fallback_banner),
         )
       } catch (err) {
-        if (active) setMessage(err instanceof Error ? err.message : String(err))
+        if (active) setMessage(toUserSaveError(err, "admin"))
       } finally {
         if (active) setLoading(false)
       }
@@ -43,7 +44,7 @@ export function AdminSettingsPage() {
       await saveAdminSetting('show_cloud_fallback_banner', showBanner)
       setMessage('Innstillinger lagret.')
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : String(err))
+      setMessage(toUserSaveError(err, "admin"))
     } finally {
       setSaving(false)
     }

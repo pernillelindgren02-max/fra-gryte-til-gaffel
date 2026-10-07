@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { fetchAllRecipesForAdmin } from '../../lib/adminRecipes'
 import type { RecipeRow } from '../../lib/recipeMapper'
 import './Admin.css'
+import { toUserSaveError } from '../../lib/userErrors'
 
 export function AdminOverviewPage() {
   const [rows, setRows] = useState<RecipeRow[]>([])
@@ -20,7 +21,7 @@ export function AdminOverviewPage() {
         }
       } catch (err) {
         if (active) {
-          setError(err instanceof Error ? err.message : String(err))
+          setError(toUserSaveError(err, "admin"))
           setRows([])
         }
       } finally {

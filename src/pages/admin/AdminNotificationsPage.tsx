@@ -8,6 +8,7 @@ import {
 import { fetchAllRecipesForAdmin } from '../../lib/adminRecipes'
 import type { RecipeRow } from '../../lib/recipeMapper'
 import './Admin.css'
+import { toUserSaveError } from '../../lib/userErrors'
 
 export function AdminNotificationsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -56,7 +57,7 @@ export function AdminNotificationsPage() {
         }
       } catch (err) {
         if (active) {
-          setMessage(err instanceof Error ? err.message : String(err))
+          setMessage(toUserSaveError(err, "admin"))
         }
       } finally {
         if (active) setLoading(false)
@@ -107,7 +108,7 @@ export function AdminNotificationsPage() {
       )
       setPreviewing(false)
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : String(err))
+      setMessage(toUserSaveError(err, "admin"))
     } finally {
       setBusy(false)
     }

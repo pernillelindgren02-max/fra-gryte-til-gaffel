@@ -10,6 +10,7 @@ import {
 import type { RecipeRow } from '../../lib/recipeMapper'
 import { useRecipes } from '../../context/RecipesContext'
 import './Admin.css'
+import { toUserSaveError } from '../../lib/userErrors'
 
 export function AdminRecipesPage() {
   const { refresh: refreshPublished } = useRecipes()
@@ -26,7 +27,7 @@ export function AdminRecipesPage() {
       setRows(data)
       setMessage(null)
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : String(err))
+      setMessage(toUserSaveError(err, "admin"))
       setRows([])
     } finally {
       setLoading(false)
@@ -65,7 +66,7 @@ export function AdminRecipesPage() {
       await load()
       await refreshPublished()
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : String(err))
+      setMessage(toUserSaveError(err, "admin"))
     } finally {
       setBusy(false)
     }
@@ -85,7 +86,7 @@ export function AdminRecipesPage() {
       await load()
       await refreshPublished()
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : String(err))
+      setMessage(toUserSaveError(err, "admin"))
     } finally {
       setBusy(false)
     }
@@ -98,7 +99,7 @@ export function AdminRecipesPage() {
       await load()
       setMessage(`Duplisert som utkast: ${id}`)
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : String(err))
+      setMessage(toUserSaveError(err, "admin"))
     } finally {
       setBusy(false)
     }
@@ -125,7 +126,7 @@ export function AdminRecipesPage() {
         }`,
       )
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : String(err))
+      setMessage(toUserSaveError(err, "admin"))
     } finally {
       setBusy(false)
     }

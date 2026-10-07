@@ -38,7 +38,11 @@ export function PantryProvider({ children }: { children: ReactNode }) {
   const [pantry, setPantry] = useState<string[]>(() => loadPantry())
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(pantry))
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(pantry))
+    } catch {
+      /* ignore quota / private mode */
+    }
   }, [pantry])
 
   const addItem = useCallback(

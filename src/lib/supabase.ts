@@ -34,24 +34,4 @@ export type RecipeNoteRow = {
   updated_at: string
 }
 
-/** Map PostgREST / schema errors to short Norwegian hints. */
-export function translateDbError(message: string): string {
-  const lower = message.toLowerCase()
-  if (
-    lower.includes('could not find the table') ||
-    lower.includes('schema cache') ||
-    (lower.includes('relation') && lower.includes('does not exist'))
-  ) {
-    if (lower.includes('notification')) {
-      return 'Varsel-tabellene mangler. Kjør supabase/notifications.sql i Supabase → SQL Editor.'
-    }
-    return 'Databasetabellene mangler. Kjør supabase/schema.sql i Supabase → SQL Editor.'
-  }
-  if (lower.includes('permission denied') || lower.includes('rls')) {
-    return 'Mangler tilgang. Sjekk at du er innlogget og at RLS-policies er kjørt.'
-  }
-  if (lower.includes('jwt') || lower.includes('not authenticated')) {
-    return 'Du må være innlogget.'
-  }
-  return message
-}
+export { translateDbError } from './userErrors'

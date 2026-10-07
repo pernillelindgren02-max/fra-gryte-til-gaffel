@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { supabase, translateDbError } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
+import { logTechError, toUserSaveError } from '../lib/userErrors'
 
 export function useFavorites() {
   const { user } = useAuth()
@@ -14,16 +15,29 @@ export function useFavorites() {
       return
     }
     setFavoritesLoading(true)
-    const { data, error } = await supabase
-      .from('favorites')
-      .select('recipe_id')
-      .eq('user_id', user.id)
-    setFavoritesLoading(false)
-    if (error || !data) {
+    try {
+      const { data, error } = await supabase
+        .from('favorites')
+        .select('recipe_id')
+        .eq('user_id', user.id)
+      if (error || !data) {
+        if (error) logTechError('favorites.refresh', error)
+        setFavoriteIds(new Set())
+        setFavoritesLoading(false)
+        return
+      }
+      setFavoriteIds(
+        new Set(
+          data
+            .map((row) => row.recipe_id as string)
+            .filter((id) => typeof id === 'string' && id.trim()),
+        ),
+      )
+    } catch (err) {
+      logTechError('favorites.refresh', err)
       setFavoriteIds(new Set())
-      return
     }
-    setFavoriteIds(new Set(data.map((row) => row.recipe_id as string)))
+    setFavoritesLoading(false)
   }, [user])
 
   useEffect(() => {
@@ -46,7 +60,7 @@ export function useFavorites() {
           .eq('user_id', user.id)
           .eq('recipe_id', recipeId)
         if (error) {
-          console.warn('[favorites]', translateDbError(error.message))
+          toUserSaveError(error, 'favorites.remove')
           return 'error'
         }
         setFavoriteIds((prev) => {
@@ -60,7 +74,7 @@ export function useFavorites() {
           recipe_id: recipeId,
         })
         if (error) {
-          console.warn('[favorites]', translateDbError(error.message))
+          toUserSaveError(error, 'favorites.add')
           return 'error'
         }
         setFavoriteIds((prev) => new Set(prev).add(recipeId))

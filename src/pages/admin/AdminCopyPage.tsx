@@ -3,6 +3,7 @@ import { fetchAppCopy, saveAppCopy } from '../../lib/siteContentApi'
 import { COPY_FIELDS, DEFAULT_COPY, type AppCopyMap } from '../../lib/siteDefaults'
 import { useSiteContent } from '../../context/SiteContentContext'
 import './Admin.css'
+import { toUserSaveError } from '../../lib/userErrors'
 
 export function AdminCopyPage() {
   const { refresh } = useSiteContent()
@@ -39,7 +40,7 @@ export function AdminCopyPage() {
       await refresh()
       setMessage('Tekster lagret.')
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : String(err))
+      setMessage(toUserSaveError(err, "admin"))
     } finally {
       setSaving(false)
     }
