@@ -5,6 +5,7 @@ import {
   type ShoppingMultiplier,
 } from '../context/ShoppingListContext'
 import { useRecipes } from '../context/RecipesContext'
+import { useSiteContent } from '../context/SiteContentContext'
 import { searchRecipes } from '../utils/searchRecipes'
 import './ShoppingListPage.css'
 
@@ -22,6 +23,7 @@ export function ShoppingListPage() {
     toggleChecked,
   } = useShoppingList()
   const { recipes, getById } = useRecipes()
+  const { getCopy } = useSiteContent()
   const [query, setQuery] = useState('')
   const [toast, setToast] = useState<string | null>(null)
 
@@ -139,8 +141,10 @@ export function ShoppingListPage() {
         <h2 className="shopping__subtitle">Ingredienser</h2>
         {combined.length === 0 ? (
           <p className="shopping__empty">
-            Handlelisten er tom. Søk etter en oppskrift, eller åpne en oppskrift
-            og trykk «Legg til i handleliste».
+            {getCopy(
+              'handleliste.empty',
+              'Handlelisten er tom. Søk etter en oppskrift, eller åpne en oppskrift og trykk «Legg til i handleliste».',
+            )}
           </p>
         ) : (
           <ul className="shopping__items">

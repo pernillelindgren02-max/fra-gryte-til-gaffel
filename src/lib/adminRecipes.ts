@@ -152,6 +152,7 @@ export function emptyDraftRecipe(): Recipe {
     shortDescription: '',
     image: '/images/recipes/placeholder-dish.jpg',
     timeMinutes: 20,
+    servings: 2,
     mealType: 'dinner',
     preparationLevel: 'someCutting',
     storageNeed: 'fewHoursOk',
@@ -163,6 +164,32 @@ export function emptyDraftRecipe(): Recipe {
     steps: [''],
     practicalTags: [],
   }
+}
+
+export async function duplicateRecipeRow(sourceId: string): Promise<string> {
+  if (!supabase) throw new Error('Supabase er ikke konfigurert.')
+  const source = await fetchAdminRecipe(sourceId)
+  if (!source) throw new Error('Fant ikke oppskriften å duplisere.')
+  const base = `${source.id}-kopi`
+  let nextId = base
+  let n = 2
+  while (true) {
+    const existing = await fetchAdminRecipe(nextId)
+    if (!existing) break
+    nextId = `${base}-${n}`
+    n += 1
+  }
+  const row = {
+    ...source,
+    id: nextId,
+    name: `${source.name} (kopi)`,
+    is_published: false,
+    notify_on_publish: false,
+    updated_at: new Date().toISOString(),
+  }
+  delete (row as { created_at?: string }).created_at
+  await upsertRecipeRow(row)
+  return nextId
 }
 
 export function slugifyId(name: string): string {

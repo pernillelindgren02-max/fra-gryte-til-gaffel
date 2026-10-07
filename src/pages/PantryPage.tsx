@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useRecipes } from '../context/RecipesContext'
+import { useSiteContent } from '../context/SiteContentContext'
 import {
   getKnownIngredientNames,
   matchRecipesByPantry,
@@ -10,6 +11,7 @@ import './PantryPage.css'
 
 export function PantryPage() {
   const { recipes } = useRecipes()
+  const { getCopy } = useSiteContent()
   const [draft, setDraft] = useState('')
   const [pantry, setPantry] = useState<string[]>([])
   const [message, setMessage] = useState<string | null>(null)
@@ -88,7 +90,9 @@ export function PantryPage() {
       <section className="pantry__block">
         <h2 className="pantry__subtitle">Dine ingredienser</h2>
         {pantry.length === 0 ? (
-          <p className="pantry__empty">Ingen ingredienser ennå.</p>
+          <p className="pantry__empty">
+            {getCopy('hjemme.empty', 'Ingen ingredienser ennå.')}
+          </p>
         ) : (
           <ul className="pantry__chips">
             {pantry.map((item) => (

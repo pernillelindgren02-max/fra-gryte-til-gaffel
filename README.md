@@ -43,10 +43,11 @@ For favoritter/mapper/notater: kjør `supabase/schema.sql` i SQL Editor.
 For oppskriftsadmin (publisering / bilder):
 
 1. Kjør `supabase/admin-bootstrap.sql`, deretter `supabase/recipes-admin.sql`.
-2. Logg inn via **Konto**, kopier din User UID i Supabase Auth, og sett `is_admin` (se kommentaren i bootstrap-filen — lim inn UID i SQL Editor, ikke i chat).
-3. Logg ut/inn, åpne **http://127.0.0.1:4317/admin**, klikk **Importer lokale**.
+2. Kjør **`supabase/admin-control-centre.sql`** (Explore/tekster/design/brukere).
+3. Logg inn via **Konto**, kopier din User UID i Supabase Auth, og sett `is_admin` (se bootstrap-filen).
+4. Logg ut/inn, åpne **http://127.0.0.1:4317/admin**.
 
-Steg-for-steg: `docs/admin-plan.md` i Context-mappen.
+Steg-for-steg: `docs/admin-control-centre-plan.md` i Context-mappen.
 
 I Supabase Auth kan du skru av e-postbekreftelse under Authentication → Providers → Email hvis du vil teste raskt lokalt.
 

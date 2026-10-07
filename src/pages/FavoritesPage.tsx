@@ -4,6 +4,7 @@ import { RecipeCard } from '../components/RecipeCard'
 import { useAuth } from '../context/AuthContext'
 import { useUserData } from '../context/UserDataContext'
 import { useRecipes } from '../context/RecipesContext'
+import { useSiteContent } from '../context/SiteContentContext'
 import type { Recipe } from '../data/recipes'
 import './AccountLists.css'
 
@@ -29,6 +30,7 @@ export function FavoritesPage() {
   const navigate = useNavigate()
   const { user, configured, loading } = useAuth()
   const { getById } = useRecipes()
+  const { getCopy } = useSiteContent()
   const {
     favoriteIds,
     folders,
@@ -119,7 +121,10 @@ export function FavoritesPage() {
         {recipes.length === 0 ? (
           <p className="account-list__empty">
             {viewingDefault
-              ? 'Ingen favoritter ennå. Åpne en oppskrift og trykk Lagre.'
+              ? getCopy(
+                  'favoritter.empty',
+                  'Ingen favoritter ennå. Åpne en oppskrift og trykk Lagre.',
+                )
               : 'Tom mappe — lagre oppskrifter hit fra detaljsiden.'}
           </p>
         ) : (

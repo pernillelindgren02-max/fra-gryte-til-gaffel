@@ -38,6 +38,14 @@ const UNITS: IngredientUnit[] = [
   null,
 ]
 
+function moveItem<T>(list: T[], from: number, to: number): T[] {
+  if (to < 0 || to >= list.length) return list
+  const next = [...list]
+  const [item] = next.splice(from, 1)
+  next.splice(to, 0, item)
+  return next
+}
+
 export function AdminRecipeEditPage() {
   const { id: routeId } = useParams<{ id: string }>()
   const isNew = !routeId || routeId === 'new'
@@ -46,6 +54,7 @@ export function AdminRecipeEditPage() {
   const [draft, setDraft] = useState<Recipe>(emptyDraftRecipe())
   const [imagePath, setImagePath] = useState<string | null>(null)
   const [published, setPublishedFlag] = useState(false)
+  const [notifyOnPublish, setNotifyOnPublish] = useState(false)
   const [tagsText, setTagsText] = useState('')
   const [loading, setLoading] = useState(!isNew)
   const [saving, setSaving] = useState(false)
@@ -68,6 +77,7 @@ export function AdminRecipeEditPage() {
         setDraft(recipe)
         setImagePath(row.image_path)
         setPublishedFlag(row.is_published)
+        setNotifyOnPublish(Boolean(row.notify_on_publish))
         setTagsText(recipe.practicalTags.join(', '))
         setIdLocked(true)
       } catch (err) {
@@ -120,6 +130,13 @@ export function AdminRecipeEditPage() {
   }
 
   async function onClearImage() {
+    if (
+      !window.confirm(
+        'Fjerne bildet? Filen slettes fra Storage hvis den finnes.',
+      )
+    ) {
+      return
+    }
     setSaving(true)
     try {
       if (imagePath) await removeRecipeImage(imagePath)
@@ -142,6 +159,14 @@ export function AdminRecipeEditPage() {
       setMessage('Id og navn er påkrevd.')
       return
     }
+    if (
+      published &&
+      !window.confirm(
+        'Lagre som publisert? Oppskriften blir synlig for vanlige brukere.',
+      )
+    ) {
+      return
+    }
     const practicalTags = tagsText
       .split(',')
       .map((t) => t.trim())
@@ -151,6 +176,7 @@ export function AdminRecipeEditPage() {
       id,
       name: draft.name.trim(),
       shortDescription: draft.shortDescription.trim(),
+      servings: draft.servings > 0 ? draft.servings : 2,
       ingredients: draft.ingredients.filter((i) => i.name.trim()),
       steps: draft.steps.map((s) => s.trim()).filter(Boolean),
       practicalTags,
@@ -160,11 +186,12 @@ export function AdminRecipeEditPage() {
       const row = mapRecipeToRow(recipe, {
         image_path: imagePath,
         is_published: published,
+        notify_on_publish: notifyOnPublish,
       })
       await upsertRecipeRow(row)
       await refreshPublished()
       setMessage('Lagret.')
-      if (isNew) navigate(`/admin/recipes/${id}`, { replace: true })
+      if (isNew) navigate(`/admin/oppskrifter/${id}`, { replace: true })
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err))
     } finally {
@@ -184,13 +211,21 @@ export function AdminRecipeEditPage() {
     <div className="admin">
       <header className="admin__header">
         <div>
-          <Link to="/admin" className="admin__link">
+          <Link to="/admin/oppskrifter" className="admin__link">
             ← Alle oppskrifter
           </Link>
           <h1 className="admin__title">
             {isNew ? 'Ny oppskrift' : 'Rediger oppskrift'}
           </h1>
         </div>
+        {!isNew && (
+          <Link
+            to={`/admin/oppskrifter/${routeId}/forhandsvis`}
+            className="admin__btn admin__btn--ghost"
+          >
+            Forhåndsvis
+          </Link>
+        )}
       </header>
 
       {message && <p className="admin__message">{message}</p>}
@@ -240,6 +275,17 @@ export function AdminRecipeEditPage() {
               value={draft.timeMinutes}
               onChange={(e) =>
                 updateField('timeMinutes', Number(e.target.value) || 1)
+              }
+            />
+          </label>
+          <label className="admin-form__field">
+            <span>Porsjoner</span>
+            <input
+              type="number"
+              min={1}
+              value={draft.servings}
+              onChange={(e) =>
+                updateField('servings', Number(e.target.value) || 1)
               }
             />
           </label>
@@ -347,11 +393,7 @@ export function AdminRecipeEditPage() {
 
         <fieldset className="admin-form__block">
           <legend>Bilde</legend>
-          <img
-            className="admin-form__preview"
-            src={draft.image}
-            alt=""
-          />
+          <img className="admin-form__preview" src={draft.image} alt="" />
           <input
             type="file"
             accept="image/*"
@@ -371,6 +413,36 @@ export function AdminRecipeEditPage() {
           <legend>Ingredienser</legend>
           {draft.ingredients.map((ingredient, index) => (
             <div key={index} className="admin-form__ingredient">
+              <div className="admin-form__reorder">
+                <button
+                  type="button"
+                  className="admin__btn admin__btn--ghost"
+                  aria-label="Flytt opp"
+                  disabled={index === 0}
+                  onClick={() =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      ingredients: moveItem(prev.ingredients, index, index - 1),
+                    }))
+                  }
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  className="admin__btn admin__btn--ghost"
+                  aria-label="Flytt ned"
+                  disabled={index === draft.ingredients.length - 1}
+                  onClick={() =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      ingredients: moveItem(prev.ingredients, index, index + 1),
+                    }))
+                  }
+                >
+                  ↓
+                </button>
+              </div>
               <input
                 placeholder="Navn"
                 value={ingredient.name}
@@ -444,6 +516,36 @@ export function AdminRecipeEditPage() {
           <legend>Steg</legend>
           {draft.steps.map((step, index) => (
             <div key={index} className="admin-form__step">
+              <div className="admin-form__reorder">
+                <button
+                  type="button"
+                  className="admin__btn admin__btn--ghost"
+                  aria-label="Flytt opp"
+                  disabled={index === 0}
+                  onClick={() =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      steps: moveItem(prev.steps, index, index - 1),
+                    }))
+                  }
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  className="admin__btn admin__btn--ghost"
+                  aria-label="Flytt ned"
+                  disabled={index === draft.steps.length - 1}
+                  onClick={() =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      steps: moveItem(prev.steps, index, index + 1),
+                    }))
+                  }
+                >
+                  ↓
+                </button>
+              </div>
               <textarea
                 rows={2}
                 value={step}
@@ -493,13 +595,30 @@ export function AdminRecipeEditPage() {
             checked={published}
             onChange={(e) => setPublishedFlag(e.target.checked)}
           />
-          Publisert (synlig i appen)
+          Publisert (synlig i appen for alle)
+        </label>
+
+        <label className="admin-form__check">
+          <input
+            type="checkbox"
+            checked={notifyOnPublish}
+            onChange={(e) => setNotifyOnPublish(e.target.checked)}
+          />
+          Varsle ved publisering (stub — sender ikke ennå)
         </label>
 
         <div className="admin-form__footer">
           <button type="submit" className="admin__btn" disabled={saving}>
             {saving ? 'Lagrer…' : 'Lagre'}
           </button>
+          {!isNew && (
+            <Link
+              to={`/admin/oppskrifter/${routeId}/forhandsvis`}
+              className="admin__btn admin__btn--ghost"
+            >
+              Forhåndsvis før publisering
+            </Link>
+          )}
         </div>
       </form>
     </div>

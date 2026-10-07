@@ -17,6 +17,7 @@ export type RecipeRow = {
   short_description: string
   meal_type: string
   time_minutes: number
+  servings: number
   preparation_level: string
   storage_need: string
   price_level: string
@@ -28,6 +29,7 @@ export type RecipeRow = {
   practical_tags: string[] | unknown
   image_path: string | null
   is_published: boolean
+  notify_on_publish?: boolean
   created_at?: string
   updated_at?: string
 }
@@ -59,6 +61,7 @@ export function mapRowToRecipe(row: RecipeRow, supabaseUrl?: string): Recipe {
     shortDescription: row.short_description,
     image: recipeImageUrl(row.image_path, supabaseUrl),
     timeMinutes: row.time_minutes,
+    servings: Number(row.servings) > 0 ? Number(row.servings) : 2,
     mealType: row.meal_type as MealType,
     preparationLevel: row.preparation_level as PreparationLevel,
     storageNeed: row.storage_need as StorageNeed,
@@ -75,7 +78,11 @@ export function mapRowToRecipe(row: RecipeRow, supabaseUrl?: string): Recipe {
 
 export function mapRecipeToRow(
   recipe: Recipe,
-  extras: { image_path: string | null; is_published: boolean },
+  extras: {
+    image_path: string | null
+    is_published: boolean
+    notify_on_publish?: boolean
+  },
 ): Omit<RecipeRow, 'created_at' | 'updated_at'> {
   const imagePath =
     extras.image_path ??
@@ -91,6 +98,7 @@ export function mapRecipeToRow(
     short_description: recipe.shortDescription,
     meal_type: recipe.mealType,
     time_minutes: recipe.timeMinutes,
+    servings: recipe.servings > 0 ? recipe.servings : 2,
     preparation_level: recipe.preparationLevel,
     storage_need: recipe.storageNeed,
     price_level: recipe.priceLevel,
@@ -102,5 +110,6 @@ export function mapRecipeToRow(
     practical_tags: recipe.practicalTags,
     image_path: imagePath,
     is_published: extras.is_published,
+    notify_on_publish: extras.notify_on_publish ?? false,
   }
 }

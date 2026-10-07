@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { FilterSheet } from '../components/FilterSheet'
 import { RecipeCard } from '../components/RecipeCard'
 import { useRecipes } from '../context/RecipesContext'
+import { useSiteContent } from '../context/SiteContentContext'
 import { emptyFilters, type FilterState } from '../data/recipes'
 import { buildCuratedSections } from '../utils/curatedRecipes'
 import { countActiveFilters, filterRecipes } from '../utils/filterRecipes'
@@ -33,6 +34,7 @@ function FiltersIcon() {
 
 export function ExplorePage() {
   const { recipes, loading, error } = useRecipes()
+  const { explore, getCopy, theme } = useSiteContent()
   const [searchQuery, setSearchQuery] = useState('')
   const [filters, setFilters] = useState<FilterState>(emptyFilters)
   const [draftFilters, setDraftFilters] = useState<FilterState>(emptyFilters)
@@ -48,8 +50,8 @@ export function ExplorePage() {
   }, [filters, searchQuery, recipes])
 
   const curatedSections = useMemo(
-    () => buildCuratedSections(recipes),
-    [recipes],
+    () => buildCuratedSections(recipes, explore),
+    [recipes, explore],
   )
 
   function openFilterSheet() {
@@ -76,6 +78,7 @@ export function ExplorePage() {
             viewBox="0 0 320 170"
             preserveAspectRatio="none"
             aria-hidden="true"
+            style={{ color: theme.logoBlob }}
           >
             <path
               fill="currentColor"
@@ -87,7 +90,12 @@ export function ExplorePage() {
             <span className="explore__brand-line">Til Gaffel</span>
           </p>
         </div>
-        <h1 className="explore__tagline">En gryte unna noe godt</h1>
+        <h1 className="explore__tagline">
+          {getCopy('explore.tagline', 'En gryte unna noe godt')}
+        </h1>
+        {explore.blurb.trim() ? (
+          <p className="explore__blurb">{explore.blurb}</p>
+        ) : null}
       </header>
 
       {loading && (
@@ -97,7 +105,10 @@ export function ExplorePage() {
       )}
       {error && !loading && (
         <p className="explore-results__empty" role="status">
-          Kunne ikke hente oppskrifter fra skyen — viser lokal kopi.
+          {getCopy(
+            'explore.cloud_fallback',
+            'Kunne ikke hente oppskrifter fra skyen — viser lokal kopi.',
+          )}
         </p>
       )}
 
@@ -107,7 +118,10 @@ export function ExplorePage() {
           <input
             type="search"
             className="explore-search__input"
-            placeholder="Søk etter oppskrift eller ingrediens"
+            placeholder={getCopy(
+              'explore.search_placeholder',
+              'Søk etter oppskrift eller ingrediens',
+            )}
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             enterKeyHint="search"
@@ -144,8 +158,10 @@ export function ExplorePage() {
 
           {matchingRecipes.length === 0 ? (
             <p className="explore-results__empty">
-              Ingen oppskrifter matcher søket eller filtrene. Prøv andre ord
-              eller åpne filtre og nullstill valg.
+              {getCopy(
+                'explore.empty_results',
+                'Ingen oppskrifter matcher søket eller filtrene. Prøv andre ord eller åpne filtre og nullstill valg.',
+              )}
             </p>
           ) : (
             <ul className="explore-feed">

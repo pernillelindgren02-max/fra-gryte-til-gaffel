@@ -1,10 +1,15 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useSiteContent } from '../context/SiteContentContext'
+import { getLastAdminPath } from '../lib/adminPath'
+import './admin/Admin.css'
 import './AuthPage.css'
 
 export function AuthPage() {
-  const { user, configured, loading, signIn, signUp, signOut } = useAuth()
+  const { user, configured, loading, isAdmin, signIn, signUp, signOut } =
+    useAuth()
+  const { getCopy } = useSiteContent()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -76,6 +81,11 @@ export function AuthPage() {
         <div className="auth-page__links">
           <Link to="/favoritter">Mine favoritter og mapper</Link>
         </div>
+        {isAdmin ? (
+          <Link to={getLastAdminPath()} className="admin-back-chip">
+            Tilbake til admin
+          </Link>
+        ) : null}
         <button
           type="button"
           className="auth-page__submit auth-page__submit--ghost"
@@ -93,7 +103,10 @@ export function AuthPage() {
         {mode === 'login' ? 'Logg inn' : 'Opprett konto'}
       </h1>
       <p className="auth-page__lead">
-        Lagre favoritter og mapper, pluss private notater på oppskrifter.
+        {getCopy(
+          'favoritter.helper',
+          'Lagre favoritter og mapper, pluss private notater på oppskrifter.',
+        )}
       </p>
 
       <div className="auth-page__tabs" role="tablist">

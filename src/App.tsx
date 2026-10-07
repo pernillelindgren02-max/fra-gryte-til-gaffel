@@ -1,12 +1,30 @@
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useParams,
+} from 'react-router-dom'
 import { AdminGate } from './components/AdminGate'
 import { AppNav } from './components/AppNav'
+import { PathMemory } from './components/PathMemory'
 import { AuthProvider } from './context/AuthContext'
 import { RecipesProvider } from './context/RecipesContext'
 import { ShoppingListProvider } from './context/ShoppingListContext'
+import { SiteContentProvider } from './context/SiteContentContext'
 import { UserDataProvider } from './context/UserDataContext'
-import { AdminHomePage } from './pages/admin/AdminHomePage'
+import { AdminLayout } from './pages/admin/AdminLayout'
+import { AdminOverviewPage } from './pages/admin/AdminOverviewPage'
+import { AdminRecipesPage } from './pages/admin/AdminRecipesPage'
 import { AdminRecipeEditPage } from './pages/admin/AdminRecipeEditPage'
+import { AdminRecipePreviewPage } from './pages/admin/AdminRecipePreviewPage'
+import { AdminExplorePage } from './pages/admin/AdminExplorePage'
+import { AdminCopyPage } from './pages/admin/AdminCopyPage'
+import { AdminDesignPage } from './pages/admin/AdminDesignPage'
+import { AdminUsersPage } from './pages/admin/AdminUsersPage'
+import { AdminNotificationsPage } from './pages/admin/AdminNotificationsPage'
+import { AdminSettingsPage } from './pages/admin/AdminSettingsPage'
 import { AuthPage } from './pages/AuthPage'
 import { ExplorePage } from './pages/ExplorePage'
 import { FavoritesPage } from './pages/FavoritesPage'
@@ -15,38 +33,49 @@ import { RecipePage } from './pages/RecipePage'
 import { ShoppingListPage } from './pages/ShoppingListPage'
 import './App.css'
 
+function AdminRoutes() {
+  return (
+    <AdminGate>
+      <AdminLayout />
+    </AdminGate>
+  )
+}
+
+function LegacyRecipeRedirect() {
+  const { id } = useParams<{ id: string }>()
+  return <Navigate to={`/admin/oppskrifter/${id}`} replace />
+}
+
 function AppChrome() {
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith('/admin')
 
   return (
     <div className={isAdminRoute ? 'admin-root' : 'app-shell'}>
+      <PathMemory />
       {!isAdminRoute && <AppNav />}
       <Routes>
-        <Route
-          path="/admin"
-          element={
-            <AdminGate>
-              <AdminHomePage />
-            </AdminGate>
-          }
-        />
-        <Route
-          path="/admin/recipes/new"
-          element={
-            <AdminGate>
-              <AdminRecipeEditPage />
-            </AdminGate>
-          }
-        />
-        <Route
-          path="/admin/recipes/:id"
-          element={
-            <AdminGate>
-              <AdminRecipeEditPage />
-            </AdminGate>
-          }
-        />
+        <Route path="/admin" element={<AdminRoutes />}>
+          <Route index element={<AdminOverviewPage />} />
+          <Route path="oppskrifter" element={<AdminRecipesPage />} />
+          <Route path="oppskrifter/new" element={<AdminRecipeEditPage />} />
+          <Route path="oppskrifter/:id" element={<AdminRecipeEditPage />} />
+          <Route
+            path="oppskrifter/:id/forhandsvis"
+            element={<AdminRecipePreviewPage />}
+          />
+          <Route path="explore" element={<AdminExplorePage />} />
+          <Route path="tekster" element={<AdminCopyPage />} />
+          <Route path="design" element={<AdminDesignPage />} />
+          <Route path="brukere" element={<AdminUsersPage />} />
+          <Route path="varsler" element={<AdminNotificationsPage />} />
+          <Route path="innstillinger" element={<AdminSettingsPage />} />
+          <Route
+            path="recipes/new"
+            element={<Navigate to="/admin/oppskrifter/new" replace />}
+          />
+          <Route path="recipes/:id" element={<LegacyRecipeRedirect />} />
+        </Route>
         <Route path="/" element={<ExplorePage />} />
         <Route path="/oppskrift/:id" element={<RecipePage />} />
         <Route path="/favoritter" element={<FavoritesPage />} />
@@ -64,15 +93,17 @@ function AppChrome() {
 export default function App() {
   return (
     <AuthProvider>
-      <RecipesProvider>
-        <UserDataProvider>
-          <ShoppingListProvider>
-            <BrowserRouter>
-              <AppChrome />
-            </BrowserRouter>
-          </ShoppingListProvider>
-        </UserDataProvider>
-      </RecipesProvider>
+      <SiteContentProvider>
+        <RecipesProvider>
+          <UserDataProvider>
+            <ShoppingListProvider>
+              <BrowserRouter>
+                <AppChrome />
+              </BrowserRouter>
+            </ShoppingListProvider>
+          </UserDataProvider>
+        </RecipesProvider>
+      </SiteContentProvider>
     </AuthProvider>
   )
 }

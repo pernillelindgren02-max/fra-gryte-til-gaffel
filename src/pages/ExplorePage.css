@@ -60,6 +60,15 @@
   max-width: 24ch;
 }
 
+.explore__blurb {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--color-teal) 75%, transparent);
+  max-width: 36ch;
+  line-height: 1.45;
+}
+
 .explore-search {
   display: grid;
   grid-template-columns: 1fr auto;
