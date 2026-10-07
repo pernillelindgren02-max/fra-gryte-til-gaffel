@@ -13,22 +13,23 @@ Norsk, mobilvennlig oppskriftsapp for begrensede kjøkken — én kokeplate, ing
 
 Handlelisten lagres i nettleseren (`localStorage`). Favoritter/mapper/notater bruker `recipe_id`.
 
-## Kom i gang (uten konto)
+## Kom i gang
 
 ```bash
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
 Åpne [http://127.0.0.1:4317](http://127.0.0.1:4317).
 
-Uten Supabase-nøkler kjører appen som før; favoritter/mapper/notater ber deg sette opp konto.
+Uten verdier i `.env.local` kjører appen som før (uten sky-konto). Fyll inn Supabase-nøkler i `.env.local` når du er klar — se under. **Ikke commit** `.env.local`.
 
 ## Supabase (tilkobling + konto)
 
 1. Opprett et prosjekt på [supabase.com](https://supabase.com).
 2. Under **Project Settings → API**, kopier **Project URL** og **publishable / anon public** key.
-3. Åpne **`.env.local`** i prosjektroten og lim inn:
+3. Lim inn i **`.env.local`** (kopiert fra `.env.example`):
 
 ```env
 VITE_SUPABASE_URL=
