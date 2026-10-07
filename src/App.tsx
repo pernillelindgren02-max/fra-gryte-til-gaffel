@@ -51,6 +51,11 @@ function LegacyRecipeRedirect() {
   return <Navigate to={`/admin/oppskrifter/${id}`} replace />
 }
 
+function LegacyConsumerRecipeRedirect() {
+  const { id } = useParams<{ id: string }>()
+  return <Navigate to={`/oppskrift/${id}`} replace />
+}
+
 function AppChrome() {
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith('/admin')
