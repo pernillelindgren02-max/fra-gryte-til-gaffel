@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { freezeExploreScroll } from '../lib/exploreSession'
 import { recipePath } from '../lib/recipeLinks'
 
 type RecipeLinkProps = {
@@ -24,7 +25,13 @@ export function RecipeLink({
       to={recipePath(recipeId)}
       state={{ from }}
       className={className}
-      onClick={onClick}
+      onClick={() => {
+        // Lock Explore scroll before the recipe page forces scroll-to-top.
+        if (location.pathname === '/') {
+          freezeExploreScroll(window.scrollY)
+        }
+        onClick?.()
+      }}
     >
       {children}
     </Link>

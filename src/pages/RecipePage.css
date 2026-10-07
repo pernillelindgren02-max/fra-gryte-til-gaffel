@@ -34,10 +34,14 @@
 
 .recipe-page__back {
   align-self: flex-start;
+  border: none;
+  background: transparent;
   color: var(--color-terracotta);
+  font: inherit;
   font-size: 0.95rem;
   font-weight: 600;
   text-decoration: none;
+  cursor: pointer;
   min-height: var(--tap-min);
   display: inline-flex;
   align-items: center;

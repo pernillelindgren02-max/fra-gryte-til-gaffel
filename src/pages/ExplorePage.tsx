@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { ClearableSearchInput } from '../components/ClearableSearchInput'
 import { EmptyState } from '../components/EmptyState'
 import { FilterSheet } from '../components/FilterSheet'
@@ -12,6 +12,7 @@ import { useRecipes } from '../context/RecipesContext'
 import { useSiteContent } from '../context/SiteContentContext'
 import { emptyFilters, type FilterState, type Recipe } from '../data/recipes'
 import {
+  clearExploreScrollFreeze,
   loadExploreSession,
   saveExploreSession,
 } from '../lib/exploreSession'
@@ -149,32 +150,53 @@ export function ExplorePage() {
     [curatedSections],
   )
 
+  const scrollYRef = useRef(initial.current.scrollY)
+
+  useLayoutEffect(() => {
+    clearExploreScrollFreeze()
+  }, [])
+
   useEffect(() => {
     saveExploreSession({
       searchQuery,
       filters,
-      scrollY: window.scrollY,
+      scrollY: scrollYRef.current,
     })
   }, [searchQuery, filters])
 
-  useEffect(() => {
+  // useLayoutEffect so cleanup runs in the layout phase. Ignore sudden jumps
+  // toward the top while a recipe route scrolls the window (listener may still
+  // be attached briefly during the transition).
+  useLayoutEffect(() => {
     function onScroll() {
+      const y = window.scrollY
+      const prev = scrollYRef.current
+      if (prev > 100 && y < 100 && y < prev - 50) return
+      scrollYRef.current = y
       saveExploreSession({
         searchQuery,
         filters,
-        scrollY: window.scrollY,
+        scrollY: scrollYRef.current,
       })
     }
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      saveExploreSession({
+        searchQuery,
+        filters,
+        scrollY: scrollYRef.current,
+      })
+    }
   }, [searchQuery, filters])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (restoredScroll.current || showFeedSkeleton) return
     restoredScroll.current = true
     const y = initial.current.scrollY
     if (y > 0) {
-      requestAnimationFrame(() => window.scrollTo(0, y))
+      window.scrollTo(0, y)
+      scrollYRef.current = y
     }
   }, [showFeedSkeleton, matchingRecipes.length, exploreBlocks.length])
 

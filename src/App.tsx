@@ -11,6 +11,7 @@ import { AppNav } from './components/AppNav'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { OfflineBanner } from './components/OfflineBanner'
 import { PathMemory } from './components/PathMemory'
+import { RouteScroll } from './components/RouteScroll'
 import { AuthProvider } from './context/AuthContext'
 import { NotificationsProvider } from './context/NotificationsContext'
 import { PantryProvider } from './context/PantryContext'
@@ -62,6 +63,7 @@ function AppChrome() {
 
   return (
     <div className={isAdminRoute ? 'admin-root' : 'app-shell'}>
+      <RouteScroll />
       <PathMemory />
       {!isAdminRoute && <OfflineBanner />}
       {!isAdminRoute && <AppNav />}

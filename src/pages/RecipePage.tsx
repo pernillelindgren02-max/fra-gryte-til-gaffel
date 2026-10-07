@@ -56,6 +56,21 @@ export function RecipePage() {
   const [portions, setPortions] = useState(baseServings)
   const portionsReady = useRef(false)
 
+  // Always open recipe detail at the top (incl. deep links / id changes).
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [id])
+
+  function goBack() {
+    // Prefer history back so the previous screen can restore its scroll
+    // (ScrollRestoration + Explore session). Fallback for deep links.
+    if (fromState) {
+      navigate(-1)
+      return
+    }
+    navigate(backTo)
+  }
+
   useEffect(() => {
     if (!recipe) return
     portionsReady.current = false
@@ -93,9 +108,9 @@ export function RecipePage() {
         <Link to="/" className="recipe-page__list-btn recipe-page__unavailable-cta">
           Gå til Utforsk
         </Link>
-        <Link to={backTo} className="recipe-page__back">
+        <button type="button" className="recipe-page__back" onClick={goBack}>
           {backLabel}
-        </Link>
+        </button>
       </div>
     )
   }
@@ -133,9 +148,9 @@ export function RecipePage() {
   return (
     <article className="recipe-page">
       <div className="recipe-page__top">
-        <Link to={backTo} className="recipe-page__back">
+        <button type="button" className="recipe-page__back" onClick={goBack}>
           {backLabel}
-        </Link>
+        </button>
         <button
           type="button"
           className={`recipe-page__save-btn${savedSomewhere ? ' recipe-page__save-btn--on' : ''}`}
