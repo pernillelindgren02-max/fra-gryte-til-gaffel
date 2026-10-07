@@ -40,11 +40,12 @@ html,
 body,
 #root {
   min-height: 100%;
+  background: var(--color-bg);
+  background-image: none;
 }
 
 body {
   margin: 0;
-  background: var(--color-bg);
   min-height: 100vh;
 }
 

@@ -2,6 +2,8 @@
   width: min(100% - (var(--space-page-x) * 2), 40rem);
   margin-inline: auto;
   padding-block: 1.15rem 2.5rem;
+  background: var(--color-bg);
+  background-image: none;
 }
 
 @media (min-width: 720px) {

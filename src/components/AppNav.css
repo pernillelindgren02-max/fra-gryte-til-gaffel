@@ -16,17 +16,10 @@
   padding: 0;
   border: none;
   border-radius: 50%;
-  background:
-    radial-gradient(
-      circle at 30% 28%,
-      color-mix(in srgb, var(--color-soft-yellow) 55%, white),
-      transparent 55%
-    ),
-    color-mix(in srgb, var(--color-pale-green) 82%, white);
+  background: var(--color-pale-green);
+  background-image: none;
   color: var(--color-teal);
-  box-shadow:
-    0 1px 0 color-mix(in srgb, white 70%, transparent),
-    0 6px 16px color-mix(in srgb, var(--color-teal) 10%, transparent);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-teal) 10%, transparent);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition:
@@ -36,13 +29,8 @@
 }
 
 .app-nav__menu-btn:hover {
-  background:
-    radial-gradient(
-      circle at 30% 28%,
-      color-mix(in srgb, var(--color-soft-yellow) 65%, white),
-      transparent 55%
-    ),
-    var(--color-pale-green);
+  background: var(--color-pale-green);
+  background-image: none;
   transform: translateY(-1px);
 }
 
