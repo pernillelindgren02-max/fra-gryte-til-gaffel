@@ -74,18 +74,26 @@ export function suggestIngredients(
     const commonHits: string[] = []
     for (const staple of COMMON_INGREDIENTS) {
       const hit = knownByNorm.get(normalizeForMatch(staple))
-      if (hit) commonHits.push(hit)
+      if (hit && !selected.has(normalizeForMatch(hit))) {
+        commonHits.push(hit)
+      }
     }
 
-    const pool =
-      commonHits.length > 0
-        ? commonHits
-        : [...knownNames].sort((a, b) => a.localeCompare(b, 'nb'))
+    const alphabetical = [...knownNames]
+      .filter((name) => !selected.has(normalizeForMatch(name)))
+      .sort((a, b) => a.localeCompare(b, 'nb'))
 
-    return pool.slice(0, limit).map((name) => ({
-      name,
-      selected: selected.has(normalizeForMatch(name)),
-    }))
+    const seen = new Set<string>()
+    const pool: string[] = []
+    for (const name of [...commonHits, ...alphabetical]) {
+      const key = normalizeForMatch(name)
+      if (seen.has(key)) continue
+      seen.add(key)
+      pool.push(name)
+      if (pool.length >= limit) break
+    }
+
+    return pool.map((name) => ({ name, selected: false }))
   }
 
   const scored: { name: string; rank: number; selected: boolean }[] = []
