@@ -110,7 +110,7 @@ export function AuthPage() {
           />
           <span>Varsler om nye oppskrifter</span>
         </label>
-        {(error || notifError) && (
+        {typeof (error ?? notifError) === 'string' && (error ?? notifError) && (
           <p className="auth-page__error">{error ?? notifError}</p>
         )}
 
