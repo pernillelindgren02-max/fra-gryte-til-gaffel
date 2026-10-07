@@ -3,7 +3,7 @@ import { FilterSheet } from '../components/FilterSheet'
 import { RecipeCard } from '../components/RecipeCard'
 import { useRecipes } from '../context/RecipesContext'
 import { useSiteContent } from '../context/SiteContentContext'
-import { emptyFilters, type FilterState } from '../data/recipes'
+import { emptyFilters, type FilterState, type Recipe } from '../data/recipes'
 import { buildCuratedSections } from '../utils/curatedRecipes'
 import { countActiveFilters, filterRecipes } from '../utils/filterRecipes'
 import { searchRecipes } from '../utils/searchRecipes'
@@ -32,6 +32,74 @@ function FiltersIcon() {
   )
 }
 
+type ExploreBlock =
+  | {
+      kind: 'featured'
+      id: string
+      title: string
+      recipe: Recipe
+      rest: Recipe[]
+    }
+  | {
+      kind: 'grid'
+      id: string
+      title: string
+      recipes: Recipe[]
+      spacing: 'tight' | 'roomy'
+    }
+  | {
+      kind: 'editorial'
+      id: string
+      title: string
+      recipes: Recipe[]
+    }
+
+function buildExploreBlocks(
+  sections: ReturnType<typeof buildCuratedSections>,
+): ExploreBlock[] {
+  if (sections.length === 0) return []
+
+  const blocks: ExploreBlock[] = []
+  let featuredTaken = false
+
+  sections.forEach((section, index) => {
+    const isEditorialSlot = index === 1 || index === 3
+
+    if (!featuredTaken && section.recipes.length > 0) {
+      featuredTaken = true
+      const [hero, ...rest] = section.recipes
+      blocks.push({
+        kind: 'featured',
+        id: section.id,
+        title: section.title,
+        recipe: hero,
+        rest,
+      })
+      return
+    }
+
+    if (isEditorialSlot) {
+      blocks.push({
+        kind: 'editorial',
+        id: section.id,
+        title: section.title,
+        recipes: section.recipes,
+      })
+      return
+    }
+
+    blocks.push({
+      kind: 'grid',
+      id: section.id,
+      title: section.title,
+      recipes: section.recipes,
+      spacing: index % 2 === 0 ? 'roomy' : 'tight',
+    })
+  })
+
+  return blocks
+}
+
 export function ExplorePage() {
   const { recipes, loading, error } = useRecipes()
   const { explore, getCopy, theme } = useSiteContent()
@@ -52,6 +120,11 @@ export function ExplorePage() {
   const curatedSections = useMemo(
     () => buildCuratedSections(recipes, explore),
     [recipes, explore],
+  )
+
+  const exploreBlocks = useMemo(
+    () => buildExploreBlocks(curatedSections),
+    [curatedSections],
   )
 
   function openFilterSheet() {
@@ -175,18 +248,66 @@ export function ExplorePage() {
         </section>
       ) : (
         <div className="explore-sections">
-          {curatedSections.map((section) => (
-            <section key={section.id} className="explore-section">
-              <h2 className="explore-section__title">{section.title}</h2>
-              <ul className="explore-feed">
-                {section.recipes.map((recipe) => (
-                  <li key={`${section.id}-${recipe.id}`}>
-                    <RecipeCard recipe={recipe} layout="grid" />
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
+          {exploreBlocks.map((block) => {
+            if (block.kind === 'featured') {
+              return (
+                <section
+                  key={block.id}
+                  className="explore-section explore-section--featured"
+                >
+                  <h2 className="explore-section__title">{block.title}</h2>
+                  <div className="explore-featured">
+                    <RecipeCard recipe={block.recipe} layout="featured" />
+                  </div>
+                  {block.rest.length > 0 && (
+                    <ul className="explore-feed explore-feed--after-feature">
+                      {block.rest.map((recipe) => (
+                        <li key={`${block.id}-${recipe.id}`}>
+                          <RecipeCard recipe={recipe} layout="grid" />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              )
+            }
+
+            if (block.kind === 'editorial') {
+              return (
+                <section
+                  key={block.id}
+                  className="explore-section explore-section--editorial"
+                >
+                  <div className="explore-editorial">
+                    <h2 className="explore-editorial__title">{block.title}</h2>
+                  </div>
+                  <ul className="explore-feed">
+                    {block.recipes.map((recipe) => (
+                      <li key={`${block.id}-${recipe.id}`}>
+                        <RecipeCard recipe={recipe} layout="grid" />
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )
+            }
+
+            return (
+              <section
+                key={block.id}
+                className={`explore-section explore-section--${block.spacing}`}
+              >
+                <h2 className="explore-section__title">{block.title}</h2>
+                <ul className="explore-feed">
+                  {block.recipes.map((recipe) => (
+                    <li key={`${block.id}-${recipe.id}`}>
+                      <RecipeCard recipe={recipe} layout="grid" />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )
+          })}
         </div>
       )}
 

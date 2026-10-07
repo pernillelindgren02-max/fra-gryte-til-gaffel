@@ -64,7 +64,7 @@
 }
 
 .app-nav__menu-btn:active {
-  transform: scale(0.96);
+  transform: scale(0.94);
 }
 
 .app-nav__menu-btn--open {
@@ -76,6 +76,11 @@
 
 .app-nav__gryte-icon {
   display: block;
+  transition: transform 220ms ease;
+}
+
+.app-nav__menu-btn--open .app-nav__gryte-icon {
+  transform: rotate(-8deg) scale(1.04);
 }
 
 .app-nav__overlay {

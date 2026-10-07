@@ -37,9 +37,10 @@
 
 .recipe-page__image {
   aspect-ratio: 16 / 10;
-  border-radius: var(--radius-md);
+  border-radius: 1.35rem;
   background: var(--color-pale-green);
   overflow: hidden;
+  animation: recipe-enter 280ms ease;
 }
 
 .recipe-page__image img {
@@ -47,6 +48,26 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+@keyframes recipe-enter {
+  from {
+    opacity: 0.55;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recipe-page__image,
+  .recipe-page__list-btn,
+  .recipe-page__save-btn {
+    animation: none;
+    transition: none;
+  }
 }
 
 .recipe-page__header {
@@ -95,6 +116,11 @@
   font-weight: 700;
   font-size: 0.92rem;
   cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.recipe-page__save-btn:active {
+  transform: scale(0.97);
 }
 
 .recipe-page__save-btn--on {
@@ -116,6 +142,11 @@
   font-weight: 700;
   font-size: 0.95rem;
   cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, opacity 160ms ease;
+}
+
+.recipe-page__list-btn:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .recipe-page__list-btn:disabled {

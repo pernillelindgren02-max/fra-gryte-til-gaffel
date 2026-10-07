@@ -1,8 +1,5 @@
 import { Link } from 'react-router-dom'
-import {
-  getIngredientCount,
-  type Recipe,
-} from '../data/recipes'
+import { getIngredientCount, type Recipe } from '../data/recipes'
 import { campingStoveLabels, mealTypeLabels } from '../data/filterLabels'
 import { FavoriteButton } from './FavoriteButton'
 import { Tag } from './Tag'
@@ -10,7 +7,7 @@ import './RecipeCard.css'
 
 interface RecipeCardProps {
   recipe: Recipe
-  layout?: 'default' | 'rail' | 'grid'
+  layout?: 'default' | 'rail' | 'grid' | 'featured'
 }
 
 export function RecipeCard({ recipe, layout = 'default' }: RecipeCardProps) {
@@ -18,13 +15,22 @@ export function RecipeCard({ recipe, layout = 'default' }: RecipeCardProps) {
   const isPrimusFriendly =
     recipe.campingStoveSuitability === 'perfect' ||
     recipe.campingStoveSuitability === 'adaptable'
+  const layoutClass =
+    layout === 'rail'
+      ? ' recipe-card--rail'
+      : layout === 'grid'
+        ? ' recipe-card--grid'
+        : layout === 'featured'
+          ? ' recipe-card--featured'
+          : ''
 
   return (
-    <article
-      className={`recipe-card${layout === 'rail' ? ' recipe-card--rail' : ''}${layout === 'grid' ? ' recipe-card--grid' : ''}`}
-    >
+    <article className={`recipe-card${layoutClass}`}>
       <div className="recipe-card__media">
-        <Link to={`/oppskrift/${recipe.id}`} className="recipe-card__image-link">
+        <Link
+          to={`/oppskrift/${recipe.id}`}
+          className="recipe-card__image-link"
+        >
           <div className="recipe-card__image">
             <img src={recipe.image} alt="" loading="lazy" />
           </div>
@@ -41,7 +47,7 @@ export function RecipeCard({ recipe, layout = 'default' }: RecipeCardProps) {
             <span aria-hidden="true">·</span>
             <span>{mealTypeLabels[recipe.mealType]}</span>
           </div>
-          {isPrimusFriendly && (
+          {isPrimusFriendly && layout !== 'grid' && (
             <div className="recipe-card__tags">
               <Tag variant="primus">
                 {campingStoveLabels[recipe.campingStoveSuitability]}
