@@ -1,0 +1,100 @@
+.clearable-search__form {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.clearable-search__form .visually-hidden,
+.clearable-search .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.clearable-search {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.clearable-search__label {
+  display: block;
+  min-width: 0;
+}
+
+.clearable-search__input {
+  width: 100%;
+  min-height: var(--tap-min);
+  border: 1.5px solid color-mix(in srgb, var(--color-teal) 16%, transparent);
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  background: white;
+  color: var(--color-teal);
+  font: inherit;
+  font-size: 0.95rem;
+  /* Hide native WebKit clear — we use our own large tap target. */
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.clearable-search__input::-webkit-search-cancel-button,
+.clearable-search__input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.clearable-search__input--has-clear {
+  padding-right: 2.85rem;
+}
+
+.clearable-search__input::placeholder {
+  color: color-mix(in srgb, var(--color-teal) 48%, transparent);
+}
+
+.clearable-search__clear {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  min-width: 2.35rem;
+  min-height: 2.35rem;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-teal) 8%, white);
+  color: var(--color-teal);
+  font: inherit;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 140ms ease,
+    background 140ms ease;
+}
+
+.clearable-search__clear:hover {
+  background: color-mix(in srgb, var(--color-teal) 14%, white);
+}
+
+.clearable-search__clear:active {
+  transform: translateY(-50%) scale(0.94);
+  background: color-mix(in srgb, var(--color-terracotta) 12%, white);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clearable-search__clear {
+    transition: none;
+  }
+}

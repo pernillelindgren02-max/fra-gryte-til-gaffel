@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { ClearableSearchInput } from '../components/ClearableSearchInput'
 import { EmptyState } from '../components/EmptyState'
 import { FilterSheet } from '../components/FilterSheet'
 import { InlineError } from '../components/InlineError'
@@ -242,20 +243,17 @@ export function ExplorePage() {
       )}
 
       <div className="explore-search">
-        <label className="explore-search__field">
-          <span className="visually-hidden">Søk</span>
-          <input
-            type="search"
-            className="explore-search__input"
-            placeholder={getCopy(
-              'explore.search_placeholder',
-              'Søk etter oppskrift eller ingrediens',
-            )}
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            enterKeyHint="search"
-          />
-        </label>
+        <ClearableSearchInput
+          className="explore-search__clearable"
+          label="Søk"
+          placeholder={getCopy(
+            'explore.search_placeholder',
+            'Søk etter oppskrift eller ingrediens',
+          )}
+          value={searchQuery}
+          onChange={setSearchQuery}
+          onClear={clearSearch}
+        />
         <button
           type="button"
           className={`explore-search__filter-btn${activeFilterCount > 0 ? ' explore-search__filter-btn--active' : ''}`}

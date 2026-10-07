@@ -5,6 +5,7 @@ import {
 } from '../context/ShoppingListContext'
 import { useRecipes } from '../context/RecipesContext'
 import { useSiteContent } from '../context/SiteContentContext'
+import { ClearableSearchInput } from '../components/ClearableSearchInput'
 import { EmptyState } from '../components/EmptyState'
 import { RecipeLink } from '../components/RecipeLink'
 import { useToast } from '../context/ToastContext'
@@ -79,16 +80,13 @@ export function ShoppingListPage() {
         </p>
       </header>
 
-      <label className="shopping__search">
-        <span className="visually-hidden">Søk etter oppskrift</span>
-        <input
-          type="search"
-          placeholder="Søk etter oppskrift"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          enterKeyHint="search"
-        />
-      </label>
+      <ClearableSearchInput
+        className="shopping__search"
+        label="Søk etter oppskrift"
+        placeholder="Søk etter oppskrift"
+        value={query}
+        onChange={setQuery}
+      />
 
       {results.length > 0 && (
         <ul className="shopping__suggest" role="listbox">
@@ -118,7 +116,15 @@ export function ShoppingListPage() {
             {listed.map(({ recipe, multiplier }) => (
               <li key={recipe.id} className="shopping__recipe-card">
                 <div className="shopping__recipe-row">
-                  <RecipeLink recipeId={recipe.id}>{recipe.name}</RecipeLink>
+                  <RecipeLink
+                    recipeId={recipe.id}
+                    className="shopping__recipe-name"
+                  >
+                    {recipe.name}
+                    <span className="nav-chevron" aria-hidden="true">
+                      ›
+                    </span>
+                  </RecipeLink>
                   <button
                     type="button"
                     className="shopping__text-btn"

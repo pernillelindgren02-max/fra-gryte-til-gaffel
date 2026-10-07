@@ -203,7 +203,7 @@ export function RecipePage() {
             alreadyOnList ? 'Åpne handleliste' : 'Legg til i handleliste'
           }
         >
-          {alreadyOnList ? 'I handlelisten' : 'Legg til i handleliste'}
+          {alreadyOnList ? 'I handlelisten ›' : 'Legg til i handleliste'}
         </button>
       </header>
 

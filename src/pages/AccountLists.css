@@ -145,6 +145,13 @@
   color: inherit;
   border-color: color-mix(in srgb, var(--color-terracotta) 28%, transparent);
   background: color-mix(in srgb, var(--color-terracotta) 7%, white);
+  -webkit-tap-highlight-color: transparent;
+  transition: background 140ms ease, transform 140ms ease;
+}
+
+.folder-tile--default:active {
+  transform: scale(0.99);
+  background: color-mix(in srgb, var(--color-terracotta) 12%, white);
 }
 
 .folder-tile--edit {
@@ -199,6 +206,12 @@
   text-decoration: none;
   color: inherit;
   min-height: 2.6rem;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 140ms ease;
+}
+
+.folder-tile__main:active {
+  opacity: 0.78;
 }
 
 .folder-tile__body {

@@ -116,6 +116,10 @@
   opacity: 0.82;
 }
 
+.recipe-card__link:active .recipe-card__title {
+  text-decoration-color: color-mix(in srgb, var(--color-teal) 45%, transparent);
+}
+
 .recipe-card__body {
   padding: 0.85rem 0.2rem 0.35rem;
   display: flex;
@@ -130,6 +134,11 @@
   font-weight: 700;
   color: var(--color-teal);
   line-height: 1.3;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--color-teal) 22%, transparent);
+  text-underline-offset: 0.14em;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color 160ms ease;
 }
 
 .recipe-card__meta {
@@ -170,6 +179,10 @@
 
   .recipe-card:hover .recipe-card__image img {
     transform: scale(1.035);
+  }
+
+  .recipe-card__link:hover .recipe-card__title {
+    text-decoration-color: color-mix(in srgb, var(--color-teal) 50%, transparent);
   }
 }
 

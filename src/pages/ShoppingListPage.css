@@ -24,15 +24,8 @@
   color: color-mix(in srgb, var(--color-teal) 75%, transparent);
 }
 
-.shopping__search input {
+.shopping__search {
   width: 100%;
-  min-height: var(--tap-min);
-  border: 1.5px solid color-mix(in srgb, var(--color-teal) 16%, transparent);
-  border-radius: 999px;
-  padding: 0.65rem 1rem;
-  background: white;
-  color: var(--color-teal);
-  font: inherit;
 }
 
 .shopping__suggest {
@@ -47,7 +40,7 @@
 .shopping__suggest button {
   width: 100%;
   text-align: left;
-  min-height: 2.6rem;
+  min-height: 2.75rem;
   border: none;
   background: transparent;
   color: var(--color-teal);
@@ -56,10 +49,17 @@
   padding: 0.45rem 0.75rem;
   border-radius: 0.7rem;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 140ms ease, transform 140ms ease;
 }
 
 .shopping__suggest button:hover {
   background: var(--color-card);
+}
+
+.shopping__suggest button:active {
+  background: color-mix(in srgb, var(--color-pale-green) 55%, white);
+  transform: scale(0.99);
 }
 
 .shopping__block {
@@ -95,6 +95,12 @@
   text-decoration: underline;
   text-underline-offset: 3px;
   padding: 0.2rem 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 140ms ease;
+}
+
+.shopping__text-btn:active {
+  opacity: 0.7;
 }
 
 .shopping__recipes {
@@ -122,12 +128,27 @@
   gap: 0.75rem;
 }
 
-.shopping__recipes a {
+.shopping__recipe-name {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2rem;
   color: var(--color-terracotta);
   font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 0.14em;
-  text-decoration-thickness: 1px;
+  text-decoration-thickness: 1.5px;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 140ms ease;
+}
+
+.shopping__recipe-name:active {
+  opacity: 0.75;
+}
+
+.shopping__recipe-name .nav-chevron {
+  font-weight: 500;
+  color: color-mix(in srgb, var(--color-terracotta) 70%, transparent);
+  text-decoration: none;
 }
 
 .shopping__multipliers {
@@ -147,6 +168,12 @@
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.shopping__multiplier:active {
+  transform: scale(0.95);
 }
 
 .shopping__multiplier--on {
@@ -225,11 +252,17 @@
   font-weight: 650;
   text-decoration: underline;
   text-underline-offset: 0.12em;
-  text-decoration-thickness: 1px;
+  text-decoration-thickness: 1.5px;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 140ms ease, color 140ms ease;
 }
 
 .shopping__item-recipe:hover {
   color: color-mix(in srgb, var(--color-terracotta) 80%, black);
+}
+
+.shopping__item-recipe:active {
+  opacity: 0.75;
 }
 
 .shopping__item--checked {

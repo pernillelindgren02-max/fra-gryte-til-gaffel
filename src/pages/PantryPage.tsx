@@ -1,4 +1,11 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+} from 'react'
 import { EmptyState } from '../components/EmptyState'
 import { RecipeLink } from '../components/RecipeLink'
 import { usePantry } from '../context/PantryContext'
@@ -8,6 +15,7 @@ import {
   getKnownIngredientNames,
   matchRecipesByPantry,
 } from '../utils/matchPantryRecipes'
+import { suggestIngredients } from '../utils/suggestIngredients'
 import './PantryPage.css'
 
 export function PantryPage() {
@@ -16,23 +24,66 @@ export function PantryPage() {
   const { pantry, addItem, removeItem } = usePantry()
   const [draft, setDraft] = useState('')
   const [message, setMessage] = useState<string | null>(null)
+  const [suggestOpen, setSuggestOpen] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const listboxId = useId()
+
   const knownNames = useMemo(() => getKnownIngredientNames(recipes), [recipes])
+  const suggestions = useMemo(
+    () => suggestIngredients(knownNames, draft, pantry),
+    [knownNames, draft, pantry],
+  )
+  const showSuggestions = suggestOpen
+  const hasQuery = draft.trim().length > 0
+  const noMatches = hasQuery && suggestions.length === 0
 
   const matches = useMemo(
     () => matchRecipesByPantry(pantry, recipes, 3),
     [pantry, recipes],
   )
 
-  function onSubmit(event: FormEvent) {
-    event.preventDefault()
-    const result = addItem(draft, knownNames)
+  useEffect(() => {
+    function onPointerDown(event: MouseEvent | TouchEvent) {
+      const target = event.target as Node | null
+      if (wrapRef.current && target && !wrapRef.current.contains(target)) {
+        setSuggestOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onPointerDown)
+    document.addEventListener('touchstart', onPointerDown)
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown)
+      document.removeEventListener('touchstart', onPointerDown)
+    }
+  }, [])
+
+  function commitName(raw: string) {
+    const result = addItem(raw, knownNames)
     if (result === 'empty') return
     if (result === 'duplicate') {
       setMessage('Allerede i listen.')
+      setDraft('')
       return
     }
     setDraft('')
     setMessage(null)
+    setSuggestOpen(true)
+    inputRef.current?.focus()
+  }
+
+  function onSubmit(event: FormEvent) {
+    event.preventDefault()
+    commitName(draft)
+  }
+
+  function onPickSuggestion(name: string, alreadySelected: boolean) {
+    if (alreadySelected) {
+      setMessage('Allerede i listen.')
+      setDraft('')
+      return
+    }
+    commitName(name)
   }
 
   return (
@@ -45,27 +96,84 @@ export function PantryPage() {
         </p>
       </header>
 
-      <form className="pantry__form" onSubmit={onSubmit}>
-        <label className="pantry__field">
-          <span className="visually-hidden">Ingrediens</span>
-          <input
-            type="text"
-            list="pantry-known-ingredients"
-            placeholder="F.eks. gulrot, egg, feta"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            autoComplete="off"
-          />
-        </label>
-        <datalist id="pantry-known-ingredients">
-          {knownNames.map((name) => (
-            <option key={name} value={name} />
-          ))}
-        </datalist>
-        <button type="submit" className="pantry__add">
-          Legg til
-        </button>
-      </form>
+      <div className="pantry__compose" ref={wrapRef}>
+        <form className="pantry__form" onSubmit={onSubmit}>
+          <label className="pantry__field">
+            <span className="visually-hidden">Ingrediens</span>
+            <input
+              ref={inputRef}
+              type="text"
+              role="combobox"
+              aria-expanded={showSuggestions}
+              aria-controls={listboxId}
+              aria-autocomplete="list"
+              placeholder="F.eks. gulrot, egg, feta"
+              value={draft}
+              onChange={(e) => {
+                setDraft(e.target.value)
+                setSuggestOpen(true)
+                setMessage(null)
+              }}
+              onFocus={() => setSuggestOpen(true)}
+              autoComplete="off"
+              enterKeyHint="done"
+              inputMode="text"
+            />
+            {draft.length > 0 ? (
+              <button
+                type="button"
+                className="pantry__clear"
+                aria-label="Tøm felt"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => {
+                  setDraft('')
+                  setSuggestOpen(true)
+                  inputRef.current?.focus()
+                }}
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            ) : null}
+          </label>
+          <button type="submit" className="pantry__add">
+            Legg til
+          </button>
+        </form>
+
+        {showSuggestions ? (
+          <div className="pantry__suggest" id={listboxId} role="listbox">
+            {noMatches ? (
+              <p className="pantry__suggest-empty" role="status">
+                Ingen ingredienser funnet
+              </p>
+            ) : (
+              <ul className="pantry__suggest-list">
+                {suggestions.map(({ name, selected }) => (
+                  <li key={name} role="option" aria-selected={selected}>
+                    <button
+                      type="button"
+                      className={`pantry__suggest-item${selected ? ' pantry__suggest-item--selected' : ''}`}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => onPickSuggestion(name, selected)}
+                      disabled={selected}
+                      aria-label={
+                        selected
+                          ? `${name} (allerede valgt)`
+                          : `Legg til ${name}`
+                      }
+                    >
+                      <span>{name}</span>
+                      {selected ? (
+                        <span className="pantry__suggest-mark">Valgt</span>
+                      ) : null}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ) : null}
+      </div>
 
       {message && <p className="pantry__message">{message}</p>}
 
@@ -121,6 +229,9 @@ export function PantryPage() {
                       className="pantry-card__title-link"
                     >
                       {recipe.name}
+                      <span className="nav-chevron" aria-hidden="true">
+                        ›
+                      </span>
                     </RecipeLink>
                   </h3>
                   <p className="pantry-card__count">{matchCount} treff</p>

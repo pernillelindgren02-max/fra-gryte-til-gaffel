@@ -24,13 +24,23 @@
   color: color-mix(in srgb, var(--color-teal) 75%, transparent);
 }
 
+.pantry__compose {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  z-index: 2;
+}
+
 .pantry__form {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 0.5rem;
+  align-items: start;
 }
 
 .pantry__field {
+  position: relative;
   display: block;
   min-width: 0;
 }
@@ -40,10 +50,39 @@
   min-height: var(--tap-min);
   border: 1.5px solid color-mix(in srgb, var(--color-teal) 16%, transparent);
   border-radius: 999px;
-  padding: 0.65rem 1rem;
+  padding: 0.65rem 2.85rem 0.65rem 1rem;
   background: white;
   color: var(--color-teal);
   font: inherit;
+}
+
+.pantry__field input:placeholder-shown {
+  padding-right: 1rem;
+}
+
+.pantry__clear {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-teal) 8%, white);
+  color: var(--color-teal);
+  font: inherit;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pantry__clear:active {
+  transform: translateY(-50%) scale(0.94);
 }
 
 .pantry__add {
@@ -56,6 +95,80 @@
   font: inherit;
   font-weight: 700;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 140ms ease, opacity 140ms ease;
+}
+
+.pantry__add:active {
+  transform: scale(0.97);
+}
+
+.pantry__suggest {
+  max-height: 14.5rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  background: white;
+  border: 1.5px solid color-mix(in srgb, var(--color-teal) 12%, transparent);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--color-teal) 8%, transparent);
+}
+
+.pantry__suggest-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.3rem;
+}
+
+.pantry__suggest-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 2.85rem;
+  padding: 0.55rem 0.85rem;
+  border: none;
+  border-radius: 0.7rem;
+  background: transparent;
+  color: var(--color-teal);
+  font: inherit;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 140ms ease;
+}
+
+.pantry__suggest-item:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-pale-green) 45%, white);
+}
+
+.pantry__suggest-item:active:not(:disabled) {
+  background: color-mix(in srgb, var(--color-pale-green) 70%, white);
+}
+
+.pantry__suggest-item--selected,
+.pantry__suggest-item:disabled {
+  opacity: 0.55;
+  cursor: default;
+  font-weight: 500;
+}
+
+.pantry__suggest-mark {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-teal) 55%, transparent);
+}
+
+.pantry__suggest-empty {
+  margin: 0;
+  padding: 0.95rem 1rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--color-teal) 70%, transparent);
 }
 
 .pantry__message {
@@ -122,6 +235,13 @@
   font-size: 1.1rem;
   line-height: 1;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 140ms ease, background 140ms ease;
+}
+
+.pantry__chips button:active {
+  transform: scale(0.92);
+  background: color-mix(in srgb, white 92%, transparent);
 }
 
 .pantry__results {
@@ -159,14 +279,31 @@
 }
 
 .pantry-card__title-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
   color: inherit;
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--color-teal) 28%, transparent);
+  text-underline-offset: 0.14em;
+  text-decoration-thickness: 1px;
   -webkit-tap-highlight-color: transparent;
+  transition: opacity 140ms ease, text-decoration-color 140ms ease;
 }
 
 .pantry-card__title-link:hover {
-  text-decoration: underline;
-  text-underline-offset: 0.12em;
+  text-decoration-color: color-mix(in srgb, var(--color-teal) 55%, transparent);
+}
+
+.pantry-card__title-link:active {
+  opacity: 0.78;
+}
+
+.pantry-card__title-link .nav-chevron {
+  font-size: 0.95em;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--color-teal) 45%, transparent);
+  text-decoration: none;
 }
 
 .pantry-card__count {
@@ -205,6 +342,12 @@
   color: white;
   font-weight: 700;
   text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 140ms ease, opacity 140ms ease;
+}
+
+.pantry-card__link:active {
+  transform: scale(0.97);
 }
 
 .visually-hidden {
