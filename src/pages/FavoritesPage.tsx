@@ -1,6 +1,10 @@
 import { useState, type FormEvent, type MouseEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { RecipeCard } from '../components/RecipeCard'
+import {
+  FolderListSkeleton,
+  FolderRecipesSkeleton,
+} from '../components/skeleton'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useUserData } from '../context/UserDataContext'
@@ -29,14 +33,16 @@ function countLabel(n: number) {
 export function FavoritesPage() {
   const { folderKey } = useParams<{ folderKey?: string }>()
   const navigate = useNavigate()
-  const { user, configured, loading } = useAuth()
-  const { getById } = useRecipes()
+  const { user, configured, loading: authLoading } = useAuth()
+  const { getById, loading: recipesLoading } = useRecipes()
   const { getCopy } = useSiteContent()
   const { showToast } = useToast()
   const {
     favoriteIds,
+    favoritesLoading,
     folders,
     folderRecipeIds,
+    foldersLoading,
     createFolder,
     renameFolder,
     deleteFolder,
@@ -55,6 +61,8 @@ export function FavoritesPage() {
       : null
   const viewingDefault = folderKey === DEFAULT_FOLDER_KEY
   const viewingFolder = viewingDefault || Boolean(openFolder)
+  const folderMetaLoading = Boolean(user) && foldersLoading
+  const favoritesMetaLoading = Boolean(user) && favoritesLoading
 
   async function onCreate(event: FormEvent) {
     event.preventDefault()
@@ -92,7 +100,14 @@ export function FavoritesPage() {
     action()
   }
 
-  if (user && folderKey && !viewingDefault && !openFolder && !foldersError) {
+  if (
+    user &&
+    folderKey &&
+    !viewingDefault &&
+    !openFolder &&
+    !foldersError &&
+    !folderMetaLoading
+  ) {
     return (
       <div className="account-list">
         <Link to="/favoritter" className="account-list__back">
@@ -103,11 +118,17 @@ export function FavoritesPage() {
     )
   }
 
-  if (user && viewingFolder) {
+  if (user && folderKey && (viewingFolder || folderMetaLoading || favoritesMetaLoading)) {
     const title = viewingDefault ? 'Favoritter' : (openFolder?.name ?? '')
+    const listLoading =
+      recipesLoading ||
+      (viewingDefault ? favoritesMetaLoading : folderMetaLoading) ||
+      (!viewingDefault && folderMetaLoading)
     const recipes = viewingDefault
       ? recipesFromIds(favoriteIds, getById)
-      : recipesFromIds(folderRecipeIds[openFolder!.id] ?? [], getById)
+      : openFolder
+        ? recipesFromIds(folderRecipeIds[openFolder.id] ?? [], getById)
+        : []
 
     return (
       <div className="account-list">
@@ -123,14 +144,20 @@ export function FavoritesPage() {
                 </span>
                 Favoritter
               </span>
+            ) : listLoading && !title ? (
+              <span className="visually-hidden">Laster mappe…</span>
             ) : (
               title
             )}
           </h1>
-          <p className="account-list__lead">{countLabel(recipes.length)}</p>
+          <p className="account-list__lead">
+            {listLoading ? '…' : countLabel(recipes.length)}
+          </p>
         </header>
 
-        {recipes.length === 0 ? (
+        {listLoading ? (
+          <FolderRecipesSkeleton />
+        ) : recipes.length === 0 ? (
           <p className="account-list__empty">
             {viewingDefault
               ? getCopy(
@@ -167,7 +194,11 @@ export function FavoritesPage() {
         </p>
       )}
 
-      {configured && !loading && !user && (
+      {configured && authLoading && (
+        <FolderListSkeleton count={3} />
+      )}
+
+      {configured && !authLoading && !user && (
         <p className="account-list__empty">
           <Link to="/konto">Logg inn</Link> for å se lagrede oppskrifter.
         </p>
@@ -188,6 +219,9 @@ export function FavoritesPage() {
             <p className="account-list__message">{statusMessage}</p>
           )}
 
+          {folderMetaLoading || favoritesMetaLoading ? (
+            <FolderListSkeleton count={3} />
+          ) : (
           <ul className="folder-library">
             <li>
               <Link
@@ -285,6 +319,7 @@ export function FavoritesPage() {
                 )
               })}
           </ul>
+          )}
         </>
       )}
     </div>

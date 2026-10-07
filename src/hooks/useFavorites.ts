@@ -5,19 +5,20 @@ import { supabase, translateDbError } from '../lib/supabase'
 export function useFavorites() {
   const { user } = useAuth()
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set())
-  const [loading, setLoading] = useState(false)
+  const [favoritesLoading, setFavoritesLoading] = useState(false)
 
   const refresh = useCallback(async () => {
     if (!supabase || !user) {
       setFavoriteIds(new Set())
+      setFavoritesLoading(false)
       return
     }
-    setLoading(true)
+    setFavoritesLoading(true)
     const { data, error } = await supabase
       .from('favorites')
       .select('recipe_id')
       .eq('user_id', user.id)
-    setLoading(false)
+    setFavoritesLoading(false)
     if (error || !data) {
       setFavoriteIds(new Set())
       return
@@ -69,5 +70,5 @@ export function useFavorites() {
     [favoriteIds, user],
   )
 
-  return { favoriteIds, loading, isFavorite, toggleFavorite, refresh }
+  return { favoriteIds, favoritesLoading, isFavorite, toggleFavorite, refresh }
 }

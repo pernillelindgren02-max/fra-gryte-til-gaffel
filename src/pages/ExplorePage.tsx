@@ -1,6 +1,10 @@
 import { useMemo, useState } from 'react'
 import { FilterSheet } from '../components/FilterSheet'
 import { RecipeCard } from '../components/RecipeCard'
+import {
+  ExploreResultsSkeleton,
+  ExploreSkeleton,
+} from '../components/skeleton'
 import { useRecipes } from '../context/RecipesContext'
 import { useSiteContent } from '../context/SiteContentContext'
 import { emptyFilters, type FilterState, type Recipe } from '../data/recipes'
@@ -111,6 +115,8 @@ export function ExplorePage() {
   const activeFilterCount = countActiveFilters(filters)
   const hasSearch = searchQuery.trim().length > 0
   const hasActiveConstraints = hasSearch || activeFilterCount > 0
+  /** Only skeleton when we have nothing to show yet — never for empty results. */
+  const showFeedSkeleton = loading && recipes.length === 0
 
   const matchingRecipes = useMemo(() => {
     const filtered = filterRecipes(recipes, filters)
@@ -171,11 +177,6 @@ export function ExplorePage() {
         ) : null}
       </header>
 
-      {loading && (
-        <p className="explore-results__empty" aria-live="polite">
-          Laster oppskrifter…
-        </p>
-      )}
       {error && !loading && (
         <p className="explore-results__empty" role="status">
           {getCopy(
@@ -219,7 +220,13 @@ export function ExplorePage() {
         </button>
       </div>
 
-      {hasActiveConstraints ? (
+      {showFeedSkeleton ? (
+        hasActiveConstraints ? (
+          <ExploreResultsSkeleton />
+        ) : (
+          <ExploreSkeleton />
+        )
+      ) : hasActiveConstraints ? (
         <section className="explore-results" aria-live="polite">
           <div className="explore-results__header">
             <h2 className="explore-results__title">Resultater</h2>

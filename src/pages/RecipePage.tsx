@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { RecipePersonalPanel } from '../components/RecipePersonalPanel'
 import { SaveSheet } from '../components/SaveSheet'
+import { RecipeDetailSkeleton } from '../components/skeleton'
 import { Tag } from '../components/Tag'
 import { useAuth } from '../context/AuthContext'
 import { useShoppingList } from '../context/ShoppingListContext'
@@ -68,9 +69,9 @@ export function RecipePage() {
 
   if (loading && !recipe) {
     return (
-      <div className="recipe-page recipe-page--missing">
-        <p>Laster oppskrift…</p>
-      </div>
+      <article className="recipe-page">
+        <RecipeDetailSkeleton />
+      </article>
     )
   }
 

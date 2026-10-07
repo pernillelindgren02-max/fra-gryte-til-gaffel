@@ -27,7 +27,11 @@ function supabaseUrl(): string {
 }
 
 export function RecipesProvider({ children }: { children: ReactNode }) {
-  const [recipes, setRecipes] = useState<Recipe[]>(localRecipes)
+  // With Supabase, start empty so first paint can show skeletons until fetch
+  // settles (cloud rows or local fallback). Without Supabase, seed is instant.
+  const [recipes, setRecipes] = useState<Recipe[]>(
+    isSupabaseConfigured ? [] : localRecipes,
+  )
   const [loading, setLoading] = useState(isSupabaseConfigured)
   const [error, setError] = useState<string | null>(null)
   const [source, setSource] = useState<'supabase' | 'local'>('local')

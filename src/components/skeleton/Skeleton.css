@@ -1,0 +1,196 @@
+.sk-bone {
+  display: block;
+  background: color-mix(in srgb, var(--color-pale-green) 42%, white);
+  border-radius: 0.55rem;
+  animation: sk-breathe 1.6s ease-in-out infinite;
+}
+
+.sk-bone--round {
+  border-radius: 999px;
+}
+
+.sk-bone--media {
+  width: 100%;
+  border-radius: 1.2rem;
+  background: color-mix(
+    in srgb,
+    var(--color-pale-green) 55%,
+    color-mix(in srgb, var(--color-soft-yellow) 35%, white)
+  );
+}
+
+@keyframes sk-breathe {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-bone {
+    animation: none;
+    opacity: 0.85;
+  }
+}
+
+/* —— Recipe card —— */
+.sk-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sk-card__media {
+  aspect-ratio: 4 / 5.15;
+  border-radius: 1.2rem;
+}
+
+.sk-card__body {
+  padding: 0.55rem 0.15rem 0.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.sk-card__title {
+  height: 0.95rem;
+  width: 78%;
+}
+
+.sk-card__meta {
+  height: 0.7rem;
+  width: 92%;
+}
+
+.sk-card--featured .sk-card__media {
+  aspect-ratio: 5 / 4;
+  border-radius: 1.45rem;
+}
+
+.sk-card--featured .sk-card__body {
+  padding: 0.75rem 0.2rem 0.15rem;
+  gap: 0.4rem;
+}
+
+.sk-card--featured .sk-card__title {
+  height: 1.15rem;
+  width: 70%;
+}
+
+.sk-card--featured .sk-card__meta {
+  height: 0.85rem;
+  width: 55%;
+}
+
+/* —— Detail —— */
+.sk-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+  padding-bottom: 2.75rem;
+}
+
+.sk-detail__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sk-detail__back {
+  height: 0.95rem;
+  width: 8.5rem;
+}
+
+.sk-detail__save {
+  width: 4.5rem;
+  height: 2.35rem;
+}
+
+.sk-detail__hero {
+  aspect-ratio: 16 / 10;
+  border-radius: 1.35rem;
+}
+
+.sk-detail__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.sk-detail__title {
+  height: 1.55rem;
+  width: min(85%, 18rem);
+}
+
+.sk-detail__blurb {
+  height: 0.95rem;
+  width: 96%;
+}
+
+.sk-detail__blurb-2 {
+  height: 0.95rem;
+  width: 72%;
+}
+
+.sk-detail__facts {
+  height: 0.85rem;
+  width: 88%;
+  margin-top: 0.15rem;
+}
+
+.sk-detail__portions {
+  height: 2.75rem;
+  width: 100%;
+  border-radius: 999px;
+}
+
+.sk-detail__cta {
+  height: 3rem;
+  width: 100%;
+  border-radius: 999px;
+}
+
+.sk-detail__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.sk-detail__section-title {
+  height: 0.85rem;
+  width: 7rem;
+}
+
+.sk-detail__row {
+  height: 2.65rem;
+  width: 100%;
+  border-radius: var(--radius-sm, 0.75rem);
+}
+
+.sk-detail__step {
+  height: 3.4rem;
+  width: 100%;
+  border-radius: var(--radius-sm, 0.75rem);
+}
+
+/* —— Folder tiles —— */
+.sk-folder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.sk-folder__tile {
+  height: 4.35rem;
+  width: 100%;
+  border-radius: var(--radius-md, 1rem);
+  background: color-mix(in srgb, var(--color-card) 70%, white);
+}
+
+.sk-folder__tile--heart {
+  background: color-mix(in srgb, var(--color-terracotta) 8%, white);
+}

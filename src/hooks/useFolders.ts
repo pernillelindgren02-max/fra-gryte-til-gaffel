@@ -8,7 +8,7 @@ export function useFolders() {
   const [folderRecipeIds, setFolderRecipeIds] = useState<
     Record<string, string[]>
   >({})
-  const [loading, setLoading] = useState(false)
+  const [foldersLoading, setFoldersLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
@@ -16,9 +16,10 @@ export function useFolders() {
       setFolders([])
       setFolderRecipeIds({})
       setError(null)
+      setFoldersLoading(false)
       return
     }
-    setLoading(true)
+    setFoldersLoading(true)
     const { data: folderData, error: folderError } = await supabase
       .from('folders')
       .select('*')
@@ -29,7 +30,7 @@ export function useFolders() {
       setFolders([])
       setFolderRecipeIds({})
       setError(translateDbError(folderError.message))
-      setLoading(false)
+      setFoldersLoading(false)
       return
     }
 
@@ -39,7 +40,7 @@ export function useFolders() {
     if (nextFolders.length === 0) {
       setFolderRecipeIds({})
       setError(null)
-      setLoading(false)
+      setFoldersLoading(false)
       return
     }
 
@@ -54,7 +55,7 @@ export function useFolders() {
     if (linkError) {
       setFolderRecipeIds({})
       setError(translateDbError(linkError.message))
-      setLoading(false)
+      setFoldersLoading(false)
       return
     }
 
@@ -68,7 +69,7 @@ export function useFolders() {
     }
     setFolderRecipeIds(map)
     setError(null)
-    setLoading(false)
+    setFoldersLoading(false)
   }, [user])
 
   useEffect(() => {
@@ -176,7 +177,7 @@ export function useFolders() {
   return {
     folders,
     folderRecipeIds,
-    loading,
+    foldersLoading,
     error,
     refresh,
     createFolder,
