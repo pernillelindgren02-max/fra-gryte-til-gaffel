@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { RecipePersonalPanel } from '../components/RecipePersonalPanel'
 import { SaveSheet } from '../components/SaveSheet'
 import { Tag } from '../components/Tag'
 import { useAuth } from '../context/AuthContext'
 import { useShoppingList } from '../context/ShoppingListContext'
+import { useToast } from '../context/ToastContext'
 import { useUserData } from '../context/UserDataContext'
 import {
   campingStoveLabels,
@@ -35,23 +36,30 @@ export function RecipePage() {
   const { getById, loading } = useRecipes()
   const recipe = id ? getById(id) : undefined
   const { addRecipe, hasRecipe } = useShoppingList()
+  const { showToast } = useToast()
   const { user } = useAuth()
   const { isFavorite, foldersForRecipe } = useUserData()
-  const [toast, setToast] = useState<string | null>(null)
   const [saveOpen, setSaveOpen] = useState(false)
   const baseServings = recipe && recipe.servings > 0 ? recipe.servings : 2
   const [portions, setPortions] = useState(baseServings)
+  const portionsReady = useRef(false)
 
   useEffect(() => {
     if (!recipe) return
+    portionsReady.current = false
     setPortions(clampPortions(recipe.servings > 0 ? recipe.servings : 2))
+    const timer = window.setTimeout(() => {
+      portionsReady.current = true
+    }, 0)
+    return () => window.clearTimeout(timer)
   }, [recipe?.id, recipe?.servings])
 
   useEffect(() => {
-    if (!toast) return
-    const timer = window.setTimeout(() => setToast(null), 2500)
-    return () => window.clearTimeout(timer)
-  }, [toast])
+    if (!portionsReady.current) return
+    showToast(
+      `Porsjoner: ${portions} porsjon${portions === 1 ? '' : 'er'}.`,
+    )
+  }, [portions, showToast])
 
   const scale = useMemo(
     () => (recipe ? portionMultiplier(portions, baseServings) : 1),
@@ -85,13 +93,13 @@ export function RecipePage() {
   function onAddToList() {
     const result = addRecipe(recipe!.id, scale)
     if (result === 'added') {
-      setToast(
+      showToast(
         scale === 1
           ? 'Lagt til i handlelisten.'
           : `Lagt til i handlelisten (${portions} porsjoner).`,
       )
     } else if (result === 'duplicate') {
-      setToast('Oppskriften er allerede i handlelisten.')
+      showToast('Oppskriften er allerede i handlelisten.')
     }
   }
 
@@ -222,12 +230,6 @@ export function RecipePage() {
         recipeId={recipe.id}
         onClose={() => setSaveOpen(false)}
       />
-
-      {toast && (
-        <div className="recipe-page__toast" role="status">
-          {toast}
-        </div>
-      )}
     </article>
   )
 }

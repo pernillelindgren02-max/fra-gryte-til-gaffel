@@ -1,19 +1,19 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import { usePantry } from '../context/PantryContext'
 import { useRecipes } from '../context/RecipesContext'
 import { useSiteContent } from '../context/SiteContentContext'
 import {
   getKnownIngredientNames,
   matchRecipesByPantry,
-  normalizeIngredientName,
 } from '../utils/matchPantryRecipes'
 import './PantryPage.css'
 
 export function PantryPage() {
   const { recipes } = useRecipes()
   const { getCopy } = useSiteContent()
+  const { pantry, addItem, removeItem } = usePantry()
   const [draft, setDraft] = useState('')
-  const [pantry, setPantry] = useState<string[]>([])
   const [message, setMessage] = useState<string | null>(null)
   const knownNames = useMemo(() => getKnownIngredientNames(recipes), [recipes])
 
@@ -22,35 +22,16 @@ export function PantryPage() {
     [pantry, recipes],
   )
 
-  function addIngredient(raw: string) {
-    const trimmed = raw.trim()
-    if (!trimmed) return
-    const key = normalizeIngredientName(trimmed)
-    const known = knownNames.find(
-      (name) => normalizeIngredientName(name) === key,
-    )
-    const label = known ?? trimmed
-    if (pantry.some((item) => normalizeIngredientName(item) === key)) {
+  function onSubmit(event: FormEvent) {
+    event.preventDefault()
+    const result = addItem(draft, knownNames)
+    if (result === 'empty') return
+    if (result === 'duplicate') {
       setMessage('Allerede i listen.')
       return
     }
-    setPantry((prev) => [...prev, label])
     setDraft('')
     setMessage(null)
-  }
-
-  function onSubmit(event: FormEvent) {
-    event.preventDefault()
-    addIngredient(draft)
-  }
-
-  function removeItem(name: string) {
-    setPantry((prev) =>
-      prev.filter(
-        (item) =>
-          normalizeIngredientName(item) !== normalizeIngredientName(name),
-      ),
-    )
   }
 
   return (
@@ -128,9 +109,7 @@ export function PantryPage() {
               <li key={recipe.id} className="pantry-card">
                 <div className="pantry-card__top">
                   <h3 className="pantry-card__title">{recipe.name}</h3>
-                  <p className="pantry-card__count">
-                    {matchCount} treff
-                  </p>
+                  <p className="pantry-card__count">{matchCount} treff</p>
                 </div>
                 <p className="pantry-card__label">Du har</p>
                 <p className="pantry-card__list">{have.join(', ')}</p>

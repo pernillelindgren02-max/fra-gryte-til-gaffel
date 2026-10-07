@@ -52,16 +52,37 @@ function normalizeName(name: string): string {
   return name.trim().toLowerCase()
 }
 
+export type SourcedIngredient = Ingredient & {
+  sourceRecipeId?: string
+  sourceRecipeName?: string
+}
+
+export interface CombinedIngredientSource {
+  id: string
+  name: string
+}
+
 export interface CombinedIngredient {
   key: string
   name: string
   quantity: number | null
   unit: IngredientUnit
   label: string
+  fromRecipes: CombinedIngredientSource[]
+}
+
+function addSource(
+  list: CombinedIngredientSource[],
+  id?: string,
+  name?: string,
+) {
+  if (!id || !name) return
+  if (list.some((item) => item.id === id)) return
+  list.push({ id, name })
 }
 
 export function combineIngredients(
-  ingredients: Ingredient[],
+  ingredients: SourcedIngredient[],
 ): CombinedIngredient[] {
   type Acc = {
     name: string
@@ -69,6 +90,7 @@ export function combineIngredients(
     baseTotal: number | null
     unit: IngredientUnit
     qualitative: boolean
+    fromRecipes: CombinedIngredientSource[]
   }
 
   const map = new Map<string, Acc>()
@@ -84,14 +106,20 @@ export function combineIngredients(
       toBase(item.quantity, item.unit) == null
     ) {
       const key = `${nameKey}::none`
-      if (!map.has(key)) {
+      const existing = map.get(key)
+      if (!existing) {
+        const fromRecipes: CombinedIngredientSource[] = []
+        addSource(fromRecipes, item.sourceRecipeId, item.sourceRecipeName)
         map.set(key, {
           name: item.name,
           family: 'none',
           baseTotal: null,
           unit: null,
           qualitative: true,
+          fromRecipes,
         })
+      } else {
+        addSource(existing.fromRecipes, item.sourceRecipeId, item.sourceRecipeName)
       }
       continue
     }
@@ -100,20 +128,27 @@ export function combineIngredients(
     const key = `${nameKey}::${family}`
     const existing = map.get(key)
     if (!existing) {
+      const fromRecipes: CombinedIngredientSource[] = []
+      addSource(fromRecipes, item.sourceRecipeId, item.sourceRecipeName)
       map.set(key, {
         name: item.name,
         family,
         baseTotal: base,
         unit: item.unit,
         qualitative: false,
+        fromRecipes,
       })
-    } else if (existing.baseTotal != null) {
-      existing.baseTotal += base
+    } else {
+      if (existing.baseTotal != null) existing.baseTotal += base
+      addSource(existing.fromRecipes, item.sourceRecipeId, item.sourceRecipeName)
     }
   }
 
   return [...map.entries()]
     .map(([key, value]) => {
+      const fromRecipes = [...value.fromRecipes].sort((a, b) =>
+        a.name.localeCompare(b.name, 'nb'),
+      )
       if (value.qualitative || value.baseTotal == null) {
         return {
           key,
@@ -121,6 +156,7 @@ export function combineIngredients(
           quantity: null,
           unit: null,
           label: value.name,
+          fromRecipes,
         }
       }
       const converted = fromBase(value.baseTotal, value.family)
@@ -131,6 +167,7 @@ export function combineIngredients(
         quantity: converted.quantity,
         unit: converted.unit,
         label,
+        fromRecipes,
       }
     })
     .sort((a, b) => a.name.localeCompare(b.name, 'nb'))

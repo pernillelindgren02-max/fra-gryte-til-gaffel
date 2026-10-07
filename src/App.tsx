@@ -11,9 +11,11 @@ import { AppNav } from './components/AppNav'
 import { PathMemory } from './components/PathMemory'
 import { AuthProvider } from './context/AuthContext'
 import { NotificationsProvider } from './context/NotificationsContext'
+import { PantryProvider } from './context/PantryContext'
 import { RecipesProvider } from './context/RecipesContext'
 import { ShoppingListProvider } from './context/ShoppingListContext'
 import { SiteContentProvider } from './context/SiteContentContext'
+import { ToastProvider } from './context/ToastContext'
 import { UserDataProvider } from './context/UserDataContext'
 import { AdminLayout } from './pages/admin/AdminLayout'
 import { AdminOverviewPage } from './pages/admin/AdminOverviewPage'
@@ -99,11 +101,15 @@ export default function App() {
         <RecipesProvider>
           <UserDataProvider>
             <NotificationsProvider>
-              <ShoppingListProvider>
-                <BrowserRouter>
-                  <AppChrome />
-                </BrowserRouter>
-              </ShoppingListProvider>
+              <PantryProvider>
+                <ShoppingListProvider>
+                  <ToastProvider>
+                    <BrowserRouter>
+                      <AppChrome />
+                    </BrowserRouter>
+                  </ToastProvider>
+                </ShoppingListProvider>
+              </PantryProvider>
             </NotificationsProvider>
           </UserDataProvider>
         </RecipesProvider>

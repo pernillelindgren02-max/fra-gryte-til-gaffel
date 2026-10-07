@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import { useUserData } from '../context/UserDataContext'
 import './SaveSheet.css'
 
@@ -21,6 +22,7 @@ export function SaveSheet({ open, recipeId, onClose }: SaveSheetProps) {
     createFolder,
     error: foldersError,
   } = useUserData()
+  const { showToast } = useToast()
   const navigate = useNavigate()
   const [message, setMessage] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
@@ -59,6 +61,7 @@ export function SaveSheet({ open, recipeId, onClose }: SaveSheetProps) {
       navigate('/konto', { state: { from: `/oppskrift/${recipeId}` } })
       return
     }
+    const wasLiked = liked
     setBusy(true)
     const result = await toggleFavorite(recipeId)
     setBusy(false)
@@ -68,7 +71,11 @@ export function SaveSheet({ open, recipeId, onClose }: SaveSheetProps) {
     }
     if (result === 'error') {
       setMessage('Kunne ikke oppdatere Favoritter.')
+      return
     }
+    showToast(
+      wasLiked ? 'Fjernet fra favoritter.' : 'Lagret i favoritter.',
+    )
   }
 
   async function onToggleFolder(folderId: string, next: boolean) {
@@ -76,10 +83,19 @@ export function SaveSheet({ open, recipeId, onClose }: SaveSheetProps) {
       navigate('/konto', { state: { from: `/oppskrift/${recipeId}` } })
       return
     }
+    const folderName =
+      folders.find((folder) => folder.id === folderId)?.name ?? 'mappen'
     setBusy(true)
     const err = await setRecipeInFolder(folderId, recipeId, next)
     setBusy(false)
     setMessage(err)
+    if (!err) {
+      showToast(
+        next
+          ? `Lagret i «${folderName}».`
+          : `Fjernet fra «${folderName}».`,
+      )
+    }
   }
 
   async function onCreateFolder(event: FormEvent) {
@@ -101,9 +117,15 @@ export function SaveSheet({ open, recipeId, onClose }: SaveSheetProps) {
       setMessage(addErr)
       return
     }
+    const createdName = newName.trim()
     setNewName('')
     setCreating(false)
-    setMessage('Mappe opprettet og oppskriften lagt til.')
+    setMessage(null)
+    showToast(
+      createdName
+        ? `Mappe «${createdName}» opprettet.`
+        : 'Mappe opprettet og oppskriften lagt til.',
+    )
   }
 
   return (

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   useShoppingList,
@@ -6,6 +6,7 @@ import {
 } from '../context/ShoppingListContext'
 import { useRecipes } from '../context/RecipesContext'
 import { useSiteContent } from '../context/SiteContentContext'
+import { useToast } from '../context/ToastContext'
 import { searchRecipes } from '../utils/searchRecipes'
 import './ShoppingListPage.css'
 
@@ -24,8 +25,8 @@ export function ShoppingListPage() {
   } = useShoppingList()
   const { recipes, getById } = useRecipes()
   const { getCopy } = useSiteContent()
+  const { showToast } = useToast()
   const [query, setQuery] = useState('')
-  const [toast, setToast] = useState<string | null>(null)
 
   const results = useMemo(() => {
     if (!query.trim()) return []
@@ -40,20 +41,31 @@ export function ShoppingListPage() {
     })
     .filter((item): item is NonNullable<typeof item> => Boolean(item))
 
-  useEffect(() => {
-    if (!toast) return
-    const timer = window.setTimeout(() => setToast(null), 2500)
-    return () => window.clearTimeout(timer)
-  }, [toast])
-
   function onPick(recipeId: string) {
     const result = addRecipe(recipeId)
     if (result === 'added') {
-      setToast('Oppskriften er lagt til i handlelisten.')
+      showToast('Oppskriften er lagt til i handlelisten.')
       setQuery('')
     } else if (result === 'duplicate') {
-      setToast('Oppskriften er allerede i handlelisten.')
+      showToast('Oppskriften er allerede i handlelisten.')
     }
+  }
+
+  function onRemoveRecipe(recipeId: string, name: string) {
+    removeRecipe(recipeId)
+    showToast(`Fjernet «${name}» fra handlelisten.`)
+  }
+
+  function onClearAll() {
+    if (entries.length === 0) return
+    if (!window.confirm('Tøm hele handlelisten?')) return
+    clearAll()
+    showToast('Handlelisten er tømt.')
+  }
+
+  function onSetMultiplier(recipeId: string, value: ShoppingMultiplier) {
+    setMultiplier(recipeId, value)
+    showToast(`Handleliste oppdatert (${value}x).`)
   }
 
   return (
@@ -96,7 +108,7 @@ export function ShoppingListPage() {
             <button
               type="button"
               className="shopping__text-btn"
-              onClick={clearAll}
+              onClick={onClearAll}
             >
               Tøm listen
             </button>
@@ -109,7 +121,7 @@ export function ShoppingListPage() {
                   <button
                     type="button"
                     className="shopping__text-btn"
-                    onClick={() => removeRecipe(recipe.id)}
+                    onClick={() => onRemoveRecipe(recipe.id, recipe.name)}
                   >
                     Fjern
                   </button>
@@ -125,7 +137,7 @@ export function ShoppingListPage() {
                       type="button"
                       className={`shopping__multiplier${multiplier === value ? ' shopping__multiplier--on' : ''}`}
                       aria-pressed={multiplier === value}
-                      onClick={() => setMultiplier(recipe.id, value)}
+                      onClick={() => onSetMultiplier(recipe.id, value)}
                     >
                       {value}x
                     </button>
@@ -161,28 +173,40 @@ export function ShoppingListPage() {
               const checked = checkedKeys.has(item.key)
               return (
                 <li key={item.key}>
-                  <label
+                  <div
                     className={`shopping__item${checked ? ' shopping__item--checked' : ''}`}
                   >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggleChecked(item.key)}
-                    />
-                    <span>{item.label}</span>
-                  </label>
+                    <label className="shopping__item-check">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleChecked(item.key)}
+                      />
+                      <span className="shopping__item-label">{item.label}</span>
+                    </label>
+                    {item.fromRecipes.length > 0 && (
+                      <p className="shopping__item-from">
+                        Fra:{' '}
+                        {item.fromRecipes.map((source, index) => (
+                          <span key={source.id}>
+                            {index > 0 && ', '}
+                            <Link
+                              to={`/oppskrift/${source.id}`}
+                              className="shopping__item-recipe"
+                            >
+                              {source.name}
+                            </Link>
+                          </span>
+                        ))}
+                      </p>
+                    )}
+                  </div>
                 </li>
               )
             })}
           </ul>
         )}
       </section>
-
-      {toast && (
-        <div className="shopping__toast" role="status">
-          {toast}
-        </div>
-      )}
     </div>
   )
 }

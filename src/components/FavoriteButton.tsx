@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import type { MouseEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import { useUserData } from '../context/UserDataContext'
 import './FavoriteButton.css'
 
@@ -12,6 +13,7 @@ interface FavoriteButtonProps {
 export function FavoriteButton({ recipeId, compact = false }: FavoriteButtonProps) {
   const { user } = useAuth()
   const { isFavorite, toggleFavorite } = useUserData()
+  const { showToast } = useToast()
   const navigate = useNavigate()
   const liked = isFavorite(recipeId)
 
@@ -22,10 +24,19 @@ export function FavoriteButton({ recipeId, compact = false }: FavoriteButtonProp
       navigate('/konto', { state: { from: `/oppskrift/${recipeId}` } })
       return
     }
+    const wasLiked = liked
     const result = await toggleFavorite(recipeId)
     if (result === 'login') {
       navigate('/konto')
+      return
     }
+    if (result === 'error') {
+      showToast('Kunne ikke oppdatere favoritter.')
+      return
+    }
+    showToast(
+      wasLiked ? 'Fjernet fra favoritter.' : 'Lagret i favoritter.',
+    )
   }
 
   return (

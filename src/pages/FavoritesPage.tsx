@@ -2,6 +2,7 @@ import { useState, type FormEvent, type MouseEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { RecipeCard } from '../components/RecipeCard'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import { useUserData } from '../context/UserDataContext'
 import { useRecipes } from '../context/RecipesContext'
 import { useSiteContent } from '../context/SiteContentContext'
@@ -31,6 +32,7 @@ export function FavoritesPage() {
   const { user, configured, loading } = useAuth()
   const { getById } = useRecipes()
   const { getCopy } = useSiteContent()
+  const { showToast } = useToast()
   const {
     favoriteIds,
     folders,
@@ -56,22 +58,32 @@ export function FavoritesPage() {
 
   async function onCreate(event: FormEvent) {
     event.preventDefault()
+    const label = newName.trim()
     const { error } = await createFolder(newName)
     setMessage(error)
-    if (!error) setNewName('')
+    if (!error) {
+      setNewName('')
+      showToast(label ? `Mappen «${label}» er opprettet.` : 'Mappe opprettet.')
+    }
   }
 
   async function onRename(id: string) {
     const err = await renameFolder(id, editName)
     setMessage(err)
-    if (!err) setEditingId(null)
+    if (!err) {
+      setEditingId(null)
+      showToast('Mappen er omdøpt.')
+    }
   }
 
   async function onDelete(id: string, name: string) {
     if (!window.confirm(`Slette mappen «${name}»?`)) return
     const err = await deleteFolder(id)
     setMessage(err)
-    if (!err && folderKey === id) navigate('/favoritter')
+    if (!err) {
+      showToast(`Mappen «${name}» er slettet.`)
+      if (folderKey === id) navigate('/favoritter')
+    }
   }
 
   function stopAnd(event: MouseEvent, action: () => void) {

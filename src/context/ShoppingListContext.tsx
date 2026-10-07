@@ -129,9 +129,11 @@ export function ShoppingListProvider({ children }: { children: ReactNode }) {
     const ingredients = entries.flatMap((entry) => {
       const recipe = getById(entry.recipeId)
       if (!recipe) return []
-      return recipe.ingredients.map((ingredient) =>
-        scaleIngredient(ingredient, entry.multiplier),
-      )
+      return recipe.ingredients.map((ingredient) => ({
+        ...scaleIngredient(ingredient, entry.multiplier),
+        sourceRecipeId: recipe.id,
+        sourceRecipeName: recipe.name,
+      }))
     })
     return combineIngredients(ingredients)
   }, [entries, getById])
