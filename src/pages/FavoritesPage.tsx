@@ -1,6 +1,7 @@
 import { useState, type FormEvent, type MouseEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { RecipeCard } from '../components/RecipeCard'
+import { EmptyState } from '../components/EmptyState'
 import { InlineError } from '../components/InlineError'
 import {
   FolderListSkeleton,
@@ -168,14 +169,20 @@ export function FavoritesPage() {
         {listLoading ? (
           <FolderRecipesSkeleton />
         ) : recipes.length === 0 ? (
-          <p className="account-list__empty">
-            {viewingDefault
-              ? getCopy(
-                  'favoritter.empty',
-                  'Ingen favoritter ennå. Åpne en oppskrift og trykk Lagre.',
-                )
-              : 'Tom mappe — lagre oppskrifter hit fra detaljsiden.'}
-          </p>
+          <EmptyState
+            lead={
+              viewingDefault
+                ? getCopy(
+                    'favoritter.empty',
+                    'Ingen favoritter ennå. Utforsk oppskrifter og lagre dem med hjertet.',
+                  )
+                : 'Tom mappe. Finn oppskrifter og lagre dem hit fra detaljsiden.'
+            }
+            actionLabel={
+              viewingDefault ? 'Utforsk oppskrifter' : 'Finn oppskrifter'
+            }
+            to="/"
+          />
         ) : (
           <ul className="account-list__grid">
             {recipes.map((recipe) => (

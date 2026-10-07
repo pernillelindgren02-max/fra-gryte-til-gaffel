@@ -1,16 +1,25 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { EmptyState } from '../components/EmptyState'
 import { FilterSheet } from '../components/FilterSheet'
-import { RecipeCard } from '../components/RecipeCard'
 import { InlineError } from '../components/InlineError'
+import { RecipeCard } from '../components/RecipeCard'
 import {
   ExploreResultsSkeleton,
   ExploreSkeleton,
 } from '../components/skeleton'
 import { useRecipes } from '../context/RecipesContext'
-import { USER_ERRORS } from '../lib/userErrors'
 import { useSiteContent } from '../context/SiteContentContext'
 import { emptyFilters, type FilterState, type Recipe } from '../data/recipes'
+import {
+  loadExploreSession,
+  saveExploreSession,
+} from '../lib/exploreSession'
+import { USER_ERRORS } from '../lib/userErrors'
 import { buildCuratedSections } from '../utils/curatedRecipes'
+import {
+  listActiveFilterChips,
+  removeFilterValue,
+} from '../utils/activeFilterChips'
 import { countActiveFilters, filterRecipes } from '../utils/filterRecipes'
 import { searchRecipes } from '../utils/searchRecipes'
 import './ExplorePage.css'
@@ -109,15 +118,19 @@ function buildExploreBlocks(
 export function ExplorePage() {
   const { recipes, loading, error, refresh } = useRecipes()
   const { explore, getCopy, theme } = useSiteContent()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [filters, setFilters] = useState<FilterState>(emptyFilters)
-  const [draftFilters, setDraftFilters] = useState<FilterState>(emptyFilters)
+  const initial = useRef(loadExploreSession())
+  const [searchQuery, setSearchQuery] = useState(initial.current.searchQuery)
+  const [filters, setFilters] = useState<FilterState>(initial.current.filters)
+  const [draftFilters, setDraftFilters] = useState<FilterState>(
+    initial.current.filters,
+  )
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
+  const restoredScroll = useRef(false)
 
   const activeFilterCount = countActiveFilters(filters)
+  const activeChips = useMemo(() => listActiveFilterChips(filters), [filters])
   const hasSearch = searchQuery.trim().length > 0
   const hasActiveConstraints = hasSearch || activeFilterCount > 0
-  /** Only skeleton when we have nothing to show yet — never for empty results. */
   const showFeedSkeleton = loading && recipes.length === 0
 
   const matchingRecipes = useMemo(() => {
@@ -135,6 +148,35 @@ export function ExplorePage() {
     [curatedSections],
   )
 
+  useEffect(() => {
+    saveExploreSession({
+      searchQuery,
+      filters,
+      scrollY: window.scrollY,
+    })
+  }, [searchQuery, filters])
+
+  useEffect(() => {
+    function onScroll() {
+      saveExploreSession({
+        searchQuery,
+        filters,
+        scrollY: window.scrollY,
+      })
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [searchQuery, filters])
+
+  useEffect(() => {
+    if (restoredScroll.current || showFeedSkeleton) return
+    restoredScroll.current = true
+    const y = initial.current.scrollY
+    if (y > 0) {
+      requestAnimationFrame(() => window.scrollTo(0, y))
+    }
+  }, [showFeedSkeleton, matchingRecipes.length, exploreBlocks.length])
+
   function openFilterSheet() {
     setDraftFilters(filters)
     setFilterSheetOpen(true)
@@ -148,6 +190,15 @@ export function ExplorePage() {
   function applyFilters() {
     setFilters(draftFilters)
     setFilterSheetOpen(false)
+  }
+
+  function clearAllFilters() {
+    setFilters(emptyFilters)
+    setDraftFilters(emptyFilters)
+  }
+
+  function clearSearch() {
+    setSearchQuery('')
   }
 
   return (
@@ -207,22 +258,58 @@ export function ExplorePage() {
         </label>
         <button
           type="button"
-          className="explore-search__filter-btn"
+          className={`explore-search__filter-btn${activeFilterCount > 0 ? ' explore-search__filter-btn--active' : ''}`}
           aria-label={
             activeFilterCount > 0
-              ? `Åpne filtre, ${activeFilterCount} aktive`
+              ? `Filtre, ${activeFilterCount} aktive`
               : 'Åpne filtre'
           }
           onClick={openFilterSheet}
         >
           <FiltersIcon />
-          {activeFilterCount > 0 && (
-            <span className="explore-search__filter-badge" aria-hidden="true">
+          {activeFilterCount > 0 ? (
+            <span className="explore-search__filter-count" aria-hidden="true">
               {activeFilterCount}
             </span>
-          )}
+          ) : null}
         </button>
       </div>
+
+      {activeFilterCount > 0 && (
+        <div className="explore-filter-bar">
+          <div className="explore-filter-bar__head">
+            <p className="explore-filter-bar__label">
+              Filter ({activeFilterCount})
+            </p>
+            <button
+              type="button"
+              className="explore-filter-bar__clear"
+              onClick={clearAllFilters}
+            >
+              Nullstill
+            </button>
+          </div>
+          <ul className="explore-filter-chips">
+            {activeChips.map((chip) => (
+              <li key={`${chip.key}:${chip.value}`}>
+                <button
+                  type="button"
+                  className="explore-filter-chip"
+                  onClick={() =>
+                    setFilters((prev) =>
+                      removeFilterValue(prev, chip.key, chip.value),
+                    )
+                  }
+                  aria-label={`Fjern filter ${chip.label}`}
+                >
+                  <span>{chip.label}</span>
+                  <span aria-hidden="true">×</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {showFeedSkeleton ? (
         hasActiveConstraints ? (
@@ -241,12 +328,29 @@ export function ExplorePage() {
           </div>
 
           {matchingRecipes.length === 0 ? (
-            <p className="explore-results__empty">
-              {getCopy(
-                'explore.empty_results',
-                'Ingen oppskrifter matcher søket eller filtrene. Prøv andre ord eller åpne filtre og nullstill valg.',
-              )}
-            </p>
+            <EmptyState
+              lead="Ingen oppskrifter matcher akkurat nå. Prøv andre ord, eller fjern noen filtre."
+              actionLabel="Gå til Utforsk"
+              to="/"
+              onActionClick={() => {
+                clearSearch()
+                clearAllFilters()
+              }}
+              secondaryLabel={
+                activeFilterCount > 0
+                  ? 'Nullstill filtre'
+                  : hasSearch
+                    ? 'Tøm søk'
+                    : undefined
+              }
+              onSecondaryClick={
+                activeFilterCount > 0
+                  ? clearAllFilters
+                  : hasSearch
+                    ? clearSearch
+                    : undefined
+              }
+            />
           ) : (
             <ul className="explore-feed">
               {matchingRecipes.map((recipe) => (
@@ -328,6 +432,7 @@ export function ExplorePage() {
         onDraftChange={setDraftFilters}
         onApply={applyFilters}
         onClose={closeFilterSheet}
+        activeCount={countActiveFilters(draftFilters)}
       />
     </div>
   )

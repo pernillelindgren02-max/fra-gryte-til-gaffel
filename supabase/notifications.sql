@@ -15,12 +15,17 @@ create table if not exists public.notification_preferences (
 create table if not exists public.notifications (
   id uuid primary key default gen_random_uuid(),
   recipe_id text references public.recipes (id) on delete set null,
+  deep_link text,
   title text not null,
   body text not null default '',
   created_by uuid references auth.users (id) on delete set null,
   sent_at timestamptz not null default now(),
   created_at timestamptz not null default now()
 );
+
+-- Additive for existing projects that already created notifications without deep_link
+alter table public.notifications
+  add column if not exists deep_link text;
 
 create table if not exists public.notification_recipients (
   notification_id uuid not null references public.notifications (id) on delete cascade,
@@ -192,9 +197,13 @@ begin
     raise exception 'title required';
   end if;
 
-  insert into public.notifications (recipe_id, title, body, created_by, sent_at)
+  insert into public.notifications (recipe_id, deep_link, title, body, created_by, sent_at)
   values (
     nullif(trim(p_recipe_id), ''),
+    case
+      when nullif(trim(p_recipe_id), '') is null then null
+      else '/oppskrift/' || trim(p_recipe_id)
+    end,
     trim(p_title),
     coalesce(p_body, ''),
     auth.uid(),
@@ -224,6 +233,7 @@ create or replace function public.admin_list_notifications()
 returns table (
   id uuid,
   recipe_id text,
+  deep_link text,
   title text,
   body text,
   sent_at timestamptz,
@@ -242,6 +252,13 @@ begin
   select
     n.id,
     n.recipe_id,
+    coalesce(
+      n.deep_link,
+      case
+        when n.recipe_id is null then null
+        else '/oppskrift/' || n.recipe_id
+      end
+    ) as deep_link,
     n.title,
     n.body,
     n.sent_at,

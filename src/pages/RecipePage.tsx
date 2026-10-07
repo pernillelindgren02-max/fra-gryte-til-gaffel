@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { RecipePersonalPanel } from '../components/RecipePersonalPanel'
 import { SaveSheet } from '../components/SaveSheet'
 import { SafeImage } from '../components/SafeImage'
 import { RecipeDetailSkeleton } from '../components/skeleton'
 import { Tag } from '../components/Tag'
-import { USER_ERRORS } from '../lib/userErrors'
+import { getLastAppPath } from '../lib/adminPath'
+import { backLabelForPath, recipePath } from '../lib/recipeLinks'
 import { useAuth } from '../context/AuthContext'
 import { useShoppingList } from '../context/ShoppingListContext'
 import { useToast } from '../context/ToastContext'
@@ -36,14 +37,21 @@ const dishwashingCompact: Record<DishwashingLevel, string> = {
 
 export function RecipePage() {
   const { id } = useParams<{ id: string }>()
+  const location = useLocation()
   const { getById, loading } = useRecipes()
-  const recipe = id ? getById(id) : undefined
+  const recipe = id ? getById(decodeURIComponent(id)) : undefined
   const { addRecipe, hasRecipe } = useShoppingList()
   const { showToast } = useToast()
   const { user } = useAuth()
   const { isFavorite, foldersForRecipe } = useUserData()
   const navigate = useNavigate()
   const [saveOpen, setSaveOpen] = useState(false)
+  const fromState = (location.state as { from?: string } | null)?.from
+  const backTo =
+    fromState && !fromState.startsWith(recipePath(id ?? ''))
+      ? fromState
+      : getLastAppPath() || '/'
+  const backLabel = backLabelForPath(backTo)
   const baseServings = recipe && recipe.servings > 0 ? recipe.servings : 2
   const [portions, setPortions] = useState(baseServings)
   const portionsReady = useRef(false)
@@ -81,9 +89,12 @@ export function RecipePage() {
   if (!recipe) {
     return (
       <div className="recipe-page recipe-page--missing">
-        <p>{USER_ERRORS.recipeMissing}</p>
-        <Link to="/" className="recipe-page__back">
-          Tilbake til oversikten
+        <p>Denne oppskriften er ikke tilgjengelig lenger.</p>
+        <Link to="/" className="recipe-page__list-btn recipe-page__unavailable-cta">
+          Gå til Utforsk
+        </Link>
+        <Link to={backTo} className="recipe-page__back">
+          {backLabel}
         </Link>
       </div>
     )
@@ -122,8 +133,8 @@ export function RecipePage() {
   return (
     <article className="recipe-page">
       <div className="recipe-page__top">
-        <Link to="/" className="recipe-page__back">
-          ← Alle oppskrifter
+        <Link to={backTo} className="recipe-page__back">
+          {backLabel}
         </Link>
         <button
           type="button"

@@ -1,5 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { EmptyState } from '../components/EmptyState'
+import { RecipeLink } from '../components/RecipeLink'
 import { usePantry } from '../context/PantryContext'
 import { useRecipes } from '../context/RecipesContext'
 import { useSiteContent } from '../context/SiteContentContext'
@@ -71,9 +72,14 @@ export function PantryPage() {
       <section className="pantry__block">
         <h2 className="pantry__subtitle">Dine ingredienser</h2>
         {pantry.length === 0 ? (
-          <p className="pantry__empty">
-            {getCopy('hjemme.empty', 'Ingen ingredienser ennå.')}
-          </p>
+          <EmptyState
+            lead={getCopy(
+              'hjemme.empty',
+              'Ingen ingredienser ennå. Skriv inn noe du har hjemme — for eksempel egg eller gulrot — og trykk Legg til.',
+            )}
+            actionLabel="Utforsk oppskrifter"
+            to="/"
+          />
         ) : (
           <ul className="pantry__chips">
             {pantry.map((item) => (
@@ -96,25 +102,26 @@ export function PantryPage() {
         <h2 className="pantry__subtitle">Forslag</h2>
         {pantry.length === 0 ? (
           <p className="pantry__empty">
-            Legg til minst én ingrediens for å se forslag.
+            Når du har lagt til ingredienser, foreslår vi oppskrifter her.
           </p>
         ) : matches.length === 0 ? (
-          <p className="pantry__empty">
-            Ingen oppskrifter matcher disse navnene nøyaktig. Prøv samme
-            skrivemåte som i oppskriftene (f.eks. «gulrot», «gul løk»).
-          </p>
+          <EmptyState
+            lead="Ingen oppskrifter matcher disse navnene nøyaktig. Prøv samme skrivemåte som i oppskriftene."
+            actionLabel="Utforsk alle oppskrifter"
+            to="/"
+          />
         ) : (
           <ul className="pantry__results">
             {matches.map(({ recipe, matchCount, have, missing }) => (
               <li key={recipe.id} className="pantry-card">
                 <div className="pantry-card__top">
                   <h3 className="pantry-card__title">
-                    <Link
-                      to={`/oppskrift/${recipe.id}`}
+                    <RecipeLink
+                      recipeId={recipe.id}
                       className="pantry-card__title-link"
                     >
                       {recipe.name}
-                    </Link>
+                    </RecipeLink>
                   </h3>
                   <p className="pantry-card__count">{matchCount} treff</p>
                 </div>
@@ -124,12 +131,12 @@ export function PantryPage() {
                 <p className="pantry-card__list">
                   {missing.length > 0 ? missing.join(', ') : 'Ingenting'}
                 </p>
-                <Link
-                  to={`/oppskrift/${recipe.id}`}
+                <RecipeLink
+                  recipeId={recipe.id}
                   className="pantry-card__link"
                 >
                   Åpne oppskrift
-                </Link>
+                </RecipeLink>
               </li>
             ))}
           </ul>

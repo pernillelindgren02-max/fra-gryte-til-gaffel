@@ -10,6 +10,21 @@
   gap: 1rem;
 }
 
+.recipe-page--missing p {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.45;
+  color: var(--color-teal);
+  max-width: 28ch;
+}
+
+.recipe-page__unavailable-cta {
+  align-self: flex-start;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
 .recipe-page__top {
   display: flex;
   align-items: center;

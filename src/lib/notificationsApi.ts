@@ -1,8 +1,10 @@
+import { buildNotificationDeepLinkPayload } from './recipeLinks'
 import { supabase } from './supabase'
 
 export type AdminNotificationRow = {
   id: string
   recipe_id: string | null
+  deep_link: string | null
   title: string
   body: string
   sent_at: string
@@ -49,6 +51,9 @@ export async function adminSendNotification(input: {
   body: string
 }): Promise<{ notification_id: string; recipient_count: number }> {
   if (!supabase) throw new Error('Supabase er ikke konfigurert.')
+  // deep_link is stored server-side from recipe_id (see notifications.sql).
+  // Client also exposes buildNotificationDeepLinkPayload for future push payloads.
+  void buildNotificationDeepLinkPayload(input.recipeId)
   const { data, error } = await supabase.rpc('admin_send_notification', {
     p_recipe_id: input.recipeId ?? '',
     p_title: input.title,
@@ -70,6 +75,9 @@ export async function adminListNotifications(): Promise<
   if (error) throw error
   return ((data as AdminNotificationRow[]) ?? []).map((row) => ({
     ...row,
+    deep_link:
+      row.deep_link ??
+      buildNotificationDeepLinkPayload(row.recipe_id).deep_link,
     recipient_count: Number(row.recipient_count),
     read_count: Number(row.read_count),
   }))

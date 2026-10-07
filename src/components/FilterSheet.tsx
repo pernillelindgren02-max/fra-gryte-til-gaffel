@@ -9,6 +9,7 @@ interface FilterSheetProps {
   onDraftChange: (next: FilterState) => void
   onApply: () => void
   onClose: () => void
+  activeCount?: number
 }
 
 export function FilterSheet({
@@ -17,6 +18,7 @@ export function FilterSheet({
   onDraftChange,
   onApply,
   onClose,
+  activeCount = 0,
 }: FilterSheetProps) {
   useEffect(() => {
     if (!open) return
@@ -52,7 +54,7 @@ export function FilterSheet({
         <div className="filter-sheet__handle" aria-hidden="true" />
         <header className="filter-sheet__header">
           <h2 id="filter-sheet-title" className="filter-sheet__title">
-            Filtrer oppskrifter
+            {activeCount > 0 ? `Filtre (${activeCount})` : 'Filtrer oppskrifter'}
           </h2>
         </header>
 
@@ -61,13 +63,17 @@ export function FilterSheet({
         </div>
 
         <footer className="filter-sheet__footer">
-          <button
-            type="button"
-            className="filter-sheet__secondary"
-            onClick={() => onDraftChange(emptyFilters)}
-          >
-            Nullstill filtre
-          </button>
+          {activeCount > 0 ? (
+            <button
+              type="button"
+              className="filter-sheet__secondary"
+              onClick={() => onDraftChange(emptyFilters)}
+            >
+              Fjern alle
+            </button>
+          ) : (
+            <span />
+          )}
           <button type="button" className="filter-sheet__primary" onClick={onApply}>
             Vis resultater
           </button>

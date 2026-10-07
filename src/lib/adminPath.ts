@@ -29,6 +29,8 @@ export function getLastAdminPath(): string {
 
 export function rememberAppPath(path: string) {
   if (isAdminPath(path) || path.startsWith('/konto')) return
+  // Don't overwrite return context while viewing a recipe detail.
+  if (path.startsWith('/oppskrift/')) return
   try {
     sessionStorage.setItem(LAST_APP_KEY, path)
   } catch {

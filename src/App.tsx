@@ -84,6 +84,10 @@ function AppChrome() {
         </Route>
         <Route path="/" element={<ExplorePage />} />
         <Route path="/oppskrift/:id" element={<RecipePage />} />
+        <Route
+          path="/recipe/:id"
+          element={<LegacyConsumerRecipeRedirect />}
+        />
         <Route path="/favoritter" element={<FavoritesPage />} />
         <Route path="/favoritter/:folderKey" element={<FavoritesPage />} />
         <Route path="/handleliste" element={<ShoppingListPage />} />

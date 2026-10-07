@@ -3,6 +3,7 @@ import type { MouseEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useUserData } from '../context/UserDataContext'
+import { recipePath } from '../lib/recipeLinks'
 import { USER_ERRORS } from '../lib/userErrors'
 import './FavoriteButton.css'
 
@@ -22,13 +23,13 @@ export function FavoriteButton({ recipeId, compact = false }: FavoriteButtonProp
     event.preventDefault()
     event.stopPropagation()
     if (!user) {
-      navigate('/konto', { state: { from: `/oppskrift/${recipeId}` } })
+      navigate('/konto', { state: { from: recipePath(recipeId) } })
       return
     }
     const wasLiked = liked
     const result = await toggleFavorite(recipeId)
     if (result === 'login') {
-      navigate('/konto')
+      navigate('/konto', { state: { from: recipePath(recipeId) } })
       return
     }
     if (result === 'error') {

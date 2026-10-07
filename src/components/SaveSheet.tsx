@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useUserData } from '../context/UserDataContext'
+import { recipePath } from '../lib/recipeLinks'
 import { USER_ERRORS } from '../lib/userErrors'
 import './SaveSheet.css'
 
@@ -59,7 +60,7 @@ export function SaveSheet({ open, recipeId, onClose }: SaveSheetProps) {
 
   async function onToggleFavorite() {
     if (!user) {
-      navigate('/konto', { state: { from: `/oppskrift/${recipeId}` } })
+      navigate('/konto', { state: { from: recipePath(recipeId) } })
       return
     }
     const wasLiked = liked
@@ -67,7 +68,7 @@ export function SaveSheet({ open, recipeId, onClose }: SaveSheetProps) {
     const result = await toggleFavorite(recipeId)
     setBusy(false)
     if (result === 'login') {
-      navigate('/konto', { state: { from: `/oppskrift/${recipeId}` } })
+      navigate('/konto', { state: { from: recipePath(recipeId) } })
       return
     }
     if (result === 'error') {
@@ -82,7 +83,7 @@ export function SaveSheet({ open, recipeId, onClose }: SaveSheetProps) {
 
   async function onToggleFolder(folderId: string, next: boolean) {
     if (!user) {
-      navigate('/konto', { state: { from: `/oppskrift/${recipeId}` } })
+      navigate('/konto', { state: { from: recipePath(recipeId) } })
       return
     }
     const folderName =
@@ -106,7 +107,7 @@ export function SaveSheet({ open, recipeId, onClose }: SaveSheetProps) {
   async function onCreateFolder(event: FormEvent) {
     event.preventDefault()
     if (!user) {
-      navigate('/konto', { state: { from: `/oppskrift/${recipeId}` } })
+      navigate('/konto', { state: { from: recipePath(recipeId) } })
       return
     }
     setBusy(true)
@@ -171,7 +172,7 @@ export function SaveSheet({ open, recipeId, onClose }: SaveSheetProps) {
                 className="save-sheet__link"
                 onClick={() =>
                   navigate('/konto', {
-                    state: { from: `/oppskrift/${recipeId}` },
+                    state: { from: recipePath(recipeId) },
                   })
                 }
               >

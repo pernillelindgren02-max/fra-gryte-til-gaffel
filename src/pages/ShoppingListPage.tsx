@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import {
   useShoppingList,
   type ShoppingMultiplier,
 } from '../context/ShoppingListContext'
 import { useRecipes } from '../context/RecipesContext'
 import { useSiteContent } from '../context/SiteContentContext'
+import { EmptyState } from '../components/EmptyState'
+import { RecipeLink } from '../components/RecipeLink'
 import { useToast } from '../context/ToastContext'
 import { searchRecipes } from '../utils/searchRecipes'
 import './ShoppingListPage.css'
@@ -117,7 +118,7 @@ export function ShoppingListPage() {
             {listed.map(({ recipe, multiplier }) => (
               <li key={recipe.id} className="shopping__recipe-card">
                 <div className="shopping__recipe-row">
-                  <Link to={`/oppskrift/${recipe.id}`}>{recipe.name}</Link>
+                  <RecipeLink recipeId={recipe.id}>{recipe.name}</RecipeLink>
                   <button
                     type="button"
                     className="shopping__text-btn"
@@ -161,12 +162,14 @@ export function ShoppingListPage() {
       <section className="shopping__block">
         <h2 className="shopping__subtitle">Ingredienser</h2>
         {combined.length === 0 ? (
-          <p className="shopping__empty">
-            {getCopy(
+          <EmptyState
+            lead={getCopy(
               'handleliste.empty',
-              'Handlelisten er tom. Søk etter en oppskrift, eller åpne en oppskrift og trykk «Legg til i handleliste».',
+              'Handlelisten er tom. Finn en oppskrift du vil lage, og legg den til herfra.',
             )}
-          </p>
+            actionLabel="Finn en oppskrift"
+            to="/"
+          />
         ) : (
           <ul className="shopping__items">
             {combined.map((item) => {
@@ -190,12 +193,12 @@ export function ShoppingListPage() {
                         {item.fromRecipes.map((source, index) => (
                           <span key={source.id}>
                             {index > 0 && ', '}
-                            <Link
-                              to={`/oppskrift/${source.id}`}
+                            <RecipeLink
+                              recipeId={source.id}
                               className="shopping__item-recipe"
                             >
                               {source.name}
-                            </Link>
+                            </RecipeLink>
                           </span>
                         ))}
                       </p>
