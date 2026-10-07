@@ -108,7 +108,14 @@ export function PantryPage() {
             {matches.map(({ recipe, matchCount, have, missing }) => (
               <li key={recipe.id} className="pantry-card">
                 <div className="pantry-card__top">
-                  <h3 className="pantry-card__title">{recipe.name}</h3>
+                  <h3 className="pantry-card__title">
+                    <Link
+                      to={`/oppskrift/${recipe.id}`}
+                      className="pantry-card__title-link"
+                    >
+                      {recipe.name}
+                    </Link>
+                  </h3>
                   <p className="pantry-card__count">{matchCount} treff</p>
                 </div>
                 <p className="pantry-card__label">Du har</p>

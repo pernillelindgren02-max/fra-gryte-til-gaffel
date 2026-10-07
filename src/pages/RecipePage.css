@@ -194,13 +194,19 @@
   transition: transform 160ms ease, background 160ms ease, opacity 160ms ease;
 }
 
-.recipe-page__list-btn:active:not(:disabled) {
+.recipe-page__list-btn:active {
   transform: scale(0.97);
 }
 
-.recipe-page__list-btn:disabled {
-  background: color-mix(in srgb, var(--color-teal) 35%, white);
-  cursor: default;
+.recipe-page__list-btn--on {
+  background: color-mix(in srgb, var(--color-pale-green) 55%, white);
+  color: var(--color-teal);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--color-teal) 22%, transparent);
+  cursor: pointer;
+}
+
+.recipe-page__list-btn--on:hover {
+  background: color-mix(in srgb, var(--color-pale-green) 70%, white);
 }
 
 .recipe-page__toast {

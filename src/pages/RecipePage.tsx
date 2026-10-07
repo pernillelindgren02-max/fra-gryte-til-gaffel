@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { RecipePersonalPanel } from '../components/RecipePersonalPanel'
 import { SaveSheet } from '../components/SaveSheet'
 import { RecipeDetailSkeleton } from '../components/skeleton'
@@ -40,6 +40,7 @@ export function RecipePage() {
   const { showToast } = useToast()
   const { user } = useAuth()
   const { isFavorite, foldersForRecipe } = useUserData()
+  const navigate = useNavigate()
   const [saveOpen, setSaveOpen] = useState(false)
   const baseServings = recipe && recipe.servings > 0 ? recipe.servings : 2
   const [portions, setPortions] = useState(baseServings)
@@ -92,6 +93,10 @@ export function RecipePage() {
     (isFavorite(recipe.id) || foldersForRecipe(recipe.id).length > 0)
 
   function onAddToList() {
+    if (alreadyOnList) {
+      navigate('/handleliste')
+      return
+    }
     const result = addRecipe(recipe!.id, scale)
     if (result === 'added') {
       showToast(
@@ -100,7 +105,7 @@ export function RecipePage() {
           : `Lagt til i handlelisten (${portions} porsjoner).`,
       )
     } else if (result === 'duplicate') {
-      showToast('Oppskriften er allerede i handlelisten.')
+      navigate('/handleliste')
     }
   }
 
@@ -179,9 +184,11 @@ export function RecipePage() {
 
         <button
           type="button"
-          className="recipe-page__list-btn"
+          className={`recipe-page__list-btn${alreadyOnList ? ' recipe-page__list-btn--on' : ''}`}
           onClick={onAddToList}
-          disabled={alreadyOnList}
+          aria-label={
+            alreadyOnList ? 'Åpne handleliste' : 'Legg til i handleliste'
+          }
         >
           {alreadyOnList ? 'I handlelisten' : 'Legg til i handleliste'}
         </button>

@@ -123,9 +123,11 @@
 }
 
 .shopping__recipes a {
-  color: var(--color-teal);
+  color: var(--color-terracotta);
   font-weight: 700;
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 0.14em;
+  text-decoration-thickness: 1px;
 }
 
 .shopping__multipliers {
