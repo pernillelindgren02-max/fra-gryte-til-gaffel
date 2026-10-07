@@ -1,47 +1,213 @@
 .app-nav {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
+  justify-content: flex-end;
   align-items: center;
-  margin-bottom: 0.95rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--color-teal) 12%, transparent);
+  margin-bottom: 0.55rem;
+  min-height: 2.85rem;
 }
 
-.app-nav__link {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--color-teal);
-  text-decoration: none;
-  min-height: 2.35rem;
+.app-nav__menu-btn {
   display: inline-flex;
   align-items: center;
-  padding: 0.35rem 0.8rem;
+  justify-content: center;
+  width: 2.85rem;
+  height: 2.85rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 30% 28%,
+      color-mix(in srgb, var(--color-soft-yellow) 55%, white),
+      transparent 55%
+    ),
+    color-mix(in srgb, var(--color-pale-green) 82%, white);
+  color: var(--color-teal);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 70%, transparent),
+    0 6px 16px color-mix(in srgb, var(--color-teal) 10%, transparent);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.app-nav__menu-btn:hover {
+  background:
+    radial-gradient(
+      circle at 30% 28%,
+      color-mix(in srgb, var(--color-soft-yellow) 65%, white),
+      transparent 55%
+    ),
+    var(--color-pale-green);
+  transform: translateY(-1px);
+}
+
+.app-nav__menu-btn:active {
+  transform: scale(0.96);
+}
+
+.app-nav__menu-btn--open {
+  box-shadow:
+    inset 0 0 0 1.5px color-mix(in srgb, var(--color-terracotta) 35%, transparent),
+    0 4px 12px color-mix(in srgb, var(--color-teal) 12%, transparent);
+  color: var(--color-terracotta);
+}
+
+.app-nav__gryte-icon {
+  display: block;
+}
+
+.app-nav__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.app-nav__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: color-mix(in srgb, var(--color-teal) 28%, transparent);
+  backdrop-filter: blur(2px);
+  cursor: pointer;
+  animation: app-nav-fade 180ms ease;
+}
+
+.app-nav__sheet {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 28rem);
+  margin-inline: auto;
+  max-height: min(78vh, 32rem);
+  padding: 0.55rem 1.1rem 1.35rem;
+  border-radius: 1.35rem 1.35rem 0 0;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-pale-green) 35%, white),
+      var(--color-bg) 28%
+    );
+  box-shadow: 0 -12px 40px color-mix(in srgb, var(--color-teal) 18%, transparent);
+  animation: app-nav-rise 220ms ease;
+  overflow: auto;
+}
+
+.app-nav__sheet-handle {
+  width: 2.5rem;
+  height: 0.28rem;
+  margin: 0.15rem auto 0.65rem;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--color-pale-green) 78%, white);
+  background: color-mix(in srgb, var(--color-teal) 22%, transparent);
+}
+
+.app-nav__sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+
+.app-nav__sheet-brand {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-size: 0.95rem;
+  color: var(--color-terracotta);
+  letter-spacing: 0.01em;
+}
+
+.app-nav__close {
+  width: 2.35rem;
+  height: 2.35rem;
+  border: none;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-pale-green) 70%, white);
+  color: var(--color-teal);
+  font-size: 1.45rem;
+  line-height: 1;
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-.app-nav__link:hover {
-  background: var(--color-pale-green);
+.app-nav__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
-.app-nav__link--active {
-  background: var(--color-pale-green);
+.app-nav__item {
+  display: flex;
+  align-items: center;
+  min-height: 3rem;
+  padding: 0.65rem 0.95rem;
+  border-radius: 0.95rem;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.02rem;
   color: var(--color-teal);
-  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--color-teal) 18%, transparent);
+  background: color-mix(in srgb, white 78%, var(--color-pale-green));
+  -webkit-tap-highlight-color: transparent;
 }
 
-.app-nav__link--accent {
-  color: var(--color-terracotta);
+.app-nav__item:hover {
   background: color-mix(in srgb, var(--color-pale-green) 55%, white);
 }
 
-.app-nav__link--accent.app-nav__link--active {
-  background: color-mix(in srgb, var(--color-terracotta) 14%, var(--color-pale-green));
+.app-nav__item--active {
+  background: color-mix(in srgb, var(--color-pale-green) 72%, white);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--color-teal) 18%, transparent);
+}
+
+.app-nav__item--account {
+  margin-top: 0.35rem;
+  color: var(--color-terracotta);
+  background: color-mix(in srgb, var(--color-terracotta) 8%, white);
+}
+
+.app-nav__item--account.app-nav__item--active {
+  background: color-mix(in srgb, var(--color-terracotta) 14%, white);
   box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--color-terracotta) 28%, transparent);
 }
 
-.app-nav__link--end {
-  margin-left: auto;
+@keyframes app-nav-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes app-nav-rise {
+  from {
+    transform: translateY(1.25rem);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (min-width: 720px) {
+  .app-nav__sheet {
+    border-radius: 1.35rem;
+    margin-bottom: 1.5rem;
+    max-height: min(70vh, 30rem);
+  }
+
+  .app-nav__overlay {
+    justify-content: flex-start;
+    padding-top: 4.25rem;
+    align-items: flex-end;
+    padding-right: max(1.5rem, calc((100vw - 52rem) / 2 + 1.5rem));
+  }
 }
