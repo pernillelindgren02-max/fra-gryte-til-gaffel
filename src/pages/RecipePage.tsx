@@ -95,10 +95,6 @@ export function RecipePage() {
     }
   }
 
-  function changePortions(next: number) {
-    setPortions(clampPortions(next))
-  }
-
   const facts = [
     `${recipe.timeMinutes} min`,
     priceLevelLabels[recipe.priceLevel],
@@ -154,7 +150,7 @@ export function RecipePage() {
             className="recipe-page__portion-btn"
             aria-label="Færre porsjoner"
             disabled={portions <= MIN_PORTIONS}
-            onClick={() => changePortions(portions - 1)}
+            onClick={() => setPortions((prev) => clampPortions(prev - 1))}
           >
             −
           </button>
@@ -166,7 +162,7 @@ export function RecipePage() {
             className="recipe-page__portion-btn"
             aria-label="Flere porsjoner"
             disabled={portions >= MAX_PORTIONS}
-            onClick={() => changePortions(portions + 1)}
+            onClick={() => setPortions((prev) => clampPortions(prev + 1))}
           >
             +
           </button>
