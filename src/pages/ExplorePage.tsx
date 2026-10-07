@@ -10,6 +10,10 @@ import {
 } from '../components/skeleton'
 import { useRecipes } from '../context/RecipesContext'
 import { useSiteContent } from '../context/SiteContentContext'
+import {
+  EXPLORE_CATEGORIES,
+  getCategoryDef,
+} from '../data/exploreCategories'
 import { emptyFilters, type FilterState, type Recipe } from '../data/recipes'
 import {
   clearExploreScrollFreeze,
@@ -17,7 +21,12 @@ import {
   saveExploreSession,
 } from '../lib/exploreSession'
 import { USER_ERRORS } from '../lib/userErrors'
-import { buildCuratedSections } from '../utils/curatedRecipes'
+import {
+  buildCuratedSections,
+  getExploreCategories,
+  resolveCategoryRecipes,
+} from '../utils/curatedRecipes'
+import { ensureEvenRecipes } from '../utils/evenRecipes'
 import {
   listActiveFilterChips,
   removeFilterValue,
@@ -73,6 +82,7 @@ type ExploreBlock =
 
 function buildExploreBlocks(
   sections: ReturnType<typeof buildCuratedSections>,
+  pool: Recipe[],
 ): ExploreBlock[] {
   if (sections.length === 0) return []
 
@@ -90,7 +100,7 @@ function buildExploreBlocks(
         id: section.id,
         title: section.title,
         recipe: hero,
-        rest,
+        rest: ensureEvenRecipes(rest, pool),
       })
       return
     }
@@ -100,7 +110,7 @@ function buildExploreBlocks(
         kind: 'editorial',
         id: section.id,
         title: section.title,
-        recipes: section.recipes,
+        recipes: ensureEvenRecipes(section.recipes, pool),
       })
       return
     }
@@ -109,7 +119,7 @@ function buildExploreBlocks(
       kind: 'grid',
       id: section.id,
       title: section.title,
-      recipes: section.recipes,
+      recipes: ensureEvenRecipes(section.recipes, pool),
       spacing: index % 2 === 0 ? 'roomy' : 'tight',
     })
   })
@@ -127,6 +137,9 @@ export function ExplorePage() {
     initial.current.filters,
   )
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
+  const [categoryId, setCategoryId] = useState<string | null>(
+    initial.current.categoryId,
+  )
   const restoredScroll = useRef(false)
 
   const activeFilterCount = countActiveFilters(filters)
@@ -134,11 +147,27 @@ export function ExplorePage() {
   const hasSearch = searchQuery.trim().length > 0
   const hasActiveConstraints = hasSearch || activeFilterCount > 0
   const showFeedSkeleton = loading && recipes.length === 0
+  const categoryConfigs = useMemo(
+    () => getExploreCategories(explore),
+    [explore],
+  )
+  const activeCategoryConfig = useMemo(
+    () => categoryConfigs.find((c) => c.id === categoryId) ?? null,
+    [categoryConfigs, categoryId],
+  )
+  const activeCategoryDef = categoryId ? getCategoryDef(categoryId) : undefined
 
   const matchingRecipes = useMemo(() => {
     const filtered = filterRecipes(recipes, filters)
-    return searchRecipes(filtered, searchQuery)
+    const searched = searchRecipes(filtered, searchQuery)
+    // Same pool → trim odd card (don't inject unrelated search hits).
+    return ensureEvenRecipes(searched, searched)
   }, [filters, searchQuery, recipes])
+
+  const categoryRecipes = useMemo(() => {
+    if (!activeCategoryConfig) return []
+    return resolveCategoryRecipes(activeCategoryConfig, recipes)
+  }, [activeCategoryConfig, recipes])
 
   const curatedSections = useMemo(
     () => buildCuratedSections(recipes, explore),
@@ -146,8 +175,8 @@ export function ExplorePage() {
   )
 
   const exploreBlocks = useMemo(
-    () => buildExploreBlocks(curatedSections),
-    [curatedSections],
+    () => buildExploreBlocks(curatedSections, recipes),
+    [curatedSections, recipes],
   )
 
   const scrollYRef = useRef(initial.current.scrollY)
@@ -161,8 +190,9 @@ export function ExplorePage() {
       searchQuery,
       filters,
       scrollY: scrollYRef.current,
+      categoryId,
     })
-  }, [searchQuery, filters])
+  }, [searchQuery, filters, categoryId])
 
   // useLayoutEffect so cleanup runs in the layout phase. Ignore sudden jumps
   // toward the top while a recipe route scrolls the window (listener may still
@@ -177,6 +207,7 @@ export function ExplorePage() {
         searchQuery,
         filters,
         scrollY: scrollYRef.current,
+        categoryId,
       })
     }
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -186,9 +217,10 @@ export function ExplorePage() {
         searchQuery,
         filters,
         scrollY: scrollYRef.current,
+        categoryId,
       })
     }
-  }, [searchQuery, filters])
+  }, [searchQuery, filters, categoryId])
 
   useLayoutEffect(() => {
     if (restoredScroll.current || showFeedSkeleton) return
@@ -222,6 +254,18 @@ export function ExplorePage() {
 
   function clearSearch() {
     setSearchQuery('')
+  }
+
+  function openCategory(id: string) {
+    setCategoryId(id)
+    setSearchQuery('')
+    setFilters(emptyFilters)
+    setDraftFilters(emptyFilters)
+    window.scrollTo(0, 0)
+  }
+
+  function clearCategory() {
+    setCategoryId(null)
   }
 
   return (
@@ -295,7 +339,32 @@ export function ExplorePage() {
         </button>
       </div>
 
-      {activeFilterCount > 0 && (
+      <div className="explore-categories" aria-label="Kategorier">
+        <ul className="explore-categories__track">
+          {EXPLORE_CATEGORIES.map((cat) => {
+            const selected = categoryId === cat.id
+            return (
+              <li key={cat.id}>
+                <button
+                  type="button"
+                  className={`explore-category${selected ? ' explore-category--on' : ''}`}
+                  aria-pressed={selected}
+                  onClick={() =>
+                    selected ? clearCategory() : openCategory(cat.id)
+                  }
+                >
+                  <span className="explore-category__art">
+                    <img src={cat.image} alt="" width={72} height={72} />
+                  </span>
+                  <span className="explore-category__label">{cat.label}</span>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+
+      {activeFilterCount > 0 && !categoryId && (
         <div className="explore-filter-bar">
           <div className="explore-filter-bar__head">
             <p className="explore-filter-bar__label">
@@ -332,11 +401,42 @@ export function ExplorePage() {
       )}
 
       {showFeedSkeleton ? (
-        hasActiveConstraints ? (
+        hasActiveConstraints || categoryId ? (
           <ExploreResultsSkeleton />
         ) : (
           <ExploreSkeleton />
         )
+      ) : categoryId && activeCategoryConfig ? (
+        <section className="explore-results" aria-live="polite">
+          <div className="explore-results__header">
+            <h2 className="explore-results__title">
+              {activeCategoryDef?.label ?? activeCategoryConfig.title}
+            </h2>
+            <button
+              type="button"
+              className="explore-filter-bar__clear"
+              onClick={clearCategory}
+            >
+              Vis alle
+            </button>
+          </div>
+          {categoryRecipes.length === 0 ? (
+            <EmptyState
+              lead="Ingen oppskrifter i denne kategorien ennå."
+              actionLabel="Vis alle oppskrifter"
+              to="/"
+              onActionClick={clearCategory}
+            />
+          ) : (
+            <ul className="explore-feed">
+              {categoryRecipes.map((recipe) => (
+                <li key={recipe.id}>
+                  <RecipeCard recipe={recipe} layout="grid" />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       ) : hasActiveConstraints ? (
         <section className="explore-results" aria-live="polite">
           <div className="explore-results__header">

@@ -6,9 +6,11 @@ import {
 } from '../../lib/siteContentApi'
 import {
   DEFAULT_EXPLORE_SETTINGS,
+  type ExploreCategoryConfig,
   type ExploreSectionConfig,
   type ExploreSettings,
 } from '../../lib/siteDefaults'
+import { EXPLORE_CATEGORIES } from '../../data/exploreCategories'
 import { useSiteContent } from '../../context/SiteContentContext'
 import type { RecipeRow } from '../../lib/recipeMapper'
 import './Admin.css'
@@ -52,6 +54,18 @@ export function AdminExplorePage() {
         i === index ? { ...s, ...patch } : s,
       )
       return { ...prev, sections }
+    })
+  }
+
+  function updateCategory(
+    index: number,
+    patch: Partial<ExploreCategoryConfig>,
+  ) {
+    setSettings((prev) => {
+      const categories = prev.categories.map((c, i) =>
+        i === index ? { ...c, ...patch } : c,
+      )
+      return { ...prev, categories }
     })
   }
 
@@ -137,6 +151,71 @@ export function AdminExplorePage() {
         </div>
       </fieldset>
 
+      <h2 className="admin__subtitle">Kategorikort (horisontal rad)</h2>
+      <p className="admin__muted">
+        Styr hvilke oppskrifter som vises når brukeren trykker på et
+        kategorikort under søk. <strong>Automatisk</strong> bruker eksisterende
+        tagger/filtre (primus, få ingredienser, tid, måltid, dessert-hint).{' '}
+        <strong>Manuelt</strong> lar deg huk av konkrete oppskrifter.
+      </p>
+
+      {settings.categories.map((category, index) => {
+        const visual = EXPLORE_CATEGORIES.find((c) => c.id === category.id)
+        return (
+          <fieldset key={category.id} className="admin-form__block">
+            <legend>
+              {visual?.label ?? category.title}{' '}
+              <span className="admin__muted">({category.id})</span>
+            </legend>
+            <label className="admin-form__field">
+              <span>Tittel i kategori-visning</span>
+              <input
+                value={category.title}
+                onChange={(e) =>
+                  updateCategory(index, { title: e.target.value })
+                }
+              />
+            </label>
+            <label className="admin-form__field">
+              <span>Modus</span>
+              <select
+                value={category.mode}
+                onChange={(e) =>
+                  updateCategory(index, {
+                    mode: e.target.value === 'manual' ? 'manual' : 'auto',
+                  })
+                }
+              >
+                <option value="auto">Automatisk (tagger/filter)</option>
+                <option value="manual">Manuelt utvalg</option>
+              </select>
+            </label>
+            {category.mode === 'manual' && (
+              <div className="admin-check-grid">
+                {recipes.map((row) => (
+                  <label key={row.id} className="admin-form__check">
+                    <input
+                      type="checkbox"
+                      checked={category.recipe_ids.includes(row.id)}
+                      onChange={() =>
+                        updateCategory(index, {
+                          recipe_ids: toggleRecipeId(
+                            category.recipe_ids,
+                            row.id,
+                          ),
+                        })
+                      }
+                    />
+                    {row.name}
+                  </label>
+                ))}
+              </div>
+            )}
+          </fieldset>
+        )
+      })}
+
+      <h2 className="admin__subtitle">Seksjoner i feed</h2>
       {settings.sections.map((section, index) => (
         <fieldset key={section.id} className="admin-form__block">
           <legend>{section.id}</legend>

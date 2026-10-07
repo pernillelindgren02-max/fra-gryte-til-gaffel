@@ -7,9 +7,18 @@ export type ExploreSectionConfig = {
   recipe_ids: string[]
 }
 
+/** Horizontal category chips on Explore — curated or auto from tags. */
+export type ExploreCategoryConfig = {
+  id: string
+  title: string
+  mode: ExploreSectionMode
+  recipe_ids: string[]
+}
+
 export type ExploreSettings = {
   featured_ids: string[]
   sections: ExploreSectionConfig[]
+  categories: ExploreCategoryConfig[]
   blurb: string
 }
 
@@ -26,6 +35,51 @@ export type AppThemeTokens = {
 }
 
 export type AppCopyMap = Record<string, string>
+
+export const DEFAULT_EXPLORE_CATEGORIES: ExploreCategoryConfig[] = [
+  {
+    id: 'primus',
+    title: 'Perfekt til primus',
+    mode: 'auto',
+    recipe_ids: [],
+  },
+  {
+    id: 'few-ingredients',
+    title: 'Få ingredienser',
+    mode: 'auto',
+    recipe_ids: [],
+  },
+  {
+    id: 'quick',
+    title: 'Dårlig tid?',
+    mode: 'auto',
+    recipe_ids: [],
+  },
+  {
+    id: 'dinner',
+    title: 'Middag',
+    mode: 'auto',
+    recipe_ids: [],
+  },
+  {
+    id: 'breakfast',
+    title: 'Frokost',
+    mode: 'auto',
+    recipe_ids: [],
+  },
+  {
+    id: 'lunch',
+    title: 'Lunsj',
+    mode: 'auto',
+    recipe_ids: [],
+  },
+  {
+    id: 'dessert',
+    title: 'Dessert',
+    mode: 'auto',
+    recipe_ids: [],
+  },
+]
 
 export const DEFAULT_EXPLORE_SETTINGS: ExploreSettings = {
   featured_ids: [],
@@ -55,6 +109,7 @@ export const DEFAULT_EXPLORE_SETTINGS: ExploreSettings = {
       recipe_ids: [],
     },
   ],
+  categories: DEFAULT_EXPLORE_CATEGORIES,
   blurb: '',
 }
 

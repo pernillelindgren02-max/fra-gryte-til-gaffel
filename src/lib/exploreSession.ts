@@ -7,6 +7,8 @@ export type ExploreSessionState = {
   searchQuery: string
   filters: FilterState
   scrollY: number
+  /** Active horizontal category chip id, or null for home feed. */
+  categoryId: string | null
 }
 
 function isFilterState(value: unknown): value is FilterState {
@@ -19,7 +21,12 @@ export function loadExploreSession(): ExploreSessionState {
   try {
     const raw = sessionStorage.getItem(KEY)
     if (!raw) {
-      return { searchQuery: '', filters: emptyFilters, scrollY: 0 }
+      return {
+        searchQuery: '',
+        filters: emptyFilters,
+        scrollY: 0,
+        categoryId: null,
+      }
     }
     const parsed = JSON.parse(raw) as Partial<ExploreSessionState>
     return {
@@ -29,9 +36,18 @@ export function loadExploreSession(): ExploreSessionState {
         ? { ...emptyFilters, ...parsed.filters }
         : emptyFilters,
       scrollY: typeof parsed.scrollY === 'number' ? parsed.scrollY : 0,
+      categoryId:
+        typeof parsed.categoryId === 'string' && parsed.categoryId
+          ? parsed.categoryId
+          : null,
     }
   } catch {
-    return { searchQuery: '', filters: emptyFilters, scrollY: 0 }
+    return {
+      searchQuery: '',
+      filters: emptyFilters,
+      scrollY: 0,
+      categoryId: null,
+    }
   }
 }
 
