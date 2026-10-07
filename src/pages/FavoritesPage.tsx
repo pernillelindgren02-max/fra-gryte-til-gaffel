@@ -3,14 +3,18 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { RecipeCard } from '../components/RecipeCard'
 import { useAuth } from '../context/AuthContext'
 import { useUserData } from '../context/UserDataContext'
-import { getRecipeById } from '../data/recipes'
+import { useRecipes } from '../context/RecipesContext'
+import type { Recipe } from '../data/recipes'
 import './AccountLists.css'
 
 const DEFAULT_FOLDER_KEY = 'favoritter'
 
-function recipesFromIds(ids: Iterable<string>) {
+function recipesFromIds(
+  ids: Iterable<string>,
+  getById: (id: string) => Recipe | undefined,
+) {
   return [...ids]
-    .map((id) => getRecipeById(id))
+    .map((id) => getById(id))
     .filter((recipe): recipe is NonNullable<typeof recipe> => Boolean(recipe))
 }
 
@@ -24,6 +28,7 @@ export function FavoritesPage() {
   const { folderKey } = useParams<{ folderKey?: string }>()
   const navigate = useNavigate()
   const { user, configured, loading } = useAuth()
+  const { getById } = useRecipes()
   const {
     favoriteIds,
     folders,
@@ -87,8 +92,8 @@ export function FavoritesPage() {
   if (user && viewingFolder) {
     const title = viewingDefault ? 'Favoritter' : (openFolder?.name ?? '')
     const recipes = viewingDefault
-      ? recipesFromIds(favoriteIds)
-      : recipesFromIds(folderRecipeIds[openFolder!.id] ?? [])
+      ? recipesFromIds(favoriteIds, getById)
+      : recipesFromIds(folderRecipeIds[openFolder!.id] ?? [], getById)
 
     return (
       <div className="account-list">

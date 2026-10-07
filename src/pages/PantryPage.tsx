@@ -1,5 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import { useRecipes } from '../context/RecipesContext'
 import {
   getKnownIngredientNames,
   matchRecipesByPantry,
@@ -8,14 +9,15 @@ import {
 import './PantryPage.css'
 
 export function PantryPage() {
+  const { recipes } = useRecipes()
   const [draft, setDraft] = useState('')
   const [pantry, setPantry] = useState<string[]>([])
   const [message, setMessage] = useState<string | null>(null)
-  const knownNames = useMemo(() => getKnownIngredientNames(), [])
+  const knownNames = useMemo(() => getKnownIngredientNames(recipes), [recipes])
 
   const matches = useMemo(
-    () => matchRecipesByPantry(pantry, 3),
-    [pantry],
+    () => matchRecipesByPantry(pantry, recipes, 3),
+    [pantry, recipes],
   )
 
   function addIngredient(raw: string) {

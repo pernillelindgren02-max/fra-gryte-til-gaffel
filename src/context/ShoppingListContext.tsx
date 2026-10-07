@@ -7,11 +7,12 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { getRecipeById, type Ingredient } from '../data/recipes'
+import type { Ingredient } from '../data/recipes'
 import {
   combineIngredients,
   type CombinedIngredient,
 } from '../utils/combineIngredients'
+import { useRecipes } from './RecipesContext'
 
 const STORAGE_KEY = 'fgtg-shopping-list-v2'
 
@@ -101,6 +102,7 @@ function loadState(): ShoppingListState {
 }
 
 export function ShoppingListProvider({ children }: { children: ReactNode }) {
+  const { getById } = useRecipes()
   const initial = loadState()
   const [entries, setEntries] = useState<ShoppingListEntry[]>(initial.entries)
   const [checkedKeys, setCheckedKeys] = useState<string[]>(initial.checkedKeys)
@@ -119,18 +121,18 @@ export function ShoppingListProvider({ children }: { children: ReactNode }) {
 
   const combined = useMemo(() => {
     const ingredients = entries.flatMap((entry) => {
-      const recipe = getRecipeById(entry.recipeId)
+      const recipe = getById(entry.recipeId)
       if (!recipe) return []
       return recipe.ingredients.map((ingredient) =>
         scaleIngredient(ingredient, entry.multiplier),
       )
     })
     return combineIngredients(ingredients)
-  }, [entries])
+  }, [entries, getById])
 
   const addRecipe = useCallback(
     (recipeId: string) => {
-      if (!getRecipeById(recipeId)) return 'missing' as const
+      if (!getById(recipeId)) return 'missing' as const
       if (entries.some((entry) => entry.recipeId === recipeId)) {
         return 'duplicate' as const
       }
@@ -141,7 +143,7 @@ export function ShoppingListProvider({ children }: { children: ReactNode }) {
       )
       return 'added' as const
     },
-    [entries],
+    [entries, getById],
   )
 
   const removeRecipe = useCallback((recipeId: string) => {

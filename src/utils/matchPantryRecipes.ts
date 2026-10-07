@@ -1,4 +1,4 @@
-import { recipes, type Recipe } from '../data/recipes'
+import type { Recipe } from '../data/recipes'
 
 export function normalizeIngredientName(name: string): string {
   return name.trim().toLowerCase()
@@ -14,6 +14,7 @@ export interface PantryMatch {
 /** Exact match on normalized ingredient name only. */
 export function matchRecipesByPantry(
   pantryNames: string[],
+  recipeList: Recipe[],
   limit = 3,
 ): PantryMatch[] {
   const pantry = new Set(
@@ -23,7 +24,7 @@ export function matchRecipesByPantry(
 
   const scored: PantryMatch[] = []
 
-  for (const recipe of recipes) {
+  for (const recipe of recipeList) {
     const have: string[] = []
     const missing: string[] = []
     for (const ingredient of recipe.ingredients) {
@@ -49,9 +50,9 @@ export function matchRecipesByPantry(
 }
 
 /** Unique ingredient names from the library (for optional typing hints). */
-export function getKnownIngredientNames(): string[] {
+export function getKnownIngredientNames(recipeList: Recipe[]): string[] {
   const set = new Set<string>()
-  for (const recipe of recipes) {
+  for (const recipe of recipeList) {
     for (const ingredient of recipe.ingredients) {
       set.add(ingredient.name)
     }

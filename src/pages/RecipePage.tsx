@@ -15,16 +15,14 @@ import {
   storageNeedLabels,
   waterNeedLabels,
 } from '../data/filterLabels'
-import {
-  formatIngredient,
-  getIngredientCount,
-  getRecipeById,
-} from '../data/recipes'
+import { useRecipes } from '../context/RecipesContext'
+import { formatIngredient, getIngredientCount } from '../data/recipes'
 import './RecipePage.css'
 
 export function RecipePage() {
   const { id } = useParams<{ id: string }>()
-  const recipe = id ? getRecipeById(id) : undefined
+  const { getById, loading } = useRecipes()
+  const recipe = id ? getById(id) : undefined
   const { addRecipe, hasRecipe } = useShoppingList()
   const { user } = useAuth()
   const { isFavorite, foldersForRecipe } = useUserData()
@@ -36,6 +34,14 @@ export function RecipePage() {
     const timer = window.setTimeout(() => setToast(null), 2500)
     return () => window.clearTimeout(timer)
   }, [toast])
+
+  if (loading && !recipe) {
+    return (
+      <div className="recipe-page recipe-page--missing">
+        <p>Laster oppskrift…</p>
+      </div>
+    )
+  }
 
   if (!recipe) {
     return (

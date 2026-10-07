@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { FilterSheet } from '../components/FilterSheet'
 import { RecipeCard } from '../components/RecipeCard'
-import { emptyFilters, recipes, type FilterState } from '../data/recipes'
+import { useRecipes } from '../context/RecipesContext'
+import { emptyFilters, type FilterState } from '../data/recipes'
 import { buildCuratedSections } from '../utils/curatedRecipes'
 import { countActiveFilters, filterRecipes } from '../utils/filterRecipes'
 import { searchRecipes } from '../utils/searchRecipes'
@@ -31,6 +32,7 @@ function FiltersIcon() {
 }
 
 export function ExplorePage() {
+  const { recipes, loading, error } = useRecipes()
   const [searchQuery, setSearchQuery] = useState('')
   const [filters, setFilters] = useState<FilterState>(emptyFilters)
   const [draftFilters, setDraftFilters] = useState<FilterState>(emptyFilters)
@@ -43,11 +45,11 @@ export function ExplorePage() {
   const matchingRecipes = useMemo(() => {
     const filtered = filterRecipes(recipes, filters)
     return searchRecipes(filtered, searchQuery)
-  }, [filters, searchQuery])
+  }, [filters, searchQuery, recipes])
 
   const curatedSections = useMemo(
     () => buildCuratedSections(recipes),
-    [],
+    [recipes],
   )
 
   function openFilterSheet() {
@@ -87,6 +89,17 @@ export function ExplorePage() {
         </div>
         <h1 className="explore__tagline">En gryte unna noe godt</h1>
       </header>
+
+      {loading && (
+        <p className="explore-results__empty" aria-live="polite">
+          Laster oppskrifter…
+        </p>
+      )}
+      {error && !loading && (
+        <p className="explore-results__empty" role="status">
+          Kunne ikke hente oppskrifter fra skyen — viser lokal kopi.
+        </p>
+      )}
 
       <div className="explore-search">
         <label className="explore-search__field">

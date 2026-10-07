@@ -14,9 +14,12 @@ type AuthContextValue = {
   loading: boolean
   session: Session | null
   user: User | null
+  isAdmin: boolean
+  adminChecked: boolean
   signUp: (email: string, password: string) => Promise<string | null>
   signIn: (email: string, password: string) => Promise<string | null>
   signOut: () => Promise<void>
+  refreshAdmin: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -40,26 +43,54 @@ function translateAuthError(message: string): string {
   return message
 }
 
+async function fetchIsAdmin(userId: string): Promise<boolean> {
+  if (!supabase) return false
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', userId)
+    .maybeSingle()
+  if (error || !data) return false
+  return Boolean(data.is_admin)
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(isSupabaseConfigured)
   const [session, setSession] = useState<Session | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [adminChecked, setAdminChecked] = useState(!isSupabaseConfigured)
+
+  async function syncAdmin(nextSession: Session | null) {
+    if (!nextSession?.user) {
+      setIsAdmin(false)
+      setAdminChecked(true)
+      return
+    }
+    setAdminChecked(false)
+    const admin = await fetchIsAdmin(nextSession.user.id)
+    setIsAdmin(admin)
+    setAdminChecked(true)
+  }
 
   useEffect(() => {
     if (!supabase) {
       setLoading(false)
+      setAdminChecked(true)
       return
     }
 
     let active = true
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       if (!active) return
       setSession(data.session)
-      setLoading(false)
+      await syncAdmin(data.session)
+      if (active) setLoading(false)
     })
 
     const { data: subscription } = supabase.auth.onAuthStateChange(
       (_event, nextSession) => {
         setSession(nextSession)
+        void syncAdmin(nextSession)
         setLoading(false)
       },
     )
@@ -76,6 +107,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       session,
       user: session?.user ?? null,
+      isAdmin,
+      adminChecked,
       async signUp(email, password) {
         if (!supabase) return 'Supabase er ikke konfigurert ennå.'
         const { data, error } = await supabase.auth.signUp({
@@ -83,7 +116,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           password,
         })
         if (error) return translateAuthError(error.message)
-        // Supabase quirk: existing email can return a user with empty identities
         if (
           data.user &&
           Array.isArray(data.user.identities) &&
@@ -104,9 +136,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async signOut() {
         if (!supabase) return
         await supabase.auth.signOut()
+        setIsAdmin(false)
+      },
+      async refreshAdmin() {
+        await syncAdmin(session)
       },
     }),
-    [loading, session],
+    [loading, session, isAdmin, adminChecked],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

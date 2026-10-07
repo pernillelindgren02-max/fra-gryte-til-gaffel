@@ -5,13 +5,13 @@ Norsk, mobilvennlig oppskriftsapp for begrensede kjøkken — én kokeplate, ing
 ## Hva som finnes
 
 - Utforsk med søk, filtre (bunnark) og kuraterte seksjoner
-- 15 oppskrifter i `src/data/recipes.ts` med illustrasjoner
+- Oppskrifter lastes som **publiserte** rader fra Supabase (lokal fallback hvis DB er tom/ute)
 - Detaljside med ingredienser, steg og praktiske tagger
 - Handleliste (localStorage): legg til oppskrifter, kombiner mengder, huk av kjøpt
 - Valgfri konto via **Supabase**: favoritter, mapper og private notater
+- Privat admin på `/admin` (ingen knapp i app-UI) når `profiles.is_admin`
 
-Oppskriftene ligger lokalt i appen. Supabase lagrer kun `recipe_id` per bruker.
-Handlelisten lagres i nettleseren (`localStorage`) og overlever oppfriskning.
+Handlelisten lagres i nettleseren (`localStorage`). Favoritter/mapper/notater bruker `recipe_id`.
 
 ## Kom i gang (uten konto)
 
@@ -38,9 +38,15 @@ VITE_SUPABASE_PUBLISHABLE_KEY=
 4. Lagre og **start Vite på nytt** (`npm run dev`).
 5. Åpne nettleserkonsollen: du skal se `[Supabase] Tilkobling OK (auth.getSession).`
 
-For favoritter/mapper/notater: kjør også `supabase/schema.sql` i SQL Editor.
+For favoritter/mapper/notater: kjør `supabase/schema.sql` i SQL Editor.
 
-Detaljer: se `docs/accounts-setup.md` i prosjektets Context-mappe (eller README her).
+For oppskriftsadmin (publisering / bilder):
+
+1. Kjør `supabase/admin-bootstrap.sql`, deretter `supabase/recipes-admin.sql`.
+2. Logg inn via **Konto**, kopier din User UID i Supabase Auth, og sett `is_admin` (se kommentaren i bootstrap-filen — lim inn UID i SQL Editor, ikke i chat).
+3. Logg ut/inn, åpne **http://127.0.0.1:4317/admin**, klikk **Importer lokale**.
+
+Steg-for-steg: `docs/admin-plan.md` i Context-mappen.
 
 I Supabase Auth kan du skru av e-postbekreftelse under Authentication → Providers → Email hvis du vil teste raskt lokalt.
 

@@ -4,7 +4,7 @@ import {
   useShoppingList,
   type ShoppingMultiplier,
 } from '../context/ShoppingListContext'
-import { getRecipeById, recipes } from '../data/recipes'
+import { useRecipes } from '../context/RecipesContext'
 import { searchRecipes } from '../utils/searchRecipes'
 import './ShoppingListPage.css'
 
@@ -21,17 +21,18 @@ export function ShoppingListPage() {
     clearAll,
     toggleChecked,
   } = useShoppingList()
+  const { recipes, getById } = useRecipes()
   const [query, setQuery] = useState('')
   const [toast, setToast] = useState<string | null>(null)
 
   const results = useMemo(() => {
     if (!query.trim()) return []
     return searchRecipes(recipes, query).slice(0, 8)
-  }, [query])
+  }, [query, recipes])
 
   const listed = entries
     .map((entry) => {
-      const recipe = getRecipeById(entry.recipeId)
+      const recipe = getById(entry.recipeId)
       if (!recipe) return null
       return { recipe, multiplier: entry.multiplier }
     })

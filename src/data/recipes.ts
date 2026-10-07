@@ -79,10 +79,10 @@ function ing(
 }
 
 /**
- * Real recipe library (15). Edit this file by hand to add or change recipes.
- * Ingredients use { name, quantity, unit } so the shopping list can combine amounts.
+ * Local seed / offline fallback (15). Live published recipes come from Supabase
+ * via RecipesProvider. Admin edits in /admin — do not rely on editing this file.
  */
-export const recipes: Recipe[] = [
+export const localRecipes: Recipe[] = [
   {
     id: 'pokebowl-laks',
     name: 'Pokébowl med laks',
@@ -634,6 +634,23 @@ export function getIngredientCountRange(count: number): IngredientCountRange {
   return 'moreThan8'
 }
 
-export function getRecipeById(id: string): Recipe | undefined {
-  return recipes.find((recipe) => recipe.id === id)
+/** @deprecated Prefer useRecipes().getById — local fallback only. */
+export const recipes = localRecipes
+
+export function getRecipeById(
+  id: string,
+  list: Recipe[] = localRecipes,
+): Recipe | undefined {
+  return list.find((recipe) => recipe.id === id)
+}
+
+export function recipeImageUrl(
+  imagePath: string | null | undefined,
+  supabaseUrl?: string,
+): string {
+  if (!imagePath) return '/images/recipes/placeholder-dish.jpg'
+  if (imagePath.startsWith('http') || imagePath.startsWith('/')) return imagePath
+  const base = (supabaseUrl ?? '').replace(/\/$/, '')
+  if (!base) return `/images/recipes/${imagePath}`
+  return `${base}/storage/v1/object/public/recipe-images/${imagePath}`
 }
