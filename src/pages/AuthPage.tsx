@@ -13,7 +13,6 @@ export function AuthPage() {
   const { getCopy } = useSiteContent()
   const {
     notifyNewRecipes,
-    unreadCount,
     setNotifyNewRecipes,
     error: notifError,
   } = useNotifications()
@@ -88,10 +87,6 @@ export function AuthPage() {
         </p>
         <div className="auth-page__links">
           <Link to="/favoritter">Mine favoritter og mapper</Link>
-          <Link to="/varsler">
-            Varsler
-            {unreadCount > 0 ? ` (${unreadCount} ulest)` : ''}
-          </Link>
         </div>
 
         <label className="auth-page__pref">
@@ -110,6 +105,10 @@ export function AuthPage() {
           />
           <span>Varsler om nye oppskrifter</span>
         </label>
+        <p className="auth-page__pref-hint">
+          Når dette er på, kan du få beskjed om nye oppskrifter senere (push).
+          Det er ingen varsel-innboks i appen.
+        </p>
         {typeof (error ?? notifError) === 'string' && (error ?? notifError) && (
           <p className="auth-page__error">{error ?? notifError}</p>
         )}

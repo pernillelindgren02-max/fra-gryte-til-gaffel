@@ -7,7 +7,6 @@ import {
 } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { useNotifications } from '../context/NotificationsContext'
 import './AppNav.css'
 
 type NavItem = {
@@ -44,9 +43,7 @@ function GryteIcon() {
       height="26"
       aria-hidden="true"
     >
-      {/* Lid knob */}
       <circle cx="24" cy="10" r="2.2" fill="currentColor" />
-      {/* Lid */}
       <path
         d="M12 16.5c0-1.2 5.2-2.8 12-2.8s12 1.6 12 2.8"
         fill="none"
@@ -54,7 +51,6 @@ function GryteIcon() {
         strokeWidth="2.4"
         strokeLinecap="round"
       />
-      {/* Handles */}
       <path
         d="M10 22c-3.2 0-4.8 2.2-4.8 4.2S7 30 10 30"
         fill="none"
@@ -69,13 +65,11 @@ function GryteIcon() {
         strokeWidth="2.4"
         strokeLinecap="round"
       />
-      {/* Pot body */}
       <path
         d="M11 20.5h26c0 2.2.2 4.5-.6 8.2-.8 3.8-2.4 8.3-5.2 10.2-1.6 1.1-4.2 1.6-7.2 1.6s-5.6-.5-7.2-1.6c-2.8-1.9-4.4-6.4-5.2-10.2-.8-3.7-.6-6-.6-8.2Z"
         fill="currentColor"
         opacity="0.92"
       />
-      {/* Soft highlight */}
       <path
         d="M16 24.5c1.2 5.5 3.4 9.5 8 9.5"
         fill="none"
@@ -89,7 +83,6 @@ function GryteIcon() {
 
 export function AppNav() {
   const { user, loading } = useAuth()
-  const { unreadCount } = useNotifications()
   const location = useLocation()
   const path = location.pathname
   const [open, setOpen] = useState(false)
@@ -99,13 +92,6 @@ export function AppNav() {
 
   const accountLabel = user ? 'Konto' : 'Logg inn'
   const accountActive = path.startsWith('/konto')
-  const varslerActive = path.startsWith('/varsler')
-  const badgeLabel =
-    unreadCount > 0
-      ? unreadCount > 9
-        ? '9+'
-        : String(unreadCount)
-      : null
 
   useEffect(() => {
     setOpen(false)
@@ -147,21 +133,10 @@ export function AppNav() {
         aria-expanded={open}
         aria-controls={panelId}
         aria-haspopup="dialog"
-        aria-label={
-          open
-            ? 'Lukk meny'
-            : badgeLabel
-              ? `Åpne meny, ${unreadCount} uleste varsler`
-              : 'Åpne meny'
-        }
+        aria-label={open ? 'Lukk meny' : 'Åpne meny'}
         onClick={() => setOpen((value) => !value)}
       >
         <GryteIcon />
-        {badgeLabel && (
-          <span className="app-nav__badge" aria-hidden="true">
-            {badgeLabel}
-          </span>
-        )}
       </button>
 
       {open && (
@@ -209,19 +184,6 @@ export function AppNav() {
                   </Link>
                 )
               })}
-              {user && (
-                <Link
-                  to="/varsler"
-                  className={`app-nav__item${
-                    varslerActive ? ' app-nav__item--active' : ''
-                  }`}
-                  aria-current={varslerActive ? 'page' : undefined}
-                  onClick={() => setOpen(false)}
-                >
-                  Varsler
-                  {badgeLabel ? ` (${badgeLabel})` : ''}
-                </Link>
-              )}
               {!loading && (
                 <Link
                   to="/konto"

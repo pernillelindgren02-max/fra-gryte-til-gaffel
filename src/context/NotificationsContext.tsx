@@ -10,11 +10,7 @@ import {
 import { useAuth } from './AuthContext'
 import {
   fetchNotifyPreference,
-  fetchUserNotifications,
-  markAllNotificationsRead,
-  markNotificationRead,
   saveNotifyPreference,
-  type UserNotification,
 } from '../lib/notificationsApi'
 import { translateDbError } from '../lib/supabase'
 
@@ -27,31 +23,26 @@ function errorMessage(err: unknown): string {
 }
 
 type NotificationsContextValue = {
-  items: UserNotification[]
-  unreadCount: number
   notifyNewRecipes: boolean
   loading: boolean
   error: string | null
   refresh: () => Promise<void>
   setNotifyNewRecipes: (value: boolean) => Promise<string | null>
-  markRead: (notificationId: string) => Promise<void>
-  markAllRead: () => Promise<void>
 }
 
 const NotificationsContext = createContext<NotificationsContextValue | null>(
   null,
 )
 
+/** User-facing: preference only. No in-app inbox. */
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { user, configured } = useAuth()
-  const [items, setItems] = useState<UserNotification[]>([])
   const [notifyNewRecipes, setNotifyFlag] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
     if (!configured || !user) {
-      setItems([])
       setNotifyFlag(true)
       setError(null)
       setLoading(false)
@@ -59,12 +50,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     }
     setLoading(true)
     try {
-      const [prefs, list] = await Promise.all([
-        fetchNotifyPreference(user.id),
-        fetchUserNotifications(),
-      ])
+      const prefs = await fetchNotifyPreference(user.id)
       setNotifyFlag(prefs)
-      setItems(list)
       setError(null)
     } catch (err) {
       setError(translateDbError(errorMessage(err)))
@@ -79,8 +66,6 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<NotificationsContextValue>(
     () => ({
-      items,
-      unreadCount: items.filter((item) => !item.read_at).length,
       notifyNewRecipes,
       loading,
       error,
@@ -95,27 +80,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
           return translateDbError(errorMessage(err))
         }
       },
-      async markRead(notificationId) {
-        await markNotificationRead(notificationId)
-        setItems((prev) =>
-          prev.map((item) =>
-            item.notification_id === notificationId && !item.read_at
-              ? { ...item, read_at: new Date().toISOString() }
-              : item,
-          ),
-        )
-      },
-      async markAllRead() {
-        await markAllNotificationsRead()
-        const now = new Date().toISOString()
-        setItems((prev) =>
-          prev.map((item) =>
-            item.read_at ? item : { ...item, read_at: now },
-          ),
-        )
-      },
     }),
-    [items, notifyNewRecipes, loading, error, refresh, user],
+    [notifyNewRecipes, loading, error, refresh, user],
   )
 
   return (

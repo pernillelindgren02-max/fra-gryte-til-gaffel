@@ -27,7 +27,6 @@ import { AdminUsersPage } from './pages/admin/AdminUsersPage'
 import { AdminNotificationsPage } from './pages/admin/AdminNotificationsPage'
 import { AdminSettingsPage } from './pages/admin/AdminSettingsPage'
 import { AuthPage } from './pages/AuthPage'
-import { NotificationsPage } from './pages/NotificationsPage'
 import { ExplorePage } from './pages/ExplorePage'
 import { FavoritesPage } from './pages/FavoritesPage'
 import { PantryPage } from './pages/PantryPage'
@@ -86,7 +85,7 @@ function AppChrome() {
         <Route path="/hjemme" element={<PantryPage />} />
         <Route path="/mapper" element={<Navigate to="/favoritter" replace />} />
         <Route path="/konto" element={<AuthPage />} />
-        <Route path="/varsler" element={<NotificationsPage />} />
+        <Route path="/varsler" element={<Navigate to="/konto" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

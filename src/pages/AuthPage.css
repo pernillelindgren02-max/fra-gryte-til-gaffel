@@ -131,6 +131,13 @@
   accent-color: var(--color-terracotta);
 }
 
+.auth-page__pref-hint {
+  margin: -0.15rem 0 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--color-teal) 68%, transparent);
+}
+
 .auth-page__links a,
 .auth-page__back {
   color: var(--color-terracotta);
