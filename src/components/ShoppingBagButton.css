@@ -1,0 +1,56 @@
+.shopping-bag-btn {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0.55rem;
+  background: transparent;
+  color: var(--color-terracotta);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 140ms ease,
+    background 140ms ease,
+    color 140ms ease;
+}
+
+.shopping-bag-btn:hover {
+  background: color-mix(in srgb, var(--color-terracotta) 10%, transparent);
+}
+
+.shopping-bag-btn:active {
+  transform: scale(0.94);
+}
+
+.shopping-bag-btn--on {
+  color: var(--color-terracotta);
+  background: color-mix(in srgb, var(--color-terracotta) 12%, transparent);
+}
+
+.shopping-bag-btn--on:hover {
+  background: color-mix(in srgb, var(--color-terracotta) 18%, transparent);
+}
+
+.shopping-bag-btn__icon {
+  display: block;
+}
+
+.recipe-card--grid .shopping-bag-btn {
+  width: 1.85rem;
+  height: 1.85rem;
+}
+
+.recipe-card--grid .shopping-bag-btn__icon {
+  width: 16px;
+  height: 16px;
+}
+
+.recipe-card--featured .shopping-bag-btn {
+  width: 2.15rem;
+  height: 2.15rem;
+}

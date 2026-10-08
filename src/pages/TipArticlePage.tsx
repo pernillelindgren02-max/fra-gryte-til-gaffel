@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { EmptyState } from '../components/EmptyState'
 import { InlineError } from '../components/InlineError'
+import { RecipeLink } from '../components/RecipeLink'
 import { TipBlocks } from '../components/TipBlocks'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
@@ -160,7 +161,9 @@ export function TipArticlePage() {
             {relatedRecipes.map((r) =>
               r ? (
                 <li key={r.id}>
-                  <Link to={`/oppskrift/${r.id}`}>{r.name}</Link>
+                  <RecipeLink recipeId={r.id} entrySource="tips">
+                    {r.name}
+                  </RecipeLink>
                 </li>
               ) : null,
             )}

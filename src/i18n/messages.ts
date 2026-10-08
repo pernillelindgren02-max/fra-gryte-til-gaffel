@@ -4,30 +4,48 @@ import type { AppLocale } from './types'
 export type MessageKey =
   | 'nav.explore'
   | 'nav.home'
+  | 'nav.fridge'
   | 'nav.shopping'
   | 'nav.favorites'
   | 'nav.tips'
   | 'nav.account'
   | 'nav.backToApp'
+  | 'nav.backToExplore'
   | 'explore.tagline'
   | 'explore.searchPlaceholder'
   | 'explore.filters'
   | 'explore.clearFilters'
+  | 'explore.clearAll'
+  | 'explore.filterRecipes'
+  | 'explore.closeFilters'
+  | 'explore.showResults'
   | 'explore.results'
   | 'explore.recipeCount'
   | 'explore.empty'
   | 'explore.showAll'
   | 'explore.categories'
+  | 'explore.fridgeFilter'
+  | 'explore.fridgeFilterOn'
+  | 'explore.fridgeFilterEmpty'
+  | 'explore.fridgeExclude'
+  | 'explore.chooseFromFridge'
+  | 'explore.ingredientFilterLead'
+  | 'explore.selectedIngredients'
   | 'recipe.back'
   | 'recipe.portions'
   | 'recipe.ingredients'
   | 'recipe.steps'
   | 'recipe.addShopping'
+  | 'recipe.addMissing'
   | 'recipe.inShopping'
+  | 'recipe.inShoppingPortions'
   | 'recipe.save'
   | 'recipe.saved'
   | 'recipe.min'
   | 'recipe.servings'
+  | 'recipe.fridgeMatch'
+  | 'recipe.owned'
+  | 'recipe.notOwned'
   | 'pantry.title'
   | 'pantry.lead'
   | 'pantry.placeholder'
@@ -41,10 +59,44 @@ export type MessageKey =
   | 'pantry.matchAll'
   | 'pantry.matchFew'
   | 'pantry.matchSome'
+  | 'fridge.title'
+  | 'fridge.lead'
+  | 'fridge.ingredient'
+  | 'fridge.yourItems'
+  | 'fridge.clearAll'
+  | 'fridge.remove'
+  | 'fridge.empty'
+  | 'fridge.noSuggest'
+  | 'fridge.selected'
+  | 'fridge.openAria'
+  | 'fridge.quantity'
+  | 'fridge.unit'
+  | 'fridge.quantityOptional'
+  | 'fridge.editAmount'
+  | 'fridge.clearAmount'
+  | 'fridge.unit.stk'
+  | 'fridge.unit.g'
+  | 'fridge.unit.kg'
+  | 'fridge.unit.ml'
+  | 'fridge.unit.dl'
+  | 'fridge.unit.l'
   | 'shopping.title'
   | 'shopping.empty'
   | 'shopping.clear'
   | 'shopping.from'
+  | 'shopping.addedToast'
+  | 'shopping.bagAdd'
+  | 'shopping.bagOpenExisting'
+  | 'shopping.fewerPortions'
+  | 'shopping.morePortions'
+  | 'shopping.helperUnknown'
+  | 'shopping.helperPartial'
+  | 'shopping.helperPartialPlural'
+  | 'shopping.helperEnough'
+  | 'recipe.coverageUnknown'
+  | 'recipe.coveragePartial'
+  | 'recipe.coverageEnough'
+  | 'recipe.coverageAbsent'
   | 'favorites.title'
   | 'favorites.empty'
   | 'favorites.folders'
@@ -55,6 +107,15 @@ export type MessageKey =
   | 'tips.empty'
   | 'tips.read'
   | 'tips.more'
+  | 'tips.searchLabel'
+  | 'tips.searchPlaceholder'
+  | 'tips.topics'
+  | 'tips.applyTopics'
+  | 'tips.closeTopics'
+  | 'tips.clearFilters'
+  | 'tips.removeTopic'
+  | 'tips.noMatch'
+  | 'tips.results'
   | 'auth.title'
   | 'auth.login'
   | 'auth.signup'
@@ -73,6 +134,11 @@ export type MessageKey =
   | 'auth.notifyHint'
   | 'auth.backExplore'
   | 'auth.myFavorites'
+  | 'auth.sectionLanguage'
+  | 'auth.sectionYourApp'
+  | 'auth.sectionNotifications'
+  | 'auth.sectionAdmin'
+  | 'auth.backToAdmin'
   | 'auth.supabaseMissing'
   | 'lang.norsk'
   | 'lang.english'
@@ -174,38 +240,59 @@ type Catalog = Record<MessageKey, string>
 
 const no: Catalog = {
   'nav.explore': 'Utforsk',
-  'nav.home': 'Hjemme',
+  'nav.home': 'Kjøleskap',
+  'nav.fridge': 'Kjøleskap',
   'nav.shopping': 'Handleliste',
   'nav.favorites': 'Favoritter',
   'nav.tips': 'Tips',
   'nav.account': 'Konto',
   'nav.backToApp': 'Tilbake til appen',
+  'nav.backToExplore': 'Tilbake til Utforsk',
   'explore.tagline': 'En gryte unna noe godt',
   'explore.searchPlaceholder': 'Søk etter oppskrift eller ingrediens',
   'explore.filters': 'Filtre',
   'explore.clearFilters': 'Nullstill',
+  'explore.clearAll': 'Fjern alle',
+  'explore.filterRecipes': 'Filtrer oppskrifter',
+  'explore.closeFilters': 'Lukk filtre',
+  'explore.showResults': 'Vis resultater',
   'explore.results': 'Resultater',
   'explore.recipeCount': '{count} oppskrift|{count} oppskrifter',
   'explore.empty':
     'Ingen oppskrifter matcher akkurat nå. Prøv andre ord, eller fjern noen filtre.',
   'explore.showAll': 'Vis alle',
   'explore.categories': 'Kategorier',
+  'explore.fridgeFilter': 'Hva har du hjemme?',
+  'explore.fridgeFilterOn': 'Kjøleskap på',
+  'explore.fridgeFilterEmpty':
+    'Kjøleskapet er tomt. Legg inn varer under Kjøleskap, eller skru av filteret.',
+  'explore.fridgeExclude': 'Ikke bruk',
+  'explore.chooseFromFridge': 'Velg fra Kjøleskap',
+  'explore.ingredientFilterLead':
+    'Velg ingredienser for dette søket — midlertidig, endrer ikke Kjøleskapet.',
+  'explore.selectedIngredients': 'Valgte ingredienser',
   'recipe.back': 'Tilbake',
   'recipe.portions': 'Porsjoner',
   'recipe.ingredients': 'Ingredienser',
   'recipe.steps': 'Fremgangsmåte',
   'recipe.addShopping': 'Legg i handleliste',
+  'recipe.addMissing': 'Legg manglende i handleliste',
   'recipe.inShopping': 'I handlelisten',
+  'recipe.inShoppingPortions':
+    'I handlelisten · {count} porsjon|I handlelisten · {count} porsjoner',
   'recipe.save': 'Lagre',
   'recipe.saved': 'Lagret',
   'recipe.min': 'min',
   'recipe.servings': 'porsjon|porsjoner',
-  'pantry.title': 'Hva har du hjemme?',
-  'pantry.lead': 'Legg til det du har — vi foreslår retter som matcher.',
+  'recipe.fridgeMatch': 'Du har {have} av {total}',
+  'recipe.owned': 'Har',
+  'recipe.notOwned': 'Mangler',
+  'pantry.title': 'Kjøleskap',
+  'pantry.lead': 'Legg inn det du har — brukes i Utforsk og på oppskrifter.',
   'pantry.placeholder': 'F.eks. egg, pasta, gulrot',
   'pantry.add': 'Legg til',
   'pantry.matches': 'Forslag',
-  'pantry.empty': 'Legg til noen varer for å se treff.',
+  'pantry.empty': 'Ingen ingredienser ennå.',
   'pantry.already': 'Allerede i listen.',
   'pantry.have': 'Du har',
   'pantry.missing': 'Mangler',
@@ -213,10 +300,47 @@ const no: Catalog = {
   'pantry.matchAll': 'Du har alt du trenger',
   'pantry.matchFew': 'Du mangler bare {count} ingrediens|{count} ingredienser',
   'pantry.matchSome': 'Du har {have} av {total} ingredienser',
+  'fridge.title': 'Kjøleskap',
+  'fridge.lead': 'Legg inn det du har hjemme. Listen brukes i Utforsk og på oppskrifter.',
+  'fridge.ingredient': 'Ingrediens',
+  'fridge.yourItems': 'Dine ingredienser',
+  'fridge.clearAll': 'Tøm alt',
+  'fridge.remove': 'Fjern',
+  'fridge.empty':
+    'Ingen ingredienser ennå. Skriv inn noe du har — for eksempel egg eller gulrot — og trykk Legg til.',
+  'fridge.noSuggest': 'Ingen ingredienser funnet',
+  'fridge.selected': 'Valgt',
+  'fridge.openAria': 'Åpne kjøleskap',
+  'fridge.quantity': 'Mengde',
+  'fridge.unit': 'Enhet',
+  'fridge.quantityOptional': 'Mengde (valgfritt)',
+  'fridge.editAmount': 'Endre mengde',
+  'fridge.clearAmount': 'Fjern mengde',
+  'fridge.unit.stk': 'stk',
+  'fridge.unit.g': 'g',
+  'fridge.unit.kg': 'kg',
+  'fridge.unit.ml': 'ml',
+  'fridge.unit.dl': 'dl',
+  'fridge.unit.l': 'l',
   'shopping.title': 'Handleliste',
   'shopping.empty': 'Handlelisten er tom. Legg til fra en oppskrift.',
   'shopping.clear': 'Tøm listen',
   'shopping.from': 'Fra',
+  'shopping.addedToast': 'Lagt til i handlelisten',
+  'shopping.bagAdd': 'Legg i handleliste',
+  'shopping.bagOpenExisting': 'Åpne i handlelisten',
+  'shopping.fewerPortions': 'Færre porsjoner',
+  'shopping.morePortions': 'Flere porsjoner',
+  'shopping.helperUnknown': 'Har du nok hjemme?',
+  'shopping.helperPartial':
+    'Du har {have} · oppskriften krever {need}',
+  'shopping.helperPartialPlural':
+    'Du har {have} · oppskriftene krever {need}',
+  'shopping.helperEnough': 'Du har nok hjemme',
+  'recipe.coverageUnknown': 'Har du nok hjemme?',
+  'recipe.coveragePartial': 'Du har {have} · oppskriften krever {need}',
+  'recipe.coverageEnough': 'Du har nok hjemme',
+  'recipe.coverageAbsent': 'Mangler',
   'favorites.title': 'Favoritter',
   'favorites.empty': 'Ingen lagrede oppskrifter ennå.',
   'favorites.folders': 'Mapper',
@@ -228,6 +352,15 @@ const no: Catalog = {
   'tips.empty': 'Ingen tips publisert ennå',
   'tips.read': 'Les artikkelen',
   'tips.more': 'Flere tips',
+  'tips.searchLabel': 'Søk',
+  'tips.searchPlaceholder': 'Søk i tips og triks',
+  'tips.topics': 'Emner',
+  'tips.applyTopics': 'Vis tips',
+  'tips.closeTopics': 'Lukk emner',
+  'tips.clearFilters': 'Fjern alle',
+  'tips.removeTopic': 'Fjern',
+  'tips.noMatch': 'Ingen tips passer søket ditt.',
+  'tips.results': 'Resultater',
   'auth.title': 'Konto',
   'auth.login': 'Logg inn',
   'auth.signup': 'Registrer',
@@ -247,6 +380,11 @@ const no: Catalog = {
     'Når dette er på, kan du få beskjed om nye oppskrifter senere (push).',
   'auth.backExplore': '← Tilbake til utforsk',
   'auth.myFavorites': 'Mine favoritter og mapper',
+  'auth.sectionLanguage': 'Språk',
+  'auth.sectionYourApp': 'Din app',
+  'auth.sectionNotifications': 'Varsler',
+  'auth.sectionAdmin': 'Administrasjon',
+  'auth.backToAdmin': 'Tilbake til admin',
   'auth.supabaseMissing':
     'Supabase er ikke satt opp ennå. Lim inn nøkler i .env.local og start Vite på nytt.',
   'lang.norsk': 'Norsk',
@@ -350,38 +488,59 @@ const no: Catalog = {
 
 const en: Catalog = {
   'nav.explore': 'Explore',
-  'nav.home': 'At home',
+  'nav.home': 'Fridge',
+  'nav.fridge': 'Fridge',
   'nav.shopping': 'Shopping list',
   'nav.favorites': 'Favorites',
   'nav.tips': 'Tips',
   'nav.account': 'Account',
   'nav.backToApp': 'Back to app',
+  'nav.backToExplore': 'Back to Explore',
   'explore.tagline': 'One pot away from something good',
   'explore.searchPlaceholder': 'Search recipes or ingredients',
   'explore.filters': 'Filters',
   'explore.clearFilters': 'Clear',
+  'explore.clearAll': 'Clear all',
+  'explore.filterRecipes': 'Filter recipes',
+  'explore.closeFilters': 'Close filters',
+  'explore.showResults': 'Show results',
   'explore.results': 'Results',
   'explore.recipeCount': '{count} recipe|{count} recipes',
   'explore.empty':
     'No recipes match right now. Try other words, or clear some filters.',
   'explore.showAll': 'Show all',
   'explore.categories': 'Categories',
+  'explore.fridgeFilter': 'What do you have at home?',
+  'explore.fridgeFilterOn': 'Fridge on',
+  'explore.fridgeFilterEmpty':
+    'Your fridge is empty. Add items under Fridge, or turn the filter off.',
+  'explore.fridgeExclude': 'Skip',
+  'explore.chooseFromFridge': 'Choose from Fridge',
+  'explore.ingredientFilterLead':
+    'Pick ingredients for this search — temporary, does not change your Fridge.',
+  'explore.selectedIngredients': 'Selected ingredients',
   'recipe.back': 'Back',
   'recipe.portions': 'Servings',
   'recipe.ingredients': 'Ingredients',
   'recipe.steps': 'Steps',
   'recipe.addShopping': 'Add to shopping list',
+  'recipe.addMissing': 'Add missing to shopping list',
   'recipe.inShopping': 'On shopping list',
+  'recipe.inShoppingPortions':
+    'On shopping list · {count} serving|On shopping list · {count} servings',
   'recipe.save': 'Save',
   'recipe.saved': 'Saved',
   'recipe.min': 'min',
   'recipe.servings': 'serving|servings',
-  'pantry.title': 'What do you have at home?',
-  'pantry.lead': 'Add what you have — we suggest matching dishes.',
+  'recipe.fridgeMatch': 'You have {have} of {total}',
+  'recipe.owned': 'Have',
+  'recipe.notOwned': 'Need',
+  'pantry.title': 'Fridge',
+  'pantry.lead': 'Add what you have — used in Explore and on recipes.',
   'pantry.placeholder': 'E.g. eggs, pasta, carrot',
   'pantry.add': 'Add',
   'pantry.matches': 'Suggestions',
-  'pantry.empty': 'Add a few items to see matches.',
+  'pantry.empty': 'No ingredients yet.',
   'pantry.already': 'Already on the list.',
   'pantry.have': 'You have',
   'pantry.missing': 'Missing',
@@ -389,10 +548,48 @@ const en: Catalog = {
   'pantry.matchAll': 'You have everything you need',
   'pantry.matchFew': 'You’re only missing {count} ingredient|{count} ingredients',
   'pantry.matchSome': 'You have {have} of {total} ingredients',
+  'fridge.title': 'Fridge',
+  'fridge.lead':
+    'Add what you have at home. This list is used in Explore and on recipes.',
+  'fridge.ingredient': 'Ingredient',
+  'fridge.yourItems': 'Your ingredients',
+  'fridge.clearAll': 'Clear all',
+  'fridge.remove': 'Remove',
+  'fridge.empty':
+    'No ingredients yet. Type something you have — e.g. eggs or carrot — and tap Add.',
+  'fridge.noSuggest': 'No ingredients found',
+  'fridge.selected': 'Selected',
+  'fridge.openAria': 'Open fridge',
+  'fridge.quantity': 'Quantity',
+  'fridge.unit': 'Unit',
+  'fridge.quantityOptional': 'Quantity (optional)',
+  'fridge.editAmount': 'Edit amount',
+  'fridge.clearAmount': 'Clear amount',
+  'fridge.unit.stk': 'pcs',
+  'fridge.unit.g': 'g',
+  'fridge.unit.kg': 'kg',
+  'fridge.unit.ml': 'ml',
+  'fridge.unit.dl': 'dl',
+  'fridge.unit.l': 'l',
   'shopping.title': 'Shopping list',
   'shopping.empty': 'Your list is empty. Add from a recipe.',
   'shopping.clear': 'Clear list',
   'shopping.from': 'From',
+  'shopping.addedToast': 'Added to shopping list',
+  'shopping.bagAdd': 'Add to shopping list',
+  'shopping.bagOpenExisting': 'Open on shopping list',
+  'shopping.fewerPortions': 'Fewer servings',
+  'shopping.morePortions': 'More servings',
+  'shopping.helperUnknown': 'Do you have enough at home?',
+  'shopping.helperPartial':
+    'You have {have} · the recipe needs {need}',
+  'shopping.helperPartialPlural':
+    'You have {have} · the recipes need {need}',
+  'shopping.helperEnough': 'You have enough at home',
+  'recipe.coverageUnknown': 'Do you have enough at home?',
+  'recipe.coveragePartial': 'You have {have} · the recipe needs {need}',
+  'recipe.coverageEnough': 'You have enough at home',
+  'recipe.coverageAbsent': 'Missing',
   'favorites.title': 'Favorites',
   'favorites.empty': 'No saved recipes yet.',
   'favorites.folders': 'Folders',
@@ -404,6 +601,15 @@ const en: Catalog = {
   'tips.empty': 'No tips published yet',
   'tips.read': 'Read article',
   'tips.more': 'More tips',
+  'tips.searchLabel': 'Search',
+  'tips.searchPlaceholder': 'Search tips & tricks',
+  'tips.topics': 'Topics',
+  'tips.applyTopics': 'Show tips',
+  'tips.closeTopics': 'Close topics',
+  'tips.clearFilters': 'Clear all',
+  'tips.removeTopic': 'Remove',
+  'tips.noMatch': 'No tips match your search.',
+  'tips.results': 'Results',
   'auth.title': 'Account',
   'auth.login': 'Log in',
   'auth.signup': 'Sign up',
@@ -423,6 +629,11 @@ const en: Catalog = {
     'When on, you can get notified about new recipes later (push).',
   'auth.backExplore': '← Back to explore',
   'auth.myFavorites': 'My favorites and folders',
+  'auth.sectionLanguage': 'Language',
+  'auth.sectionYourApp': 'Your app',
+  'auth.sectionNotifications': 'Notifications',
+  'auth.sectionAdmin': 'Administration',
+  'auth.backToAdmin': 'Back to admin',
   'auth.supabaseMissing':
     'Supabase is not set up yet. Paste keys in .env.local and restart Vite.',
   'lang.norsk': 'Norsk',

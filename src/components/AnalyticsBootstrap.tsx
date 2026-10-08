@@ -29,7 +29,8 @@ export function AnalyticsBootstrap() {
       trackEvent('explore_view', { source: 'nav', path })
       return
     }
-    if (path === '/hjemme') {
+    if (path === '/kjoleskap' || path === '/hjemme') {
+      // fridge_opened is fired from PantryPage; keep legacy pantry_view for Innsikt.
       trackEvent('pantry_view', { source: 'nav', path })
       return
     }

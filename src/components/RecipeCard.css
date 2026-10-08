@@ -127,6 +127,20 @@
   gap: 0.4rem;
 }
 
+.recipe-card__title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.recipe-card__title-link {
+  flex: 1;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .recipe-card__title {
   margin: 0;
   font-family: var(--font-display);
@@ -181,6 +195,7 @@
     transform: scale(1.035);
   }
 
+  .recipe-card__title-link:hover .recipe-card__title,
   .recipe-card__link:hover .recipe-card__title {
     text-decoration-color: color-mix(in srgb, var(--color-teal) 50%, transparent);
   }

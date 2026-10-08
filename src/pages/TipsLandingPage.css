@@ -4,6 +4,104 @@
   gap: 1.35rem;
 }
 
+.tips-search {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.55rem;
+  align-items: stretch;
+}
+
+.tips-search > .clearable-search__form,
+.tips-search__clearable {
+  min-width: 0;
+}
+
+.tips-search__topics-btn {
+  position: relative;
+  width: 2.85rem;
+  min-height: 2.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.95rem;
+  border: 1.5px solid color-mix(in srgb, var(--color-teal) 16%, transparent);
+  background: white;
+  color: var(--color-teal);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tips-search__topics-btn--active {
+  border-color: color-mix(in srgb, var(--color-terracotta) 45%, transparent);
+  background: color-mix(in srgb, var(--color-pale-green) 40%, white);
+}
+
+.tips-search__topics-dot {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--color-terracotta);
+}
+
+.tips-filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.tips-filter-bar__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.tips-filter-bar__label {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-teal);
+}
+
+.tips-filter-bar__clear {
+  border: none;
+  background: transparent;
+  color: var(--color-terracotta);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: var(--tap-min);
+}
+
+.tips-filter-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tips-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, var(--color-teal) 14%, transparent);
+  background: color-mix(in srgb, var(--color-pale-green) 45%, white);
+  color: var(--color-teal);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .tips-landing__header {
   display: flex;
   flex-direction: column;

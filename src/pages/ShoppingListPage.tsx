@@ -1,34 +1,53 @@
 import { useMemo, useState } from 'react'
-import {
-  useShoppingList,
-  type ShoppingMultiplier,
-} from '../context/ShoppingListContext'
-import { useRecipes } from '../context/RecipesContext'
-import { useSiteContent } from '../context/SiteContentContext'
+import { BackToExplore } from '../components/BackToExplore'
 import { ClearableSearchInput } from '../components/ClearableSearchInput'
 import { EmptyState } from '../components/EmptyState'
 import { RecipeLink } from '../components/RecipeLink'
+import { useLocale } from '../context/LocaleContext'
+import { usePantry } from '../context/PantryContext'
+import { useRecipes } from '../context/RecipesContext'
+import {
+  resolveShoppingItemCheck,
+  useShoppingList,
+} from '../context/ShoppingListContext'
+import { useSiteContent } from '../context/SiteContentContext'
 import { useToast } from '../context/ToastContext'
 import { trackEvent } from '../lib/analytics'
+import {
+  getRememberedPortions,
+  rememberPortions,
+} from '../lib/recipePortions'
+import {
+  coverageForCombined,
+  shoppingCoverageHelper,
+} from '../utils/fridgeCoverage'
+import {
+  MAX_PORTIONS,
+  MIN_PORTIONS,
+  clampPortions,
+  portionMultiplier,
+} from '../utils/scalePortions'
 import { searchRecipes } from '../utils/searchRecipes'
 import './ShoppingListPage.css'
-
-const MULTIPLIERS: ShoppingMultiplier[] = [1, 2, 3, 4]
 
 export function ShoppingListPage() {
   const {
     entries,
     combined,
-    checkedKeys,
+    manualCheckedKeys,
+    manualUncheckedKeys,
     addRecipe,
     removeRecipe,
-    setMultiplier,
+    setPortions,
+    getPortions,
     clearAll,
     toggleChecked,
   } = useShoppingList()
+  const { pantry } = usePantry()
   const { recipes, getById } = useRecipes()
   const { getCopy } = useSiteContent()
   const { showToast } = useToast()
+  const { t, locale } = useLocale()
   const [query, setQuery] = useState('')
 
   const results = useMemo(() => {
@@ -40,21 +59,36 @@ export function ShoppingListPage() {
     .map((entry) => {
       const recipe = getById(entry.recipeId)
       if (!recipe) return null
-      return { recipe, multiplier: entry.multiplier }
+      const base = recipe.servings > 0 ? recipe.servings : 2
+      return {
+        recipe,
+        portions: getPortions(recipe.id, base),
+        base,
+      }
     })
     .filter((item): item is NonNullable<typeof item> => Boolean(item))
 
   function onPick(recipeId: string) {
-    const result = addRecipe(recipeId)
+    const recipe = getById(recipeId)
+    if (!recipe) return
+    const base = recipe.servings > 0 ? recipe.servings : 2
+    const portions = getRememberedPortions(recipeId, base)
+    const result = addRecipe(recipeId, portionMultiplier(portions, base))
     if (result === 'added') {
+      rememberPortions(recipeId, portions)
       trackEvent('recipe_shopping_add', {
         recipeId,
         source: 'shopping',
+        properties: { portions },
       })
-      showToast('Oppskriften er lagt til i handlelisten.')
+      showToast(t('shopping.addedToast'))
       setQuery('')
     } else if (result === 'duplicate') {
-      showToast('Oppskriften er allerede i handlelisten.')
+      showToast(
+        locale === 'en'
+          ? 'Recipe is already on the shopping list.'
+          : 'Oppskriften er allerede i handlelisten.',
+      )
     }
   }
 
@@ -64,38 +98,76 @@ export function ShoppingListPage() {
       recipeId,
       source: 'shopping',
     })
-    showToast(`Fjernet «${name}» fra handlelisten.`)
+    showToast(
+      locale === 'en'
+        ? `Removed “${name}” from the list.`
+        : `Fjernet «${name}» fra handlelisten.`,
+    )
   }
 
   function onClearAll() {
     if (entries.length === 0) return
-    if (!window.confirm('Tøm hele handlelisten?')) return
+    if (
+      !window.confirm(
+        locale === 'en'
+          ? 'Clear the whole shopping list?'
+          : 'Tøm hele handlelisten?',
+      )
+    ) {
+      return
+    }
     clearAll()
-    showToast('Handlelisten er tømt.')
+    showToast(
+      locale === 'en' ? 'Shopping list cleared.' : 'Handlelisten er tømt.',
+    )
   }
 
-  function onSetMultiplier(recipeId: string, value: ShoppingMultiplier) {
-    setMultiplier(recipeId, value)
-    showToast(`Handleliste oppdatert (${value}x).`)
+  function onChangePortions(
+    recipeId: string,
+    base: number,
+    next: number,
+  ) {
+    const portions = clampPortions(next)
+    setPortions(recipeId, portions, base)
+    trackEvent('shopping_recipe_portions_changed', {
+      recipeId,
+      source: 'shopping',
+      properties: { portions },
+    })
   }
+
+  const servingsWord = (n: number) =>
+    locale === 'en'
+      ? n === 1
+        ? 'serving'
+        : 'servings'
+      : n === 1
+        ? 'porsjon'
+        : 'porsjoner'
 
   return (
     <div className="shopping">
+      <BackToExplore />
       <header className="shopping__header">
-        <h1 className="shopping__title">Handleliste</h1>
+        <h1 className="shopping__title">{t('shopping.title')}</h1>
         <p className="shopping__lead">
-          Legg til oppskrifter, juster antall porsjoner (1x–4x) og se samlede
-          mengder.
+          {locale === 'en'
+            ? 'Add recipes and tick off what you need.'
+            : 'Legg til oppskrifter og kryss av det du trenger.'}
         </p>
       </header>
 
-      <ClearableSearchInput
-        className="shopping__search"
-        label="Søk etter oppskrift"
-        placeholder="Søk etter oppskrift"
-        value={query}
-        onChange={setQuery}
-      />
+      <div className="shopping__search-wrap">
+        <ClearableSearchInput
+          className="shopping__search"
+          label={locale === 'en' ? 'Search for a recipe' : 'Søk etter oppskrift'}
+          placeholder={
+            locale === 'en' ? 'Search for a recipe' : 'Søk etter oppskrift'
+          }
+          value={query}
+          onChange={setQuery}
+        />
+      </div>
 
       {results.length > 0 && (
         <ul className="shopping__suggest" role="listbox">
@@ -110,114 +182,167 @@ export function ShoppingListPage() {
       )}
 
       {listed.length > 0 && (
-        <section className="shopping__block">
-          <div className="shopping__block-head">
-            <h2 className="shopping__subtitle">Oppskrifter</h2>
-            <button
-              type="button"
-              className="shopping__text-btn"
-              onClick={onClearAll}
-            >
-              Tøm listen
-            </button>
-          </div>
+        <section className="shopping__block shopping__block--recipes">
+          <h2 className="shopping__subtitle">
+            {locale === 'en' ? 'Recipes' : 'Oppskrifter'}
+          </h2>
           <ul className="shopping__recipes">
-            {listed.map(({ recipe, multiplier }) => (
-              <li key={recipe.id} className="shopping__recipe-card">
-                <div className="shopping__recipe-row">
+            {listed.map(({ recipe, portions, base }) => (
+              <li key={recipe.id} className="shopping__recipe-row">
+                <div className="shopping__recipe-main">
                   <RecipeLink
                     recipeId={recipe.id}
                     className="shopping__recipe-name"
                   >
                     {recipe.name}
-                    <span className="nav-chevron" aria-hidden="true">
-                      ›
-                    </span>
                   </RecipeLink>
-                  <button
-                    type="button"
-                    className="shopping__text-btn"
-                    onClick={() => onRemoveRecipe(recipe.id, recipe.name)}
+                  <div
+                    className="shopping__portions"
+                    role="group"
+                    aria-label={`${t('recipe.portions')}: ${recipe.name}`}
                   >
-                    Fjern
-                  </button>
-                </div>
-                <div
-                  className="shopping__multipliers"
-                  role="group"
-                  aria-label={`Antall for ${recipe.name}`}
-                >
-                  {MULTIPLIERS.map((value) => (
                     <button
-                      key={value}
                       type="button"
-                      className={`shopping__multiplier${multiplier === value ? ' shopping__multiplier--on' : ''}`}
-                      aria-pressed={multiplier === value}
-                      onClick={() => onSetMultiplier(recipe.id, value)}
+                      className="shopping__portion-btn"
+                      aria-label={t('shopping.fewerPortions')}
+                      disabled={portions <= MIN_PORTIONS}
+                      onClick={() =>
+                        onChangePortions(recipe.id, base, portions - 1)
+                      }
                     >
-                      {value}x
+                      −
                     </button>
-                  ))}
-                  {!MULTIPLIERS.includes(
-                    multiplier as (typeof MULTIPLIERS)[number],
-                  ) && (
-                    <span className="shopping__multiplier shopping__multiplier--on">
-                      {Number.isInteger(multiplier)
-                        ? `${multiplier}x`
-                        : `${String(multiplier).replace('.', ',')}x`}
+                    <span className="shopping__portion-value">
+                      {portions}{' '}
+                      <span className="shopping__portion-unit">
+                        {servingsWord(portions)}
+                      </span>
                     </span>
-                  )}
+                    <button
+                      type="button"
+                      className="shopping__portion-btn"
+                      aria-label={t('shopping.morePortions')}
+                      disabled={portions >= MAX_PORTIONS}
+                      onClick={() =>
+                        onChangePortions(recipe.id, base, portions + 1)
+                      }
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  className="shopping__remove-btn"
+                  onClick={() => onRemoveRecipe(recipe.id, recipe.name)}
+                >
+                  {locale === 'en' ? 'Remove' : 'Fjern'}
+                </button>
               </li>
             ))}
           </ul>
         </section>
       )}
 
-      <section className="shopping__block">
-        <h2 className="shopping__subtitle">Ingredienser</h2>
+      <section className="shopping__block shopping__block--list">
+        <div className="shopping__block-head">
+          <h2 className="shopping__subtitle shopping__subtitle--focus">
+            {locale === 'en' ? 'Shopping list' : 'Handleliste'}
+          </h2>
+          {listed.length > 0 ? (
+            <button
+              type="button"
+              className="shopping__clear-btn"
+              onClick={onClearAll}
+            >
+              {t('shopping.clear')}
+            </button>
+          ) : null}
+        </div>
         {combined.length === 0 ? (
           <EmptyState
-            lead={getCopy(
-              'handleliste.empty',
-              'Handlelisten er tom. Finn en oppskrift du vil lage, og legg den til herfra.',
-            )}
-            actionLabel="Finn en oppskrift"
+            lead={getCopy('handleliste.empty', t('shopping.empty'))}
+            actionLabel={
+              locale === 'en' ? 'Find a recipe' : 'Finn en oppskrift'
+            }
             to="/"
           />
         ) : (
           <ul className="shopping__items">
             {combined.map((item) => {
-              const checked = checkedKeys.has(item.key)
+              const coverage = coverageForCombined(pantry, item)
+              const check = resolveShoppingItemCheck({
+                key: item.key,
+                coverageKind: coverage.kind,
+                manualChecked: manualCheckedKeys.has(item.key),
+                manualUnchecked: manualUncheckedKeys.has(item.key),
+              })
+              const helper = shoppingCoverageHelper({
+                coverage,
+                checked: check.checked,
+                manuallyChecked: check.manuallyChecked,
+                autoCovered: check.autoCovered,
+              })
+              let helperText: string | null = null
+              if (helper.kind === 'unknown') {
+                helperText = t('shopping.helperUnknown')
+              } else if (helper.kind === 'partial') {
+                const plural = item.fromRecipes.length > 1
+                helperText = t(
+                  plural
+                    ? 'shopping.helperPartialPlural'
+                    : 'shopping.helperPartial',
+                  {
+                    have: coverage.haveLabel ?? '—',
+                    need: coverage.needLabel ?? '—',
+                  },
+                )
+              } else if (helper.kind === 'enough') {
+                helperText = t('shopping.helperEnough')
+              }
+
               return (
                 <li key={item.key}>
                   <div
-                    className={`shopping__item${checked ? ' shopping__item--checked' : ''}`}
+                    className={`shopping__item${check.checked ? ' shopping__item--checked' : ''}${check.autoCovered ? ' shopping__item--auto' : ''}`}
                   >
                     <label className="shopping__item-check">
                       <input
                         type="checkbox"
-                        checked={checked}
-                        onChange={() => toggleChecked(item.key)}
+                        checked={check.checked}
+                        onChange={() =>
+                          toggleChecked(item.key, check.checked)
+                        }
                       />
-                      <span className="shopping__item-label">{item.label}</span>
-                    </label>
-                    {item.fromRecipes.length > 0 && (
-                      <p className="shopping__item-from">
-                        Fra:{' '}
-                        {item.fromRecipes.map((source, index) => (
-                          <span key={source.id}>
-                            {index > 0 && ', '}
-                            <RecipeLink
-                              recipeId={source.id}
-                              className="shopping__item-recipe"
-                            >
-                              {source.name}
-                            </RecipeLink>
+                      <span className="shopping__item-body">
+                        <span className="shopping__item-label">
+                          {item.label}
+                        </span>
+                        {helperText ? (
+                          <span
+                            className={`shopping__item-helper shopping__item-helper--${helper.tone}`}
+                          >
+                            {helperText}
                           </span>
-                        ))}
-                      </p>
-                    )}
+                        ) : null}
+                        {item.fromRecipes.length > 0 ? (
+                          <span className="shopping__item-from">
+                            {t('shopping.from')}{' '}
+                            {item.fromRecipes.map((source, index) => (
+                              <span key={source.id}>
+                                {index > 0 && ', '}
+                                <RecipeLink
+                                  recipeId={source.id}
+                                  className="shopping__item-recipe"
+                                >
+                                  {source.name}
+                                </RecipeLink>
+                              </span>
+                            ))}
+                          </span>
+                        ) : null}
+                      </span>
+                    </label>
                   </div>
                 </li>
               )

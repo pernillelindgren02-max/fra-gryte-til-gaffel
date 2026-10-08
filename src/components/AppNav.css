@@ -1,6 +1,6 @@
 .app-nav {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   align-items: center;
   margin-bottom: 0.55rem;
   min-height: 2.85rem;
@@ -140,6 +140,7 @@
 .app-nav__item {
   display: flex;
   align-items: center;
+  gap: 0.55rem;
   min-height: 3rem;
   padding: 0.65rem 0.95rem;
   border-radius: 0.95rem;
@@ -201,7 +202,7 @@
   .app-nav__overlay {
     justify-content: flex-start;
     padding-top: 4.25rem;
-    align-items: flex-end;
-    padding-right: max(1.5rem, calc((100vw - 52rem) / 2 + 1.5rem));
+    align-items: flex-start;
+    padding-left: max(1.5rem, calc((100vw - 52rem) / 2 + 1.5rem));
   }
 }

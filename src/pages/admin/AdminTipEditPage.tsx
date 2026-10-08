@@ -7,6 +7,7 @@ import {
   fetchAllTipsAdmin,
   fetchTipByIdAdmin,
   fetchTipCategories,
+  replaceArticleTopics,
   replaceRelatedArticles,
   replaceRelatedRecipes,
   replaceTipBlocks,
@@ -108,6 +109,7 @@ export function AdminTipEditPage() {
   const [excerptEnAuto, setExcerptEnAuto] = useState('')
   const [excerptEnOverride, setExcerptEnOverride] = useState(false)
   const [categoryId, setCategoryId] = useState<string>('')
+  const [topicIds, setTopicIds] = useState<string[]>([])
   const [status, setStatus] = useState<TipStatus>('draft')
   const [featured, setFeatured] = useState(false)
   const [sortOrder, setSortOrder] = useState(0)
@@ -132,10 +134,10 @@ export function AdminTipEditPage() {
     void (async () => {
       try {
         const [cats, arts] = await Promise.all([
-          fetchTipCategories(),
+          fetchTipCategories({ includeInactive: true }),
           fetchAllTipsAdmin(),
         ])
-        setCategories(cats)
+        setCategories(cats.filter((c) => c.isActive !== false))
         setAllArticles(arts)
       } catch {
         /* local defaults via API */
@@ -167,6 +169,13 @@ export function AdminTipEditPage() {
         )
         setExcerptEnOverride(row.excerptEnOverride)
         setCategoryId(row.category_id ?? '')
+        setTopicIds(
+          row.topicIds?.length
+            ? row.topicIds
+            : row.category_id
+              ? [row.category_id]
+              : [],
+        )
         setStatus(row.status)
         setFeatured(row.is_featured)
         setSortOrder(row.sort_order)
@@ -276,7 +285,8 @@ export function AdminTipEditPage() {
         excerpt_en: excerptEnOverride ? excerptEn.trim() : '',
         excerpt_en_auto: excerptAuto,
         excerpt_en_override: excerptEnOverride && Boolean(excerptEn.trim()),
-        category_id: categoryId || null,
+        category_id: topicIds[0] || categoryId || null,
+        topic_ids: topicIds,
         status,
         is_featured: featured,
         sort_order: sortOrder,
@@ -291,6 +301,12 @@ export function AdminTipEditPage() {
         navigate(`/admin/tips/${created.id}`, { replace: true })
       } else {
         await updateTipArticle(currentId, payload)
+      }
+
+      try {
+        await replaceArticleTopics(currentId, topicIds)
+      } catch {
+        /* tip_article_topics may be missing until SQL migration */
       }
 
       await replaceTipBlocks(
@@ -439,20 +455,39 @@ export function AdminTipEditPage() {
             setExcerptEnAuto(suggestTipExcerptEn(slug, excerpt))
           }}
         />
-        <label className="admin-form__field">
-          <span>Kategori</span>
-          <select
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-          >
-            <option value="">— Velg —</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <fieldset className="admin-form__field">
+          <legend>Emner / topics (1+)</legend>
+          <p className="admin__muted" style={{ marginTop: 0 }}>
+            Filter bruker stabile IDer/slug — ikke visningstekst. Første valgte
+            er primærkategori på kort.
+          </p>
+          <ul className="admin-check-list">
+            {categories.map((c) => {
+              const on = topicIds.includes(c.id)
+              return (
+                <li key={c.id}>
+                  <label className="admin-form__check">
+                    <input
+                      type="checkbox"
+                      checked={on}
+                      onChange={() => {
+                        setTopicIds((prev) => {
+                          const next = on
+                            ? prev.filter((id) => id !== c.id)
+                            : [...prev, c.id]
+                          setCategoryId(next[0] ?? '')
+                          return next
+                        })
+                      }}
+                    />
+                    {c.nameNo || c.name}
+                    <span className="admin__muted"> · {c.slug}</span>
+                  </label>
+                </li>
+              )
+            })}
+          </ul>
+        </fieldset>
         <label className="admin-form__field">
           <span>Status</span>
           <select

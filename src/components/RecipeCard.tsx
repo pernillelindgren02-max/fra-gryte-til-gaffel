@@ -1,14 +1,13 @@
+import { useLocale } from '../context/LocaleContext'
 import { usePantry } from '../context/PantryContext'
 import { getIngredientCount, type Recipe } from '../data/recipes'
 import { campingStoveLabels, mealTypeLabels } from '../data/filterLabels'
 import { trackEvent } from '../lib/analytics'
-import {
-  formatPantryMatchLabel,
-  matchRecipeAgainstPantry,
-} from '../utils/matchPantryRecipes'
+import { matchRecipeAgainstPantry } from '../utils/matchPantryRecipes'
 import { FavoriteButton } from './FavoriteButton'
 import { RecipeLink } from './RecipeLink'
 import { SafeImage } from './SafeImage'
+import { ShoppingBagButton } from './ShoppingBagButton'
 import { Tag } from './Tag'
 import './RecipeCard.css'
 
@@ -18,6 +17,8 @@ interface RecipeCardProps {
   /** When set (e.g. explore/search), fires explore_recipe_click on open. */
   analyticsSource?: string | null
   entrySource?: string | null
+  /** Show Explore quick-add shopping bag (default true on Explore layouts). */
+  showShoppingBag?: boolean
 }
 
 export function RecipeCard({
@@ -25,12 +26,23 @@ export function RecipeCard({
   layout = 'default',
   analyticsSource = null,
   entrySource = null,
+  showShoppingBag = true,
 }: RecipeCardProps) {
   const { pantry } = usePantry()
+  const { t } = useLocale()
   const ingredientCount = getIngredientCount(recipe)
   const pantryMatch =
     pantry.length > 0 ? matchRecipeAgainstPantry(pantry, recipe) : null
-  const pantryLabel = pantryMatch ? formatPantryMatchLabel(pantryMatch) : null
+  const pantryLabel = pantryMatch
+    ? pantryMatch.missing.length === 0
+      ? t('pantry.matchAll')
+      : pantryMatch.missing.length <= 2
+        ? t('pantry.matchFew', { count: pantryMatch.missing.length })
+        : t('pantry.matchSome', {
+            have: pantryMatch.matchCount,
+            total: pantryMatch.totalCount,
+          })
+    : null
   const isPrimusFriendly =
     recipe.campingStoveSuitability === 'perfect' ||
     recipe.campingStoveSuitability === 'adaptable'
@@ -43,6 +55,15 @@ export function RecipeCard({
           ? ' recipe-card--featured'
           : ''
 
+  function onOpenAnalytics() {
+    if (!analyticsSource) return
+    trackEvent('explore_recipe_click', {
+      recipeId: recipe.id,
+      source: analyticsSource,
+      properties: { via: analyticsSource },
+    })
+  }
+
   return (
     <article className={`recipe-card${layoutClass}`}>
       <div className="recipe-card__media">
@@ -50,14 +71,7 @@ export function RecipeCard({
           recipeId={recipe.id}
           className="recipe-card__image-link"
           entrySource={entrySource}
-          onClick={() => {
-            if (!analyticsSource) return
-            trackEvent('explore_recipe_click', {
-              recipeId: recipe.id,
-              source: analyticsSource,
-              properties: { via: analyticsSource },
-            })
-          }}
+          onClick={onOpenAnalytics}
         >
           <div className="recipe-card__image">
             <SafeImage src={recipe.image} alt="" loading="lazy" />
@@ -65,21 +79,29 @@ export function RecipeCard({
         </RecipeLink>
         <FavoriteButton recipeId={recipe.id} compact />
       </div>
-      <RecipeLink
-        recipeId={recipe.id}
-        className="recipe-card__link"
-        entrySource={entrySource}
-        onClick={() => {
-          if (!analyticsSource) return
-          trackEvent('explore_recipe_click', {
-            recipeId: recipe.id,
-            source: analyticsSource,
-            properties: { via: analyticsSource },
-          })
-        }}
-      >
-        <div className="recipe-card__body">
-          <h2 className="recipe-card__title">{recipe.name}</h2>
+      <div className="recipe-card__body">
+        <div className="recipe-card__title-row">
+          <RecipeLink
+            recipeId={recipe.id}
+            className="recipe-card__title-link"
+            entrySource={entrySource}
+            onClick={onOpenAnalytics}
+          >
+            <h2 className="recipe-card__title">{recipe.name}</h2>
+          </RecipeLink>
+          {showShoppingBag ? (
+            <ShoppingBagButton
+              recipe={recipe}
+              source={analyticsSource || entrySource || 'explore'}
+            />
+          ) : null}
+        </div>
+        <RecipeLink
+          recipeId={recipe.id}
+          className="recipe-card__link"
+          entrySource={entrySource}
+          onClick={onOpenAnalytics}
+        >
           <div className="recipe-card__meta">
             <span>{recipe.timeMinutes} min</span>
             <span aria-hidden="true">·</span>
@@ -97,8 +119,8 @@ export function RecipeCard({
               </Tag>
             </div>
           )}
-        </div>
-      </RecipeLink>
+        </RecipeLink>
+      </div>
     </article>
   )
 }

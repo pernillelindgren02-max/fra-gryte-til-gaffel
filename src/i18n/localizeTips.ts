@@ -121,6 +121,7 @@ export function localizeTipListItem(
     category: item.category
       ? localizeTipCategory(item.category, locale)
       : item.category,
+    topics: (item.topics ?? []).map((c) => localizeTipCategory(c, locale)),
   }
 }
 

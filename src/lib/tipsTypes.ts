@@ -56,6 +56,8 @@ export type TipCategory = {
   nameEnAuto: string
   nameEnOverride: boolean
   sort_order: number
+  /** Soft-hide from consumer filters without deleting. */
+  isActive: boolean
 }
 
 export type TipArticleListItem = {
@@ -71,14 +73,20 @@ export type TipArticleListItem = {
   excerptEn: string
   excerptEnAuto: string
   excerptEnOverride: boolean
+  /** Primary topic (legacy single category_id) — first of topicIds when set. */
   category_id: string | null
   category?: TipCategory | null
+  /** All assigned topic category ids (filter on these, not display text). */
+  topicIds: string[]
+  topics: TipCategory[]
   status: TipStatus
   is_featured: boolean
   sort_order: number
   hero_image_url: string | null
   published_at?: string | null
   updated_at?: string
+  /** Optional searchable body (block text) when available offline / hydrated. */
+  searchBody?: string
 }
 
 export type TipArticle = TipArticleListItem & {

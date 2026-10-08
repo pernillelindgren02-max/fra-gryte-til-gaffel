@@ -46,14 +46,26 @@ function mapCategory(row: Record<string, unknown>): TipCategory {
 function mapListItem(
   row: Record<string, unknown>,
   category?: TipCategory | null,
+  topics: TipCategory[] = [],
 ): TipArticleListItem {
   const fields = normalizeTipListFields(row, category)
+  const resolvedTopics =
+    topics.length > 0
+      ? topics
+      : category
+        ? [category]
+        : []
+  const topicIds = resolvedTopics.map((c) => c.id).filter(Boolean)
   return {
     id: String(row.id),
     slug: String(row.slug ?? ''),
     ...fields,
-    category_id: row.category_id ? String(row.category_id) : null,
-    category: category ?? null,
+    category_id: row.category_id
+      ? String(row.category_id)
+      : topicIds[0] ?? null,
+    category: resolvedTopics[0] ?? category ?? null,
+    topicIds,
+    topics: resolvedTopics,
     status: (row.status === 'published' ? 'published' : 'draft') as TipStatus,
     is_featured: Boolean(row.is_featured),
     sort_order: Number(row.sort_order) || 0,
@@ -63,6 +75,29 @@ function mapListItem(
     published_at: row.published_at ? String(row.published_at) : null,
     updated_at: row.updated_at ? String(row.updated_at) : undefined,
   }
+}
+
+async function fetchTopicsForArticles(
+  articleIds: string[],
+): Promise<Map<string, TipCategory[]>> {
+  const map = new Map<string, TipCategory[]>()
+  if (!supabase || articleIds.length === 0) return map
+  const { data, error } = await supabase
+    .from('tip_article_topics')
+    .select('article_id, sort_order, tip_categories(*)')
+    .in('article_id', articleIds)
+    .order('sort_order', { ascending: true })
+  if (error || !data) return map
+  for (const row of data as Record<string, unknown>[]) {
+    const articleId = String(row.article_id)
+    const catRaw = row.tip_categories as Record<string, unknown> | null
+    if (!catRaw) continue
+    const cat = mapCategory(catRaw)
+    const list = map.get(articleId) ?? []
+    list.push(cat)
+    map.set(articleId, list)
+  }
+  return map
 }
 
 function mapBlock(row: Record<string, unknown>, articleSlug = ''): TipBlock {
@@ -88,14 +123,25 @@ function mapImage(row: Record<string, unknown>, articleSlug = ''): TipImage {
   }
 }
 
-export async function fetchTipCategories(): Promise<TipCategory[]> {
-  if (!supabase) return DEFAULT_TIP_CATEGORIES
+export async function fetchTipCategories(opts?: {
+  includeInactive?: boolean
+}): Promise<TipCategory[]> {
+  if (!supabase) {
+    return opts?.includeInactive
+      ? DEFAULT_TIP_CATEGORIES
+      : DEFAULT_TIP_CATEGORIES.filter((c) => c.isActive)
+  }
   const { data, error } = await supabase
     .from('tip_categories')
     .select('*')
     .order('sort_order', { ascending: true })
-  if (error || !data?.length) return DEFAULT_TIP_CATEGORIES
-  return (data as Record<string, unknown>[]).map(mapCategory)
+  if (error || !data?.length) {
+    return opts?.includeInactive
+      ? DEFAULT_TIP_CATEGORIES
+      : DEFAULT_TIP_CATEGORIES.filter((c) => c.isActive)
+  }
+  const rows = (data as Record<string, unknown>[]).map(mapCategory)
+  return opts?.includeInactive ? rows : rows.filter((c) => c.isActive)
 }
 
 export async function fetchPublishedTips(): Promise<TipArticleListItem[]> {
@@ -106,9 +152,12 @@ export async function fetchPublishedTips(): Promise<TipArticleListItem[]> {
     .eq('status', 'published')
     .order('sort_order', { ascending: true })
   if (error || !data?.length) return listDefaultPublished()
-  return (data as Record<string, unknown>[]).map((row) => {
+  const rows = data as Record<string, unknown>[]
+  const topicMap = await fetchTopicsForArticles(rows.map((r) => String(r.id)))
+  return rows.map((row) => {
     const catRaw = row.tip_categories as Record<string, unknown> | null
-    return mapListItem(row, catRaw ? mapCategory(catRaw) : null)
+    const topics = topicMap.get(String(row.id)) ?? []
+    return mapListItem(row, catRaw ? mapCategory(catRaw) : null, topics)
   })
 }
 
@@ -126,9 +175,12 @@ export async function fetchAllTipsAdmin(): Promise<TipArticleListItem[]> {
   if (!data?.length) {
     return DEFAULT_TIP_ARTICLES.map(toListItem)
   }
-  return (data as Record<string, unknown>[]).map((row) => {
+  const rows = data as Record<string, unknown>[]
+  const topicMap = await fetchTopicsForArticles(rows.map((r) => String(r.id)))
+  return rows.map((row) => {
     const catRaw = row.tip_categories as Record<string, unknown> | null
-    return mapListItem(row, catRaw ? mapCategory(catRaw) : null)
+    const topics = topicMap.get(String(row.id)) ?? []
+    return mapListItem(row, catRaw ? mapCategory(catRaw) : null, topics)
   })
 }
 
@@ -220,7 +272,9 @@ export async function fetchTipBySlug(
     return null
   }
   const catRaw = row.tip_categories as Record<string, unknown> | null
-  const list = mapListItem(row, catRaw ? mapCategory(catRaw) : null)
+  const topicMap = await fetchTopicsForArticles([String(row.id)])
+  const topics = topicMap.get(String(row.id)) ?? []
+  const list = mapListItem(row, catRaw ? mapCategory(catRaw) : null, topics)
   return loadArticleExtras(list.id, list)
 }
 
@@ -239,7 +293,9 @@ export async function fetchTipByIdAdmin(
   if (!data) return null
   const row = data as Record<string, unknown>
   const catRaw = row.tip_categories as Record<string, unknown> | null
-  const list = mapListItem(row, catRaw ? mapCategory(catRaw) : null)
+  const topicMap = await fetchTopicsForArticles([String(row.id)])
+  const topics = topicMap.get(String(row.id)) ?? []
+  const list = mapListItem(row, catRaw ? mapCategory(catRaw) : null, topics)
   return loadArticleExtras(list.id, list)
 }
 
@@ -256,10 +312,22 @@ export type TipArticleInput = {
   excerpt_en_auto?: string
   excerpt_en_override?: boolean
   category_id: string | null
+  /** Multi-topic assignment (ids). First becomes category_id when set. */
+  topic_ids?: string[]
   status: TipStatus
   is_featured: boolean
   sort_order: number
   hero_image_url: string | null
+}
+
+export type TipCategoryInput = {
+  slug: string
+  name_no: string
+  name_en?: string
+  name_en_auto?: string
+  name_en_override?: boolean
+  sort_order: number
+  is_active?: boolean
 }
 
 function articleInputToRow(input: TipArticleInput | Partial<TipArticleInput>) {
@@ -306,7 +374,15 @@ export async function createTipArticle(
     .select('*')
     .single()
   if (error) throw error
-  return mapListItem(data as Record<string, unknown>)
+  const list = mapListItem(data as Record<string, unknown>)
+  if (input.topic_ids) {
+    try {
+      await replaceArticleTopics(list.id, input.topic_ids)
+    } catch {
+      /* tip_article_topics may not exist until SQL migration */
+    }
+  }
+  return list
 }
 
 export async function updateTipArticle(
@@ -526,4 +602,96 @@ export async function removeTipStoragePath(pathOrUrl: string): Promise<void> {
     ? pathOrUrl.split(`/${BUCKET}/`).pop()!
     : pathOrUrl.replace(/^\//, '')
   await supabase.storage.from(BUCKET).remove([key])
+}
+
+/** Replace multi-topic assignment; first id also written to category_id. */
+export async function replaceArticleTopics(
+  articleId: string,
+  topicIds: string[],
+): Promise<void> {
+  if (!supabase) throw new Error('Supabase er ikke konfigurert.')
+  const unique = [...new Set(topicIds.map((id) => id.trim()).filter(Boolean))]
+  await supabase.from('tip_article_topics').delete().eq('article_id', articleId)
+  if (unique.length) {
+    const { error } = await supabase.from('tip_article_topics').insert(
+      unique.map((category_id, i) => ({
+        article_id: articleId,
+        category_id,
+        sort_order: i + 1,
+      })),
+    )
+    if (error) throw error
+  }
+  const { error: artErr } = await supabase
+    .from('tip_articles')
+    .update({
+      category_id: unique[0] ?? null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', articleId)
+  if (artErr) throw artErr
+}
+
+export async function upsertTipCategory(
+  input: TipCategoryInput,
+  id?: string,
+): Promise<TipCategory> {
+  if (!supabase) throw new Error('Supabase er ikke konfigurert.')
+  const nameNo = input.name_no.trim()
+  const nameEnOverride =
+    Boolean(input.name_en_override) && Boolean((input.name_en || '').trim())
+  const row = {
+    slug: input.slug.trim(),
+    name: nameNo,
+    name_no: nameNo,
+    name_en: nameEnOverride ? (input.name_en || '').trim() : '',
+    name_en_auto: input.name_en_auto ?? '',
+    name_en_override: nameEnOverride,
+    sort_order: input.sort_order,
+    is_active: input.is_active !== false,
+    updated_at: new Date().toISOString(),
+  }
+  if (id) {
+    const { data, error } = await supabase
+      .from('tip_categories')
+      .update(row)
+      .eq('id', id)
+      .select('*')
+      .single()
+    if (error) throw error
+    return mapCategory(data as Record<string, unknown>)
+  }
+  const { data, error } = await supabase
+    .from('tip_categories')
+    .insert(row)
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapCategory(data as Record<string, unknown>)
+}
+
+export async function setTipCategoryActive(
+  id: string,
+  isActive: boolean,
+): Promise<void> {
+  if (!supabase) throw new Error('Supabase er ikke konfigurert.')
+  const { error } = await supabase
+    .from('tip_categories')
+    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .eq('id', id)
+  if (error) throw error
+}
+
+export async function reorderTipCategories(
+  orderedIds: string[],
+): Promise<void> {
+  if (!supabase) throw new Error('Supabase er ikke konfigurert.')
+  await Promise.all(
+    orderedIds.map((id, index) =>
+      supabase!
+        .from('tip_categories')
+        .update({ sort_order: index + 1, updated_at: new Date().toISOString() })
+        .eq('id', id),
+    ),
+  )
 }

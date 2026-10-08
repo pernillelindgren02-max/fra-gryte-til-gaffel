@@ -1,0 +1,213 @@
+.explore-ing-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding-bottom: 0.85rem;
+  margin-bottom: 0.35rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-teal) 10%, transparent);
+}
+
+.explore-ing-filter__title {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--color-teal);
+}
+
+.explore-ing-filter__lead {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: color-mix(in srgb, var(--color-teal) 72%, transparent);
+}
+
+.explore-ing-filter__compose {
+  position: relative;
+}
+
+.explore-ing-filter__form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.4rem;
+}
+
+.explore-ing-filter__field input {
+  width: 100%;
+  min-height: 2.55rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.85rem;
+  border: 1.5px solid color-mix(in srgb, var(--color-teal) 14%, transparent);
+  background: white;
+  color: var(--color-teal);
+  font: inherit;
+  font-size: 0.92rem;
+}
+
+.explore-ing-filter__add {
+  min-height: 2.55rem;
+  padding: 0.4rem 0.85rem;
+  border: none;
+  border-radius: 0.85rem;
+  background: var(--color-terracotta);
+  color: white;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.explore-ing-filter__suggest {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  top: calc(100% + 0.25rem);
+  max-height: 12rem;
+  overflow-y: auto;
+  background: white;
+  border-radius: 0.85rem;
+  border: 1.5px solid color-mix(in srgb, var(--color-teal) 12%, transparent);
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--color-teal) 14%, transparent);
+}
+
+.explore-ing-filter__suggest-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.3rem;
+}
+
+.explore-ing-filter__suggest-item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  text-align: left;
+  min-height: 2.4rem;
+  padding: 0.4rem 0.65rem;
+  border: none;
+  border-radius: 0.65rem;
+  background: transparent;
+  color: var(--color-teal);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.explore-ing-filter__suggest-item--selected,
+.explore-ing-filter__suggest-item:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-pale-green) 50%, white);
+}
+
+.explore-ing-filter__suggest-item:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.explore-ing-filter__suggest-empty {
+  margin: 0;
+  padding: 0.75rem;
+  font-size: 0.88rem;
+  color: color-mix(in srgb, var(--color-teal) 70%, transparent);
+}
+
+.explore-ing-filter__suggest-mark {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--color-teal) 55%, transparent);
+}
+
+.explore-ing-filter__fridge-btn {
+  align-self: flex-start;
+  min-height: 2.35rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, var(--color-teal) 18%, transparent);
+  background: white;
+  color: var(--color-teal);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.explore-ing-filter__fridge-btn--on {
+  background: color-mix(in srgb, var(--color-pale-green) 55%, white);
+  border-color: color-mix(in srgb, var(--color-teal) 28%, transparent);
+}
+
+.explore-ing-filter__hint {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--color-teal) 75%, transparent);
+}
+
+.explore-ing-filter__hint a {
+  color: var(--color-terracotta);
+  font-weight: 700;
+}
+
+.explore-ing-filter__fridge-list,
+.explore-ing-filter__chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.explore-ing-filter__fridge-chip,
+.explore-ing-filter__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, var(--color-teal) 14%, transparent);
+  background: white;
+  color: var(--color-teal);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.explore-ing-filter__fridge-chip--on,
+.explore-ing-filter__chip {
+  background: color-mix(in srgb, var(--color-pale-green) 45%, white);
+}
+
+.explore-ing-filter__selected {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.explore-ing-filter__selected-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.explore-ing-filter__selected-label {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-teal);
+}
+
+.explore-ing-filter__clear {
+  border: none;
+  background: transparent;
+  color: var(--color-terracotta);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 2rem;
+}

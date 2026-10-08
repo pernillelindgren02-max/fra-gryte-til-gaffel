@@ -94,9 +94,10 @@ export function AppNav() {
         match: (p) => p.startsWith('/handleliste'),
       },
       {
-        to: '/hjemme',
-        label: t('nav.home'),
-        match: (p) => p.startsWith('/hjemme'),
+        to: '/kjoleskap',
+        label: t('nav.fridge'),
+        match: (p) =>
+          p.startsWith('/kjoleskap') || p.startsWith('/hjemme'),
       },
     ],
     [t],
@@ -193,7 +194,7 @@ export function AppNav() {
                     aria-current={active ? 'page' : undefined}
                     onClick={() => setOpen(false)}
                   >
-                    {item.label}
+                    <span>{item.label}</span>
                   </Link>
                 )
               })}

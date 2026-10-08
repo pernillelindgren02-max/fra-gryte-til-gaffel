@@ -41,6 +41,12 @@ export function normalizeTipCategory(
     raw.nameEnOverride == null && raw.name_en_override == null
       ? Boolean(nameEn)
       : Boolean(raw.nameEnOverride ?? raw.name_en_override) && Boolean(nameEn)
+  const isActive =
+    raw.isActive == null && (raw as { is_active?: boolean }).is_active == null
+      ? true
+      : Boolean(
+          raw.isActive ?? (raw as { is_active?: boolean }).is_active ?? true,
+        )
   return {
     id: String(raw.id ?? ''),
     slug,
@@ -50,6 +56,7 @@ export function normalizeTipCategory(
     nameEnAuto,
     nameEnOverride,
     sort_order: Number(raw.sort_order) || 0,
+    isActive,
   }
 }
 
@@ -194,10 +201,34 @@ export function hydrateTipArticle(article: TipArticle): TipArticle {
     article as unknown as Record<string, unknown>,
     category,
   )
+  const topics = (article.topics?.length
+    ? article.topics
+    : category
+      ? [category]
+      : []
+  ).map((c) => normalizeTipCategory(c))
+  const topicIds =
+    article.topicIds?.length > 0
+      ? article.topicIds
+      : topics.map((c) => c.id).filter(Boolean)
+  const searchBody =
+    article.searchBody ??
+    article.blocks
+      .map((b) => {
+        const p = b.payloadNo ?? b.payload
+        return [p.title, p.text, p.cite, ...(p.items ?? [])]
+          .filter(Boolean)
+          .join(' ')
+      })
+      .join(' ')
   return {
     ...article,
     ...fields,
-    category,
+    category: topics[0] ?? category,
+    category_id: article.category_id ?? topics[0]?.id ?? null,
+    topics,
+    topicIds,
+    searchBody,
     blocks: article.blocks.map((b) =>
       normalizeTipBlock(
         {

@@ -3,12 +3,22 @@ import { emptyFilters, type FilterState } from '../data/recipes'
 const KEY = 'fgtg-explore-ui-v1'
 const FREEZE_KEY = 'fgtg-explore-scroll-freeze'
 
+export type ExploreIngredientRef = {
+  id: string
+  name: string
+}
+
 export type ExploreSessionState = {
   searchQuery: string
   filters: FilterState
   scrollY: number
   /** Active horizontal category chip id, or null for home feed. */
   categoryId: string | null
+  /**
+   * Temporary “Hva har du hjemme?” selection for Explore matching.
+   * Distinct from Kjøleskap inventory — shared canonical ids only.
+   */
+  ingredientFilter: ExploreIngredientRef[]
 }
 
 function isFilterState(value: unknown): value is FilterState {
@@ -17,18 +27,41 @@ function isFilterState(value: unknown): value is FilterState {
   return Object.keys(emptyFilters).every((key) => Array.isArray(record[key]))
 }
 
+function parseIngredientFilter(value: unknown): ExploreIngredientRef[] {
+  if (!Array.isArray(value)) return []
+  const out: ExploreIngredientRef[] = []
+  const seen = new Set<string>()
+  for (const entry of value) {
+    if (!entry || typeof entry !== 'object') continue
+    const row = entry as { id?: unknown; name?: unknown }
+    const id = String(row.id ?? '').trim()
+    const name = String(row.name ?? '').trim()
+    if (!id && !name) continue
+    const key = id || name.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push({ id: id || name.toLowerCase(), name: name || id })
+  }
+  return out
+}
+
+const EMPTY: ExploreSessionState = {
+  searchQuery: '',
+  filters: emptyFilters,
+  scrollY: 0,
+  categoryId: null,
+  ingredientFilter: [],
+}
+
 export function loadExploreSession(): ExploreSessionState {
   try {
     const raw = sessionStorage.getItem(KEY)
-    if (!raw) {
-      return {
-        searchQuery: '',
-        filters: emptyFilters,
-        scrollY: 0,
-        categoryId: null,
-      }
+    if (!raw) return { ...EMPTY, filters: emptyFilters }
+    const parsed = JSON.parse(raw) as Partial<ExploreSessionState> & {
+      fridgeFilterOn?: boolean
+      fridgeExcludeIds?: string[]
     }
-    const parsed = JSON.parse(raw) as Partial<ExploreSessionState>
+    // Prefer new temp selection; ignore legacy fridgeFilterOn / exclude ids.
     return {
       searchQuery:
         typeof parsed.searchQuery === 'string' ? parsed.searchQuery : '',
@@ -40,14 +73,10 @@ export function loadExploreSession(): ExploreSessionState {
         typeof parsed.categoryId === 'string' && parsed.categoryId
           ? parsed.categoryId
           : null,
+      ingredientFilter: parseIngredientFilter(parsed.ingredientFilter),
     }
   } catch {
-    return {
-      searchQuery: '',
-      filters: emptyFilters,
-      scrollY: 0,
-      categoryId: null,
-    }
+    return { ...EMPTY, filters: emptyFilters }
   }
 }
 

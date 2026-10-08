@@ -75,6 +75,9 @@ export function AdminTipsPage() {
           <h1 className="admin__title">Artikler</h1>
         </div>
         <div className="admin__header-actions">
+          <Link to="/admin/tips/emner" className="admin__btn admin__btn--ghost">
+            Emner
+          </Link>
           <Link to="/admin/tips/new" className="admin__btn">
             Ny artikkel
           </Link>

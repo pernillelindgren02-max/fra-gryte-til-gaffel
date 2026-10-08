@@ -1,14 +1,17 @@
 .shopping {
+  --shop-cream: color-mix(in srgb, var(--color-bg) 72%, white);
+  --shop-warm: color-mix(in srgb, var(--color-card) 55%, var(--color-bg));
+  --shop-warm-deep: color-mix(in srgb, var(--color-pale-green) 28%, var(--color-bg));
   display: flex;
   flex-direction: column;
-  gap: 1.1rem;
+  gap: 1.35rem;
   padding-bottom: 3rem;
 }
 
 .shopping__header {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.3rem;
 }
 
 .shopping__title {
@@ -20,52 +23,70 @@
 
 .shopping__lead {
   margin: 0;
+  font-size: 0.92rem;
   line-height: 1.45;
-  color: color-mix(in srgb, var(--color-teal) 75%, transparent);
+  color: color-mix(in srgb, var(--color-teal) 58%, transparent);
+}
+
+/* Quieter, warm search */
+.shopping__search-wrap {
+  opacity: 0.95;
 }
 
 .shopping__search {
   width: 100%;
 }
 
+.shopping__search-wrap .clearable-search__input {
+  min-height: 2.55rem;
+  font-size: 0.92rem;
+  border-color: color-mix(in srgb, var(--color-teal) 10%, transparent);
+  background: var(--shop-cream);
+}
+
 .shopping__suggest {
   list-style: none;
-  margin: -0.35rem 0 0;
-  padding: 0.35rem;
-  background: white;
-  border-radius: var(--radius-md);
-  border: 1.5px solid color-mix(in srgb, var(--color-teal) 12%, transparent);
+  margin: -0.65rem 0 0;
+  padding: 0.25rem;
+  background: var(--shop-warm);
+  border-radius: 0.8rem;
+  border: none;
 }
 
 .shopping__suggest button {
   width: 100%;
   text-align: left;
-  min-height: 2.75rem;
+  min-height: 2.55rem;
   border: none;
   background: transparent;
   color: var(--color-teal);
   font: inherit;
+  font-size: 0.95rem;
   font-weight: 600;
-  padding: 0.45rem 0.75rem;
-  border-radius: 0.7rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 0.6rem;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background 140ms ease, transform 140ms ease;
 }
 
-.shopping__suggest button:hover {
-  background: var(--color-card);
-}
-
+.shopping__suggest button:hover,
 .shopping__suggest button:active {
-  background: color-mix(in srgb, var(--color-pale-green) 55%, white);
-  transform: scale(0.99);
+  background: color-mix(in srgb, white 55%, var(--color-pale-green));
 }
 
 .shopping__block {
   display: flex;
   flex-direction: column;
+  gap: 0.7rem;
+}
+
+.shopping__block--recipes {
   gap: 0.65rem;
+}
+
+.shopping__block--list {
+  gap: 0.75rem;
+  margin-top: 0.2rem;
 }
 
 .shopping__block-head {
@@ -75,123 +96,47 @@
   gap: 0.75rem;
 }
 
+/* Stronger section headings — warm accent, no thick divider */
 .shopping__subtitle {
   margin: 0;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--color-teal) 70%, transparent);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--color-teal);
+  padding-bottom: 0.15rem;
+  border-bottom: 2px solid color-mix(in srgb, var(--color-terracotta) 28%, transparent);
+  width: fit-content;
 }
 
-.shopping__text-btn {
+.shopping__subtitle--focus {
+  font-size: 1.12rem;
+  border-bottom-color: color-mix(in srgb, var(--color-terracotta) 38%, transparent);
+}
+
+.shopping__clear-btn {
   border: none;
   background: transparent;
-  color: var(--color-terracotta);
+  color: color-mix(in srgb, var(--color-terracotta) 72%, #5c2a1e);
   font: inherit;
-  font-size: 0.88rem;
-  font-weight: 700;
+  font-size: 0.82rem;
+  font-weight: 600;
   cursor: pointer;
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
   padding: 0.2rem 0;
   -webkit-tap-highlight-color: transparent;
-  transition: opacity 140ms ease;
 }
 
-.shopping__text-btn:active {
-  opacity: 0.7;
-}
-
-.shopping__recipes {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-}
-
-.shopping__recipe-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  padding: 0.75rem 0.9rem;
-  background: var(--color-card);
-  border-radius: var(--radius-sm);
-}
-
-.shopping__recipe-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.shopping__recipe-name {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.2rem;
+.shopping__clear-btn:hover,
+.shopping__clear-btn:active {
   color: var(--color-terracotta);
-  font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 0.14em;
-  text-decoration-thickness: 1.5px;
-  -webkit-tap-highlight-color: transparent;
-  transition: opacity 140ms ease;
 }
 
-.shopping__recipe-name:active {
-  opacity: 0.75;
-}
-
-.shopping__recipe-name .nav-chevron {
-  font-weight: 500;
-  color: color-mix(in srgb, var(--color-terracotta) 70%, transparent);
-  text-decoration: none;
-}
-
-.shopping__multipliers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.shopping__multiplier {
-  min-width: 2.6rem;
-  min-height: 2.35rem;
-  border: 1.5px solid color-mix(in srgb, var(--color-teal) 16%, transparent);
-  border-radius: 999px;
-  background: white;
-  color: var(--color-teal);
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
-}
-
-.shopping__multiplier:active {
-  transform: scale(0.95);
-}
-
-.shopping__multiplier--on {
-  background: var(--color-terracotta);
-  border-color: var(--color-terracotta);
-  color: white;
-}
-
-.shopping__empty {
-  margin: 0;
-  padding: 1.1rem;
-  background: var(--color-card);
-  border-radius: var(--radius-md);
-  line-height: 1.5;
-  color: color-mix(in srgb, var(--color-teal) 80%, transparent);
-}
-
-.shopping__items {
+/* Compact recipe rows — subtle warm grouping, no heavy blocks */
+.shopping__recipes {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -200,73 +145,228 @@
   gap: 0.4rem;
 }
 
+.shopping__recipe-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.7rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: var(--shop-warm);
+}
+
+.shopping__recipe-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.28rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.shopping__recipe-name {
+  display: inline;
+  max-width: 100%;
+  color: var(--color-teal);
+  font-size: 0.95rem;
+  font-weight: 650;
+  line-height: 1.3;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.shopping__recipe-name:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--color-terracotta) 40%, transparent);
+}
+
+.shopping__portions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  padding: 0.12rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, white 55%, var(--color-bg));
+}
+
+.shopping__portion-btn {
+  width: 1.85rem;
+  height: 1.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: none;
+  background: color-mix(in srgb, var(--color-pale-green) 35%, white);
+  color: var(--color-teal);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 650;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 120ms ease, background 120ms ease;
+}
+
+.shopping__portion-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.shopping__portion-btn:active:not(:disabled) {
+  transform: scale(0.94);
+  background: color-mix(in srgb, var(--color-pale-green) 55%, white);
+}
+
+.shopping__portion-value {
+  min-width: 4.85rem;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 650;
+  color: var(--color-teal);
+  font-variant-numeric: tabular-nums;
+}
+
+.shopping__portion-unit {
+  font-weight: 500;
+  color: color-mix(in srgb, var(--color-teal) 58%, transparent);
+}
+
+.shopping__remove-btn {
+  flex-shrink: 0;
+  align-self: center;
+  border: none;
+  background: transparent;
+  color: color-mix(in srgb, var(--color-terracotta) 70%, #5c2a1e);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.35rem 0.2rem;
+  min-height: 2.4rem;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.shopping__remove-btn:hover,
+.shopping__remove-btn:active {
+  color: var(--color-terracotta);
+}
+
+/* Soft warm ingredient pills — spacing, not grey lines */
+.shopping__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  border: none;
+}
+
 .shopping__item {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: 0.25rem;
-  min-height: 2.75rem;
-  padding: 0.7rem 0.85rem;
-  background: white;
-  border: 1.5px solid color-mix(in srgb, var(--color-teal) 12%, transparent);
-  border-radius: var(--radius-sm);
+  padding: 0;
+  border: none;
+  border-radius: 0.8rem;
+  background: var(--shop-cream);
   color: var(--color-teal);
-  font-weight: 600;
   line-height: 1.35;
+  transition: background 140ms ease, opacity 140ms ease;
+}
+
+.shopping__item:hover {
+  background: var(--shop-warm);
 }
 
 .shopping__item-check {
   display: flex;
   align-items: flex-start;
-  gap: 0.7rem;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 2.85rem;
+  padding: 0.72rem 0.85rem;
+  box-sizing: border-box;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .shopping__item input {
-  margin-top: 0.2rem;
-  width: 1.1rem;
-  height: 1.1rem;
+  margin-top: 0.12rem;
+  width: 1.2rem;
+  height: 1.2rem;
   accent-color: var(--color-terracotta);
   flex-shrink: 0;
 }
 
+.shopping__item-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  min-width: 0;
+  flex: 1;
+  padding-top: 0.02rem;
+}
+
 .shopping__item-label {
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--color-teal);
+}
+
+.shopping__item-helper {
+  font-size: 0.78rem;
+  font-weight: 550;
+  line-height: 1.35;
+}
+
+.shopping__item-helper--red {
+  color: var(--color-terracotta);
+}
+
+.shopping__item-helper--subtle {
+  color: color-mix(in srgb, var(--color-teal) 52%, transparent);
+  font-weight: 500;
 }
 
 .shopping__item-from {
-  margin: 0 0 0 1.8rem;
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 500;
   line-height: 1.35;
+  color: color-mix(in srgb, var(--color-teal) 50%, transparent);
+}
+
+.shopping__item-recipe {
   color: color-mix(in srgb, var(--color-teal) 62%, transparent);
-  text-decoration: none;
+  font-weight: 550;
+  text-decoration: underline;
+  text-underline-offset: 0.1em;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--color-terracotta) 28%, transparent);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.shopping__item-recipe:hover {
+  color: var(--color-terracotta);
+}
+
+.shopping__item--checked {
+  opacity: 0.68;
+  background: color-mix(in srgb, var(--color-bg) 80%, white);
 }
 
 .shopping__item--checked .shopping__item-label {
   text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  color: color-mix(in srgb, var(--color-teal) 58%, transparent);
 }
 
-.shopping__item-recipe {
-  color: var(--color-terracotta);
-  font-weight: 650;
-  text-decoration: underline;
-  text-underline-offset: 0.12em;
-  text-decoration-thickness: 1.5px;
-  -webkit-tap-highlight-color: transparent;
-  transition: opacity 140ms ease, color 140ms ease;
-}
-
-.shopping__item-recipe:hover {
-  color: color-mix(in srgb, var(--color-terracotta) 80%, black);
-}
-
-.shopping__item-recipe:active {
-  opacity: 0.75;
-}
-
-.shopping__item--checked {
-  opacity: 0.55;
+.shopping__item--auto.shopping__item--checked {
+  opacity: 0.62;
 }
 
 .visually-hidden {
@@ -279,4 +379,18 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+@media (min-width: 480px) {
+  .shopping__recipe-main {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+  }
+
+  .shopping__recipe-name {
+    flex: 1;
+    min-width: 0;
+  }
 }

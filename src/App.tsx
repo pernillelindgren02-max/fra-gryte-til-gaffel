@@ -38,6 +38,7 @@ import { AdminExplorePage } from './pages/admin/AdminExplorePage'
 import { AdminOnboardingPage } from './pages/admin/AdminOnboardingPage'
 import { AdminTipsPage } from './pages/admin/AdminTipsPage'
 import { AdminTipEditPage } from './pages/admin/AdminTipEditPage'
+import { AdminTipTopicsPage } from './pages/admin/AdminTipTopicsPage'
 import { AdminInnsiktPage } from './pages/admin/AdminInnsiktPage'
 import { AdminCopyPage } from './pages/admin/AdminCopyPage'
 import { AdminDesignPage } from './pages/admin/AdminDesignPage'
@@ -121,6 +122,7 @@ function AppChrome() {
           />
           <Route path="explore" element={<AdminExplorePage />} />
           <Route path="tips" element={<AdminTipsPage />} />
+          <Route path="tips/emner" element={<AdminTipTopicsPage />} />
           <Route path="tips/new" element={<AdminTipEditPage />} />
           <Route path="tips/:id" element={<AdminTipEditPage />} />
           <Route path="onboarding" element={<AdminOnboardingPage />} />
@@ -147,7 +149,8 @@ function AppChrome() {
         <Route path="/favoritter" element={<FavoritesPage />} />
         <Route path="/favoritter/:folderKey" element={<FavoritesPage />} />
         <Route path="/handleliste" element={<ShoppingListPage />} />
-        <Route path="/hjemme" element={<PantryPage />} />
+        <Route path="/kjoleskap" element={<PantryPage />} />
+        <Route path="/hjemme" element={<Navigate to="/kjoleskap" replace />} />
         <Route path="/mapper" element={<Navigate to="/favoritter" replace />} />
         <Route path="/konto" element={<AuthPage />} />
         <Route path="/varsler" element={<Navigate to="/konto" replace />} />

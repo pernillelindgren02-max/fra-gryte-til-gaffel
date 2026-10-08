@@ -1,5 +1,6 @@
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { BackToExplore } from '../components/BackToExplore'
 import { FeedbackSheet } from '../components/FeedbackSheet'
 import { InlineError } from '../components/InlineError'
 import { useAuth } from '../context/AuthContext'
@@ -11,8 +12,24 @@ import { useToast } from '../context/ToastContext'
 import type { AppLocale } from '../i18n/types'
 import { getLastAdminPath } from '../lib/adminPath'
 import { USER_ERRORS, toUserSaveError } from '../lib/userErrors'
-import './admin/Admin.css'
 import './AuthPage.css'
+
+function AccountSection({
+  title,
+  children,
+  className = '',
+}: {
+  title: string
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <section className={`auth-page__section${className ? ` ${className}` : ''}`}>
+      <h2 className="auth-page__section-title">{title}</h2>
+      {children}
+    </section>
+  )
+}
 
 export function AuthPage() {
   const { user, configured, loading, isAdmin, signIn, signUp, signOut } =
@@ -50,7 +67,6 @@ export function AuthPage() {
     setBusy(false)
     if (message) {
       const calm = toUserSaveError(message, 'auth')
-      // Keep short Norwegian auth hints (wrong password etc.) when already calm
       setError(
         message.length < 100 && !message.includes('{')
           ? message
@@ -61,8 +77,6 @@ export function AuthPage() {
       return
     }
     if (mode === 'signup') {
-      // If confirm-email is off, onAuthStateChange already logged us in.
-      // Otherwise show tip and stay on login tab.
       setInfo(
         'Konto opprettet. Hvis e-postbekreftelse er på i Supabase, sjekk innboksen før du logger inn.',
       )
@@ -73,10 +87,38 @@ export function AuthPage() {
     navigate(from)
   }
 
+  function LanguagePicker({ compact = false }: { compact?: boolean }) {
+    return (
+      <div
+        className={`auth-page__lang${compact ? ' auth-page__lang--compact' : ''}`}
+        role="radiogroup"
+        aria-label={t('auth.sectionLanguage')}
+      >
+        {([
+          { id: 'no', label: t('lang.norsk') },
+          { id: 'en', label: t('lang.english') },
+        ] as const).map((opt) => (
+          <label
+            key={opt.id}
+            className={`auth-page__lang-option${locale === opt.id ? ' auth-page__lang-option--on' : ''}`}
+          >
+            <input
+              type="radio"
+              name="app-locale"
+              checked={locale === opt.id}
+              onChange={() => void setLocale(opt.id as AppLocale)}
+            />
+            <span>{opt.label}</span>
+          </label>
+        ))}
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="auth-page">
-        <p>Laster konto…</p>
+        <p className="auth-page__loading">{t('auth.busy')}</p>
       </div>
     )
   }
@@ -84,151 +126,194 @@ export function AuthPage() {
   if (!configured) {
     return (
       <div className="auth-page">
-        <h1 className="auth-page__title">Konto</h1>
+        <BackToExplore />
+        <header className="auth-page__header">
+          <h1 className="auth-page__title">{t('auth.title')}</h1>
+        </header>
         <p className="auth-page__lead">
           Supabase er ikke satt opp ennå. Lim inn{' '}
           <code>VITE_SUPABASE_URL</code> og{' '}
           <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> i <code>.env.local</code>,
           lagre, og start Vite på nytt for å bruke innlogging.
         </p>
-        <button
-          type="button"
-          className="auth-page__link-btn"
-          onClick={() => openReplay()}
-        >
-          Slik fungerer appen
-        </button>
-        <button
-          type="button"
-          className="auth-page__link-btn"
-          onClick={() => setFeedbackOpen(true)}
-        >
-          Gi tilbakemelding
-        </button>
+        <AccountSection title={t('auth.sectionYourApp')}>
+          <div className="auth-page__group">
+            <button
+              type="button"
+              className="auth-page__row"
+              onClick={() => openReplay()}
+            >
+              <span>{t('auth.howItWorks')}</span>
+              <span className="auth-page__chevron" aria-hidden="true">
+                ›
+              </span>
+            </button>
+            <button
+              type="button"
+              className="auth-page__row"
+              onClick={() => setFeedbackOpen(true)}
+            >
+              <span>{t('auth.feedback')}</span>
+              <span className="auth-page__chevron" aria-hidden="true">
+                ›
+              </span>
+            </button>
+          </div>
+        </AccountSection>
         <FeedbackSheet
           open={feedbackOpen}
           onClose={() => setFeedbackOpen(false)}
           pagePath="/konto"
         />
-        <Link to="/" className="auth-page__back">
-          ← Tilbake til utforsk
-        </Link>
       </div>
-    )
-  }
-
-  function LanguagePicker() {
-    return (
-      <fieldset className="auth-page__lang">
-        <legend className="auth-page__lang-legend">{t('auth.language')}</legend>
-        <p className="auth-page__pref-hint">{t('auth.languageHint')}</p>
-        <div className="auth-page__lang-options" role="radiogroup">
-          {([
-            { id: 'no', label: t('lang.norsk') },
-            { id: 'en', label: t('lang.english') },
-          ] as const).map((opt) => (
-            <label key={opt.id} className="auth-page__lang-option">
-              <input
-                type="radio"
-                name="app-locale"
-                checked={locale === opt.id}
-                onChange={() => void setLocale(opt.id as AppLocale)}
-              />
-              <span>{opt.label}</span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
     )
   }
 
   if (user) {
     return (
       <div className="auth-page">
-        <h1 className="auth-page__title">{t('auth.title')}</h1>
-        <p className="auth-page__lead">
-          {t('auth.loggedInAs')} <strong>{user.email}</strong>
-        </p>
-        <LanguagePicker />
-        <div className="auth-page__links">
-          <Link to="/favoritter">{t('auth.myFavorites')}</Link>
-          <button
-            type="button"
-            className="auth-page__link-btn"
-            onClick={() => openReplay()}
-          >
-            {t('auth.howItWorks')}
-          </button>
-          <button
-            type="button"
-            className="auth-page__link-btn"
-            onClick={() => setFeedbackOpen(true)}
-          >
-            {t('auth.feedback')}
-          </button>
-        </div>
+        <BackToExplore />
+        <header className="auth-page__header">
+          <h1 className="auth-page__title">{t('auth.title')}</h1>
+          {user.email ? (
+            <p className="auth-page__email">{user.email}</p>
+          ) : null}
+        </header>
+
+        <AccountSection title={t('auth.sectionLanguage')}>
+          <LanguagePicker compact />
+        </AccountSection>
+
+        <AccountSection title={t('auth.sectionYourApp')}>
+          <div className="auth-page__group">
+            <Link to="/favoritter" className="auth-page__row">
+              <span>{t('auth.myFavorites')}</span>
+              <span className="auth-page__chevron" aria-hidden="true">
+                ›
+              </span>
+            </Link>
+            <button
+              type="button"
+              className="auth-page__row"
+              onClick={() => openReplay()}
+            >
+              <span>{t('auth.howItWorks')}</span>
+              <span className="auth-page__chevron" aria-hidden="true">
+                ›
+              </span>
+            </button>
+            <button
+              type="button"
+              className="auth-page__row"
+              onClick={() => setFeedbackOpen(true)}
+            >
+              <span>{t('auth.feedback')}</span>
+              <span className="auth-page__chevron" aria-hidden="true">
+                ›
+              </span>
+            </button>
+          </div>
+        </AccountSection>
+
         <FeedbackSheet
           open={feedbackOpen}
           onClose={() => setFeedbackOpen(false)}
           pagePath="/konto"
         />
 
-        <label className="auth-page__pref">
-          <input
-            type="checkbox"
-            checked={notifyNewRecipes}
-            disabled={prefBusy}
-            onChange={(event) => {
-              void (async () => {
-                setPrefBusy(true)
-                const err = await setNotifyNewRecipes(event.target.checked)
-                setPrefBusy(false)
-                if (err) {
-                  setError(err)
-                  showToast(err)
-                } else {
-                  setError(null)
-                  showToast(t('common.save'))
-                }
-              })()
-            }}
-          />
-          <span>{t('auth.notifyRecipes')}</span>
-        </label>
-        <p className="auth-page__pref-hint">{t('auth.notifyHint')}</p>
-        {notifError && (
-          <InlineError
-            compact
-            message={notifError}
-            onRetry={() => void refreshNotif()}
-          />
-        )}
-        {error && !notifError && (
-          <p className="auth-page__error">{error}</p>
-        )}
+        <AccountSection title={t('auth.sectionNotifications')}>
+          <div className="auth-page__group auth-page__group--pref">
+            <label className="auth-page__pref-row">
+              <span className="auth-page__pref-copy">
+                <span className="auth-page__pref-label">
+                  {t('auth.notifyRecipes')}
+                </span>
+                <span className="auth-page__pref-hint">
+                  {t('auth.notifyHint')}
+                </span>
+              </span>
+              <span className="auth-page__switch">
+                <input
+                  type="checkbox"
+                  role="switch"
+                  checked={notifyNewRecipes}
+                  disabled={prefBusy}
+                  aria-label={t('auth.notifyRecipes')}
+                  onChange={(event) => {
+                    void (async () => {
+                      setPrefBusy(true)
+                      const err = await setNotifyNewRecipes(
+                        event.target.checked,
+                      )
+                      setPrefBusy(false)
+                      if (err) {
+                        setError(err)
+                        showToast(err)
+                      } else {
+                        setError(null)
+                        showToast(t('common.save'))
+                      }
+                    })()
+                  }}
+                />
+                <span className="auth-page__switch-track" aria-hidden="true" />
+              </span>
+            </label>
+          </div>
+          {notifError && (
+            <InlineError
+              compact
+              message={notifError}
+              onRetry={() => void refreshNotif()}
+            />
+          )}
+          {error && !notifError && (
+            <p className="auth-page__error">{error}</p>
+          )}
+        </AccountSection>
 
         {isAdmin ? (
-          <Link to={getLastAdminPath()} className="admin-back-chip">
-            Tilbake til admin
-          </Link>
+          <AccountSection
+            title={t('auth.sectionAdmin')}
+            className="auth-page__section--admin"
+          >
+            <div className="auth-page__group auth-page__group--quiet">
+              <Link to={getLastAdminPath()} className="auth-page__row auth-page__row--quiet">
+                <span>{t('auth.backToAdmin')}</span>
+                <span className="auth-page__chevron" aria-hidden="true">
+                  ›
+                </span>
+              </Link>
+            </div>
+          </AccountSection>
         ) : null}
-        <button
-          type="button"
-          className="auth-page__submit auth-page__submit--ghost"
-          onClick={() => void signOut()}
-        >
-          {t('auth.logout')}
-        </button>
+
+        <div className="auth-page__account-actions">
+          <button
+            type="button"
+            className="auth-page__logout"
+            onClick={() => void signOut()}
+          >
+            {t('auth.logout')}
+          </button>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="auth-page">
-      <h1 className="auth-page__title">
-        {mode === 'login' ? t('auth.login') : t('auth.signup')}
-      </h1>
-      <LanguagePicker />
+      <BackToExplore />
+      <header className="auth-page__header">
+        <h1 className="auth-page__title">
+          {mode === 'login' ? t('auth.login') : t('auth.signup')}
+        </h1>
+      </header>
+
+      <AccountSection title={t('auth.sectionLanguage')}>
+        <LanguagePicker compact />
+      </AccountSection>
+
       <p className="auth-page__lead">
         {getCopy(
           'favoritter.helper',
@@ -242,20 +327,20 @@ export function AuthPage() {
           className={`auth-page__tab${mode === 'login' ? ' auth-page__tab--on' : ''}`}
           onClick={() => setMode('login')}
         >
-          Logg inn
+          {t('auth.login')}
         </button>
         <button
           type="button"
           className={`auth-page__tab${mode === 'signup' ? ' auth-page__tab--on' : ''}`}
           onClick={() => setMode('signup')}
         >
-          Registrer
+          {t('auth.signup')}
         </button>
       </div>
 
       <form className="auth-page__form" onSubmit={onSubmit}>
         <label className="auth-page__label">
-          E-post
+          {t('auth.email')}
           <input
             type="email"
             autoComplete="email"
@@ -265,10 +350,12 @@ export function AuthPage() {
           />
         </label>
         <label className="auth-page__label">
-          Passord
+          {t('auth.password')}
           <input
             type="password"
-            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+            autoComplete={
+              mode === 'login' ? 'current-password' : 'new-password'
+            }
             required
             minLength={6}
             value={password}
@@ -279,27 +366,37 @@ export function AuthPage() {
         {info && <p className="auth-page__info">{info}</p>}
         <button type="submit" className="auth-page__submit" disabled={busy}>
           {busy
-            ? 'Vent litt…'
+            ? t('auth.busy')
             : mode === 'login'
-              ? 'Logg inn'
-              : 'Opprett konto'}
+              ? t('auth.submitLogin')
+              : t('auth.submitSignup')}
         </button>
       </form>
 
-      <button
-        type="button"
-        className="auth-page__link-btn auth-page__link-btn--below"
-        onClick={() => openReplay()}
-      >
-        Slik fungerer appen
-      </button>
-      <button
-        type="button"
-        className="auth-page__link-btn auth-page__link-btn--below"
-        onClick={() => setFeedbackOpen(true)}
-      >
-        Gi tilbakemelding
-      </button>
+      <AccountSection title={t('auth.sectionYourApp')}>
+        <div className="auth-page__group">
+          <button
+            type="button"
+            className="auth-page__row"
+            onClick={() => openReplay()}
+          >
+            <span>{t('auth.howItWorks')}</span>
+            <span className="auth-page__chevron" aria-hidden="true">
+              ›
+            </span>
+          </button>
+          <button
+            type="button"
+            className="auth-page__row"
+            onClick={() => setFeedbackOpen(true)}
+          >
+            <span>{t('auth.feedback')}</span>
+            <span className="auth-page__chevron" aria-hidden="true">
+              ›
+            </span>
+          </button>
+        </div>
+      </AccountSection>
       <FeedbackSheet
         open={feedbackOpen}
         onClose={() => setFeedbackOpen(false)}

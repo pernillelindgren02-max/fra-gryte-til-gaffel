@@ -1,5 +1,9 @@
 import { useEffect } from 'react'
-import { emptyFilters, type FilterState } from '../data/recipes'
+import { emptyFilters, type FilterState, type Recipe } from '../data/recipes'
+import type { FridgeItem } from '../context/PantryContext'
+import type { ExploreIngredientRef } from '../lib/exploreSession'
+import { useLocale } from '../context/LocaleContext'
+import { ExploreIngredientFilter } from './ExploreIngredientFilter'
 import { FilterGroups } from './FilterGroups'
 import './FilterSheet.css'
 
@@ -7,6 +11,10 @@ interface FilterSheetProps {
   open: boolean
   draftFilters: FilterState
   onDraftChange: (next: FilterState) => void
+  draftIngredients: ExploreIngredientRef[]
+  onDraftIngredientsChange: (next: ExploreIngredientRef[]) => void
+  pantry: FridgeItem[]
+  recipes: Recipe[]
   onApply: () => void
   onClose: () => void
   activeCount?: number
@@ -16,10 +24,16 @@ export function FilterSheet({
   open,
   draftFilters,
   onDraftChange,
+  draftIngredients,
+  onDraftIngredientsChange,
+  pantry,
+  recipes,
   onApply,
   onClose,
   activeCount = 0,
 }: FilterSheetProps) {
+  const { t, locale } = useLocale()
+
   useEffect(() => {
     if (!open) return
 
@@ -37,12 +51,19 @@ export function FilterSheet({
 
   if (!open) return null
 
+  const title =
+    activeCount > 0
+      ? locale === 'en'
+        ? `Filters (${activeCount})`
+        : `Filtre (${activeCount})`
+      : t('explore.filterRecipes')
+
   return (
     <div className="filter-sheet" role="presentation">
       <button
         type="button"
         className="filter-sheet__backdrop"
-        aria-label="Lukk filtre"
+        aria-label={t('explore.closeFilters')}
         onClick={onClose}
       />
       <div
@@ -54,11 +75,17 @@ export function FilterSheet({
         <div className="filter-sheet__handle" aria-hidden="true" />
         <header className="filter-sheet__header">
           <h2 id="filter-sheet-title" className="filter-sheet__title">
-            {activeCount > 0 ? `Filtre (${activeCount})` : 'Filtrer oppskrifter'}
+            {title}
           </h2>
         </header>
 
         <div className="filter-sheet__body">
+          <ExploreIngredientFilter
+            selected={draftIngredients}
+            onChange={onDraftIngredientsChange}
+            pantry={pantry}
+            recipes={recipes}
+          />
           <FilterGroups filters={draftFilters} onChange={onDraftChange} />
         </div>
 
@@ -67,15 +94,22 @@ export function FilterSheet({
             <button
               type="button"
               className="filter-sheet__secondary"
-              onClick={() => onDraftChange(emptyFilters)}
+              onClick={() => {
+                onDraftChange(emptyFilters)
+                onDraftIngredientsChange([])
+              }}
             >
-              Fjern alle
+              {t('explore.clearAll')}
             </button>
           ) : (
             <span />
           )}
-          <button type="button" className="filter-sheet__primary" onClick={onApply}>
-            Vis resultater
+          <button
+            type="button"
+            className="filter-sheet__primary"
+            onClick={onApply}
+          >
+            {t('explore.showResults')}
           </button>
         </footer>
       </div>

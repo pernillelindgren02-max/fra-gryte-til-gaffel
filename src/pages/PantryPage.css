@@ -11,6 +11,31 @@
   gap: 0.35rem;
 }
 
+.pantry__block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.pantry__clear-all {
+  border: none;
+  background: transparent;
+  color: var(--color-terracotta);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.2rem 0;
+}
+
+.pantry__count {
+  margin: 0 0 0.55rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--color-teal);
+}
+
 .pantry__title {
   margin: 0;
   font-family: var(--font-display);
@@ -37,6 +62,131 @@
   grid-template-columns: 1fr auto;
   gap: 0.5rem;
   align-items: start;
+}
+
+.pantry__amount-row {
+  display: grid;
+  grid-template-columns: 1fr 7.5rem;
+  gap: 0.5rem;
+}
+
+.pantry__qty input,
+.pantry__unit select,
+.pantry__row-qty,
+.pantry__row-unit {
+  width: 100%;
+  min-height: 2.5rem;
+  border: 1.5px solid color-mix(in srgb, var(--color-teal) 16%, transparent);
+  border-radius: 0.75rem;
+  padding: 0.45rem 0.75rem;
+  background: white;
+  color: var(--color-teal);
+  font: inherit;
+  font-size: 0.92rem;
+}
+
+.pantry__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.pantry__row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.7rem 0.85rem;
+  background: var(--color-pale-green);
+  border-radius: var(--radius-sm);
+  color: var(--color-teal);
+}
+
+.pantry__row-main {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.pantry__row-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.pantry__row-amount {
+  font-size: 0.85rem;
+  font-weight: 650;
+  color: color-mix(in srgb, var(--color-teal) 72%, transparent);
+}
+
+.pantry__row-amount--unknown {
+  font-weight: 500;
+  font-style: italic;
+  opacity: 0.75;
+}
+
+.pantry__row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.pantry__row-edit-btn {
+  border: none;
+  background: transparent;
+  color: var(--color-terracotta);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  padding: 0.15rem 0;
+}
+
+.pantry__row-remove {
+  width: 1.85rem;
+  height: 1.85rem;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, white 70%, transparent);
+  color: var(--color-teal);
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pantry__row-edit {
+  display: grid;
+  grid-template-columns: 1fr 5.5rem;
+  gap: 0.4rem;
+}
+
+.pantry__row-save,
+.pantry__row-clear-amt {
+  min-height: 2.35rem;
+  border: none;
+  border-radius: 0.7rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pantry__row-save {
+  background: var(--color-terracotta);
+  color: white;
+}
+
+.pantry__row-clear-amt {
+  background: color-mix(in srgb, white 75%, transparent);
+  color: var(--color-teal);
+  grid-column: 1 / -1;
 }
 
 .pantry__field {

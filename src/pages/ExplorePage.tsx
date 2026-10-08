@@ -14,6 +14,7 @@ import {
   ExploreSkeleton,
 } from '../components/skeleton'
 import { useLocale } from '../context/LocaleContext'
+import { usePantry } from '../context/PantryContext'
 import { useRecipes } from '../context/RecipesContext'
 import { useSiteContent } from '../context/SiteContentContext'
 import {
@@ -27,6 +28,7 @@ import {
   clearExploreScrollFreeze,
   loadExploreSession,
   saveExploreSession,
+  type ExploreIngredientRef,
 } from '../lib/exploreSession'
 import { USER_ERRORS } from '../lib/userErrors'
 import {
@@ -40,6 +42,7 @@ import {
   removeFilterValue,
 } from '../utils/activeFilterChips'
 import { countActiveFilters, filterRecipes } from '../utils/filterRecipes'
+import { matchRecipesByPantry } from '../utils/matchPantryRecipes'
 import { searchRecipes } from '../utils/searchRecipes'
 import './ExplorePage.css'
 
@@ -137,6 +140,7 @@ function buildExploreBlocks(
 
 export function ExplorePage() {
   const { recipes, loading, error, refresh } = useRecipes()
+  const { pantry } = usePantry()
   const { explore: exploreRaw, getCopy, theme } = useSiteContent()
   const { locale, t } = useLocale()
   const brand = getBrand(locale)
@@ -154,12 +158,25 @@ export function ExplorePage() {
   const [categoryId, setCategoryId] = useState<string | null>(
     initial.current.categoryId,
   )
+  /** Temporary Explore ingredient selection (not the Kjøleskap inventory). */
+  const [ingredientFilter, setIngredientFilter] = useState<
+    ExploreIngredientRef[]
+  >(initial.current.ingredientFilter)
+  const [draftIngredients, setDraftIngredients] = useState<
+    ExploreIngredientRef[]
+  >(initial.current.ingredientFilter)
   const restoredScroll = useRef(false)
+  const prevIngredientCount = useRef(ingredientFilter.length)
 
-  const activeFilterCount = countActiveFilters(filters)
+  const hardFilterCount = countActiveFilters(filters)
+  const ingredientFilterCount = ingredientFilter.length
+  const activeFilterCount = hardFilterCount + ingredientFilterCount
+  const draftActiveCount =
+    countActiveFilters(draftFilters) + draftIngredients.length
   const activeChips = useMemo(() => listActiveFilterChips(filters), [filters])
   const hasSearch = searchQuery.trim().length > 0
-  const hasActiveConstraints = hasSearch || activeFilterCount > 0
+  const hasActiveConstraints =
+    hasSearch || hardFilterCount > 0 || ingredientFilterCount > 0
   const showFeedSkeleton = loading && recipes.length === 0
   const categoryConfigs = useMemo(
     () => getExploreCategories(explore),
@@ -174,9 +191,15 @@ export function ExplorePage() {
   const matchingRecipes = useMemo(() => {
     const filtered = filterRecipes(recipes, filters)
     const searched = searchRecipes(filtered, searchQuery)
+    if (ingredientFilter.length > 0) {
+      // OR match ≥1 selected ingredient; exclude zero matches; rank by meaningful.
+      return matchRecipesByPantry(ingredientFilter, searched).map(
+        (m) => m.recipe,
+      )
+    }
     // Same pool → trim odd card (don't inject unrelated search hits).
     return ensureEvenRecipes(searched, searched)
-  }, [filters, searchQuery, recipes])
+  }, [filters, searchQuery, recipes, ingredientFilter])
 
   const categoryRecipes = useMemo(() => {
     if (!activeCategoryConfig) return []
@@ -210,8 +233,26 @@ export function ExplorePage() {
       filters,
       scrollY: scrollYRef.current,
       categoryId,
+      ingredientFilter,
     })
-  }, [searchQuery, filters, categoryId])
+  }, [searchQuery, filters, categoryId, ingredientFilter])
+
+  useEffect(() => {
+    const prev = prevIngredientCount.current
+    const next = ingredientFilter.length
+    if (prev === 0 && next > 0) {
+      trackEvent('explore_fridge_filter_enabled', {
+        source: 'explore',
+        properties: { selected_count: next },
+      })
+    } else if (prev > 0 && next === 0) {
+      trackEvent('explore_fridge_filter_disabled', {
+        source: 'explore',
+        properties: { selected_count: 0 },
+      })
+    }
+    prevIngredientCount.current = next
+  }, [ingredientFilter.length])
 
   // useLayoutEffect so cleanup runs in the layout phase. Ignore sudden jumps
   // toward the top while a recipe route scrolls the window (listener may still
@@ -227,6 +268,7 @@ export function ExplorePage() {
         filters,
         scrollY: scrollYRef.current,
         categoryId,
+        ingredientFilter,
       })
     }
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -237,9 +279,10 @@ export function ExplorePage() {
         filters,
         scrollY: scrollYRef.current,
         categoryId,
+        ingredientFilter,
       })
     }
-  }, [searchQuery, filters, categoryId])
+  }, [searchQuery, filters, categoryId, ingredientFilter])
 
   useLayoutEffect(() => {
     if (restoredScroll.current || showFeedSkeleton) return
@@ -253,26 +296,34 @@ export function ExplorePage() {
 
   function openFilterSheet() {
     setDraftFilters(filters)
+    setDraftIngredients(ingredientFilter)
     setFilterSheetOpen(true)
   }
 
   function closeFilterSheet() {
     setDraftFilters(filters)
+    setDraftIngredients(ingredientFilter)
     setFilterSheetOpen(false)
   }
 
   function applyFilters() {
     setFilters(draftFilters)
+    setIngredientFilter(draftIngredients)
     setFilterSheetOpen(false)
     trackEvent('explore_filter_apply', {
       source: 'explore',
-      properties: { active_count: countActiveFilters(draftFilters) },
+      properties: {
+        active_count: countActiveFilters(draftFilters) + draftIngredients.length,
+        ingredient_count: draftIngredients.length,
+      },
     })
   }
 
   function clearAllFilters() {
     setFilters(emptyFilters)
     setDraftFilters(emptyFilters)
+    setIngredientFilter([])
+    setDraftIngredients([])
   }
 
   function clearSearch() {
@@ -284,11 +335,17 @@ export function ExplorePage() {
     setSearchQuery('')
     setFilters(emptyFilters)
     setDraftFilters(emptyFilters)
+    setIngredientFilter([])
+    setDraftIngredients([])
     window.scrollTo(0, 0)
     trackEvent('explore_category_open', {
       source: 'explore',
       properties: { category_id: id },
     })
+  }
+
+  function removeIngredientChip(id: string) {
+    setIngredientFilter((prev) => prev.filter((item) => item.id !== id))
   }
 
   const knownSearchTerms = useMemo(() => {
@@ -457,17 +514,30 @@ export function ExplorePage() {
         <div className="explore-filter-bar">
           <div className="explore-filter-bar__head">
             <p className="explore-filter-bar__label">
-              Filter ({activeFilterCount})
+              {t('explore.filters')} ({activeFilterCount})
             </p>
             <button
               type="button"
               className="explore-filter-bar__clear"
               onClick={clearAllFilters}
             >
-              Nullstill
+              {t('explore.clearFilters')}
             </button>
           </div>
           <ul className="explore-filter-chips">
+            {ingredientFilter.map((item) => (
+              <li key={`ing:${item.id}`}>
+                <button
+                  type="button"
+                  className="explore-filter-chip"
+                  onClick={() => removeIngredientChip(item.id)}
+                  aria-label={`${t('fridge.remove')} ${item.name}`}
+                >
+                  <span>{item.name}</span>
+                  <span aria-hidden="true">×</span>
+                </button>
+              </li>
+            ))}
             {activeChips.map((chip) => (
               <li key={`${chip.key}:${chip.value}`}>
                 <button
@@ -669,9 +739,13 @@ export function ExplorePage() {
         open={filterSheetOpen}
         draftFilters={draftFilters}
         onDraftChange={setDraftFilters}
+        draftIngredients={draftIngredients}
+        onDraftIngredientsChange={setDraftIngredients}
+        pantry={pantry}
+        recipes={recipes}
         onApply={applyFilters}
         onClose={closeFilterSheet}
-        activeCount={countActiveFilters(draftFilters)}
+        activeCount={draftActiveCount}
       />
     </div>
   )

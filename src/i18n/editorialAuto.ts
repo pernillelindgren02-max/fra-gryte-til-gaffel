@@ -106,14 +106,26 @@ export function suggestOnboardingBodyEn(id: string, titleNo: string): string {
   return ''
 }
 
-/** Tip category names by slug. */
+/** Tip category names by slug (canonical + legacy aliases). */
 export const TIP_CATEGORY_EN: Record<string, string> = {
+  student_kitchen: 'Student kitchen',
+  camping: 'Camping / outdoors',
+  few_ingredients: 'Few ingredients',
+  less_dishes: 'Less washing-up',
+  camping_stove: 'Camping stove',
+  gear: 'Gear',
+  technique: 'Technique',
+  cheap_food: 'Budget food',
+  small_kitchen: 'Small kitchens',
+  keeps_well: 'Food that keeps',
+  leftovers: 'Leftovers',
+  // Legacy aliases
   primus: 'Camping stove',
-  'lite-kjokken': 'Small kitchen',
+  'lite-kjokken': 'Small kitchens',
   utstyr: 'Gear',
   teknikk: 'Technique',
   'lite-oppvask': 'Less washing-up',
-  tur: 'Outdoors',
+  tur: 'Camping / outdoors',
   studentkjokken: 'Student kitchen',
 }
 

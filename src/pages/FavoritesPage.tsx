@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent, type MouseEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { BackToExplore } from '../components/BackToExplore'
 import { RecipeCard } from '../components/RecipeCard'
 import { EmptyState } from '../components/EmptyState'
 import { InlineError } from '../components/InlineError'
@@ -156,6 +157,7 @@ export function FavoritesPage() {
 
     return (
       <div className="account-list">
+        <BackToExplore />
         <Link to="/favoritter" className="account-list__back">
           ← Alle mapper
         </Link>
@@ -211,6 +213,7 @@ export function FavoritesPage() {
 
   return (
     <div className="account-list">
+      <BackToExplore />
       <header className="account-list__header">
         <h1 className="account-list__title">Favoritter</h1>
         <p className="account-list__lead">

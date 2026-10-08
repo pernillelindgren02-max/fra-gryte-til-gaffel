@@ -64,6 +64,8 @@ export interface CombinedIngredientSource {
 
 export interface CombinedIngredient {
   key: string
+  /** Canonical ingredient id for fridge matching. */
+  ingredientId: string
   name: string
   quantity: number | null
   unit: IngredientUnit
@@ -85,6 +87,7 @@ export function combineIngredients(
   ingredients: SourcedIngredient[],
 ): CombinedIngredient[] {
   type Acc = {
+    ingredientId: string
     name: string
     family: UnitFamily
     baseTotal: number | null
@@ -97,7 +100,8 @@ export function combineIngredients(
 
   for (const item of ingredients) {
     // Aggregate by canonical id when present — language-independent.
-    const nameKey = normalizeName(item.id || item.name)
+    const ingredientId = (item.id || item.name).trim()
+    const nameKey = normalizeName(ingredientId)
     const family = familyOf(item.unit)
 
     if (
@@ -112,6 +116,7 @@ export function combineIngredients(
         const fromRecipes: CombinedIngredientSource[] = []
         addSource(fromRecipes, item.sourceRecipeId, item.sourceRecipeName)
         map.set(key, {
+          ingredientId,
           name: item.name,
           family: 'none',
           baseTotal: null,
@@ -132,6 +137,7 @@ export function combineIngredients(
       const fromRecipes: CombinedIngredientSource[] = []
       addSource(fromRecipes, item.sourceRecipeId, item.sourceRecipeName)
       map.set(key, {
+        ingredientId,
         name: item.name,
         family,
         baseTotal: base,
@@ -153,6 +159,7 @@ export function combineIngredients(
       if (value.qualitative || value.baseTotal == null) {
         return {
           key,
+          ingredientId: value.ingredientId,
           name: value.name,
           quantity: null,
           unit: null,
@@ -164,6 +171,7 @@ export function combineIngredients(
       const label = `${formatQuantityDisplay(converted.quantity)} ${converted.unit} ${value.name}`
       return {
         key,
+        ingredientId: value.ingredientId,
         name: value.name,
         quantity: converted.quantity,
         unit: converted.unit,

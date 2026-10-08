@@ -1,3 +1,4 @@
+import { TIP_TOPIC_SEEDS } from './tipTopics'
 import type {
   TipArticle,
   TipArticleListItem,
@@ -5,37 +6,43 @@ import type {
 } from './tipsTypes'
 import { hydrateTipArticle, normalizeTipCategory } from './tipsNormalize'
 
-const RAW_TIP_CATEGORIES = [
-  { id: 'cat-primus', slug: 'primus', name: 'Primus', sort_order: 1 },
-  {
-    id: 'cat-lite-kjokken',
-    slug: 'lite-kjokken',
-    name: 'Lite kjøkken',
-    sort_order: 2,
-  },
-  { id: 'cat-utstyr', slug: 'utstyr', name: 'Utstyr', sort_order: 3 },
-  { id: 'cat-teknikk', slug: 'teknikk', name: 'Teknikk', sort_order: 4 },
-  {
-    id: 'cat-lite-oppvask',
-    slug: 'lite-oppvask',
-    name: 'Lite oppvask',
-    sort_order: 5,
-  },
-  { id: 'cat-tur', slug: 'tur', name: 'Tur', sort_order: 6 },
-  {
-    id: 'cat-student',
-    slug: 'studentkjokken',
-    name: 'Studentkjøkken',
-    sort_order: 7,
-  },
-]
-
-export const DEFAULT_TIP_CATEGORIES: TipCategory[] = RAW_TIP_CATEGORIES.map(
-  normalizeTipCategory,
+export const DEFAULT_TIP_CATEGORIES: TipCategory[] = TIP_TOPIC_SEEDS.map(
+  (seed) =>
+    normalizeTipCategory({
+      id: seed.id,
+      slug: seed.slug,
+      name: seed.nameNo,
+      nameNo: seed.nameNo,
+      nameEn: seed.nameEn,
+      nameEnAuto: seed.nameEn,
+      nameEnOverride: true,
+      sort_order: seed.sort_order,
+      isActive: true,
+    }),
 )
 
 function cat(slug: string) {
   return DEFAULT_TIP_CATEGORIES.find((c) => c.slug === slug) ?? null
+}
+
+function withTopics(
+  category: TipCategory | null,
+  extraSlugs: string[] = [],
+): { category_id: string | null; category: TipCategory | null; topicIds: string[]; topics: TipCategory[] } {
+  const topics = [
+    ...(category ? [category] : []),
+    ...extraSlugs
+      .map((s) => cat(s))
+      .filter((c): c is TipCategory => Boolean(c)),
+  ].filter(
+    (c, i, arr) => arr.findIndex((x) => x.id === c.id) === i,
+  )
+  return {
+    category_id: topics[0]?.id ?? null,
+    category: topics[0] ?? null,
+    topicIds: topics.map((c) => c.id),
+    topics,
+  }
 }
 
 /** Local seed articles when Supabase is empty / offline — mirrors SQL seed. */
@@ -45,8 +52,7 @@ const RAW_TIP_ARTICLES = [
     slug: 'primus-for-nybegynnere',
     title: 'Primus for nybegynnere',
     excerpt: 'Trygg start: tenning, koking og slukking uten stress.',
-    category_id: 'cat-primus',
-    category: cat('primus'),
+    ...withTopics(cat('camping_stove'), ['camping', 'gear']),
     status: 'published' as const,
     is_featured: true,
     sort_order: 1,
@@ -168,8 +174,7 @@ const RAW_TIP_ARTICLES = [
     title: 'Mindre oppvask på tur',
     excerpt:
       'Én gryte, smartere rekkefølge — og nesten tørr oppvaskklut.',
-    category_id: 'cat-lite-oppvask',
-    category: cat('lite-oppvask'),
+    ...withTopics(cat('less_dishes'), ['camping']),
     status: 'published' as const,
     is_featured: false,
     sort_order: 2,
@@ -240,8 +245,7 @@ const RAW_TIP_ARTICLES = [
     title: 'Studentkjøkkenets overlevelsesguide',
     excerpt:
       'Når kjøkkenet er lite og tid er knapp — slik lager du likevel skikkelig mat.',
-    category_id: 'cat-student',
-    category: cat('studentkjokken'),
+    ...withTopics(cat('student_kitchen'), ['small_kitchen', 'cheap_food']),
     status: 'published' as const,
     is_featured: false,
     sort_order: 3,
