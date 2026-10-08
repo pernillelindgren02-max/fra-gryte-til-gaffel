@@ -18,7 +18,7 @@ export function TipArticlePage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { isAdmin } = useAuth()
-  const { locale, t } = useLocale()
+  const { locale } = useLocale()
   const { recipes } = useRecipes()
   const [rawArticle, setRawArticle] = useState<TipArticle | null>(null)
   const article = useMemo(
