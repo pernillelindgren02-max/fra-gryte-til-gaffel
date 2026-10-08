@@ -18,6 +18,12 @@ export const ANALYTICS_EVENTS = [
   'recipe_favorite_remove',
   'recipe_shopping_add',
   'recipe_share',
+  'recipe_share_menu_opened',
+  'recipe_link_shared',
+  'recipe_pdf_generated',
+  'recipe_pdf_shared',
+  'recipe_pdf_downloaded',
+  'recipe_printed',
   'recipe_spotify_open',
   'recipe_portions_change',
   'pantry_view',
@@ -204,9 +210,17 @@ export function trackEvent(
     if (shouldDedup(name, recipeId, path)) return
 
     const env = getAnalyticsEnv()
+    let language: 'no' | 'en' | undefined
+    try {
+      const stored = localStorage.getItem('fgtg-locale-v1')
+      if (stored === 'no' || stored === 'en') language = stored
+    } catch {
+      /* ignore */
+    }
     const props = sanitizeProperties({
       ...opts?.properties,
       device: opts?.properties?.device ?? deviceClass(),
+      language: opts?.properties?.language ?? language ?? 'no',
     })
 
     const row: AnalyticsEventRow = {

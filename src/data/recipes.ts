@@ -1,3 +1,9 @@
+import {
+  suggestEnglishDescription,
+  suggestEnglishIngredient,
+  suggestEnglishTitle,
+} from '../i18n/autoEnglish'
+
 export type MealType = 'breakfast' | 'lunch' | 'dinner'
 export type PreparationLevel = 'noCutting' | 'someCutting' | 'morePrep'
 export type StorageNeed = 'noCooling' | 'fewHoursOk' | 'needsCooling'
@@ -22,6 +28,17 @@ export type IngredientUnit =
   | null
 
 export interface Ingredient {
+  /** Canonical id for matching/aggregation — language-independent. */
+  id: string
+  /** Norwegian display name (source of truth for NO). */
+  nameNo: string
+  /** Manual English override (empty when using automatic/default). */
+  nameEn: string
+  /** Offline curated / mapped automatic English. */
+  nameEnAuto: string
+  /** True when Admin saved a custom English name. */
+  nameEnOverride: boolean
+  /** Resolved display name for the active locale. */
   name: string
   quantity: number | null
   unit: IngredientUnit
@@ -29,8 +46,21 @@ export interface Ingredient {
 
 export interface Recipe {
   id: string
+  /** Resolved display title for the active locale. */
   name: string
+  nameNo: string
+  /** Manual English title override (empty when using automatic/default). */
+  nameEn: string
+  /** Offline curated / suggested automatic English title. */
+  nameEnAuto: string
+  /** True when Admin saved a custom English title. */
+  nameEnOverride: boolean
+  /** Resolved short description for the active locale. */
   shortDescription: string
+  shortDescriptionNo: string
+  shortDescriptionEn: string
+  shortDescriptionEnAuto: string
+  shortDescriptionEnOverride: boolean
   /** Public path under /images/recipes/ — swap the file to change the picture. */
   image: string
   timeMinutes: number
@@ -44,7 +74,10 @@ export interface Recipe {
   campingStoveSuitability: CampingStoveSuitability
   waterNeed: WaterNeed
   ingredients: Ingredient[]
+  /** Resolved steps for the active locale. */
   steps: string[]
+  stepsNo: string[]
+  stepsEn: string[]
   practicalTags: string[]
   /** Optional «Sett stemningen» Spotify mood (admin-curated). */
   spotifyTitle?: string | null
@@ -83,14 +116,143 @@ function ing(
   quantity: number | null = null,
   unit: IngredientUnit = null,
 ): Ingredient {
-  return { name, quantity, unit }
+  const nameNo = name.trim()
+  const id = nameNo
+    .toLowerCase()
+    .replace(/æ/g, 'ae')
+    .replace(/ø/g, 'o')
+    .replace(/å/g, 'a')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'ingredient'
+  return {
+    id,
+    nameNo,
+    nameEn: '',
+    nameEnAuto: '',
+    nameEnOverride: false,
+    name: nameNo,
+    quantity,
+    unit,
+  }
+}
+
+type RecipeSeed = Omit<
+  Recipe,
+  | 'nameNo'
+  | 'nameEn'
+  | 'nameEnAuto'
+  | 'nameEnOverride'
+  | 'shortDescriptionNo'
+  | 'shortDescriptionEn'
+  | 'shortDescriptionEnAuto'
+  | 'shortDescriptionEnOverride'
+  | 'stepsNo'
+  | 'stepsEn'
+> &
+  Partial<
+    Pick<
+      Recipe,
+      | 'nameNo'
+      | 'nameEn'
+      | 'nameEnAuto'
+      | 'nameEnOverride'
+      | 'shortDescriptionNo'
+      | 'shortDescriptionEn'
+      | 'shortDescriptionEnAuto'
+      | 'shortDescriptionEnOverride'
+      | 'stepsNo'
+      | 'stepsEn'
+    >
+  >
+
+/** Promote legacy seed fields into bilingual slots + offline auto EN. */
+export function ensureBilingualRecipe(recipe: RecipeSeed): Recipe {
+  const nameNo = (recipe.nameNo || recipe.name || '').trim()
+  const nameEn = (recipe.nameEn || '').trim()
+  const nameEnAuto = (
+    recipe.nameEnAuto ||
+    suggestEnglishTitle(recipe.id || '', nameNo) ||
+    ''
+  ).trim()
+  const nameEnOverride = Boolean(recipe.nameEnOverride) && Boolean(nameEn)
+  const shortDescriptionNo = (
+    recipe.shortDescriptionNo ||
+    recipe.shortDescription ||
+    ''
+  ).trim()
+  const shortDescriptionEn = (recipe.shortDescriptionEn || '').trim()
+  const shortDescriptionEnAuto = (
+    recipe.shortDescriptionEnAuto ||
+    suggestEnglishDescription(recipe.id || '', shortDescriptionNo) ||
+    ''
+  ).trim()
+  const shortDescriptionEnOverride =
+    Boolean(recipe.shortDescriptionEnOverride) && Boolean(shortDescriptionEn)
+  const stepsNo =
+    recipe.stepsNo && recipe.stepsNo.length > 0
+      ? recipe.stepsNo
+      : [...(recipe.steps ?? [])]
+  const stepsEn =
+    recipe.stepsEn && recipe.stepsEn.length > 0 ? recipe.stepsEn : []
+  const ingredients = (recipe.ingredients ?? []).map((item) => {
+    const nameNoIng = (item.nameNo || item.name || '').trim()
+    const nameEnIng = (item.nameEn || '').trim()
+    const id =
+      (item.id || '').trim() ||
+      nameNoIng
+        .toLowerCase()
+        .replace(/æ/g, 'ae')
+        .replace(/ø/g, 'o')
+        .replace(/å/g, 'a')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') ||
+      'ingredient'
+    const nameEnAutoIng = (
+      item.nameEnAuto ||
+      suggestEnglishIngredient(id, nameNoIng) ||
+      ''
+    ).trim()
+    const nameEnOverrideIng =
+      Boolean(item.nameEnOverride) && Boolean(nameEnIng)
+    return {
+      id,
+      nameNo: nameNoIng,
+      nameEn: nameEnIng,
+      nameEnAuto: nameEnAutoIng,
+      nameEnOverride: nameEnOverrideIng,
+      name: nameNoIng,
+      quantity: item.quantity,
+      unit: item.unit,
+    }
+  })
+  return {
+    ...recipe,
+    nameNo,
+    nameEn,
+    nameEnAuto,
+    nameEnOverride,
+    name: nameNo,
+    shortDescriptionNo,
+    shortDescriptionEn,
+    shortDescriptionEnAuto,
+    shortDescriptionEnOverride,
+    shortDescription: shortDescriptionNo,
+    stepsNo,
+    stepsEn,
+    steps: stepsNo,
+    ingredients,
+  }
 }
 
 /**
  * Local seed / offline fallback (15). Live published recipes come from Supabase
  * via RecipesProvider. Admin edits in /admin — do not rely on editing this file.
  */
-export const localRecipes: Recipe[] = [
+const localRecipeSeeds: RecipeSeed[] = [
   {
     id: 'pokebowl-laks',
     name: 'Pokébowl med laks',
@@ -612,6 +774,9 @@ export const localRecipes: Recipe[] = [
     practicalTags: ['Frokost', '2 porsjoner', 'Primusvennlig'],
   },
 ]
+
+/** Local seed — treated as Norwegian; EN empty until admin fills. */
+export const localRecipes: Recipe[] = localRecipeSeeds.map(ensureBilingualRecipe)
 
 export function getIngredientCount(recipe: Recipe): number {
   return recipe.ingredients.length

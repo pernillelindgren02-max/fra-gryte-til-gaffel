@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { RecipePersonalPanel } from '../components/RecipePersonalPanel'
+import { RecipeShareSheet } from '../components/RecipeShareSheet'
 import { SaveSheet } from '../components/SaveSheet'
 import { SafeImage } from '../components/SafeImage'
 import { SettStemningen } from '../components/SettStemningen'
@@ -10,15 +11,16 @@ import { trackEvent } from '../lib/analytics'
 import { getLastAppPath } from '../lib/adminPath'
 import { backLabelForPath, recipePath } from '../lib/recipeLinks'
 import { useAuth } from '../context/AuthContext'
+import { useLocale } from '../context/LocaleContext'
 import { useShoppingList } from '../context/ShoppingListContext'
 import { useToast } from '../context/ToastContext'
 import { useUserData } from '../context/UserDataContext'
 import {
-  campingStoveLabels,
-  dishwashingLevelLabels,
-  priceLevelLabels,
-  storageNeedLabels,
-  waterNeedLabels,
+  getCampingStoveLabels,
+  getDishwashingLevelLabels,
+  getPriceLevelLabels,
+  getStorageNeedLabels,
+  getWaterNeedLabels,
 } from '../data/filterLabels'
 import { useRecipes } from '../context/RecipesContext'
 import type { DishwashingLevel } from '../data/recipes'
@@ -31,12 +33,6 @@ import {
 } from '../utils/scalePortions'
 import './RecipePage.css'
 
-const dishwashingCompact: Record<DishwashingLevel, string> = {
-  almostNothing: 'Nesten ingen oppvask',
-  little: 'Lite oppvask',
-  extra: 'Litt ekstra oppvask',
-}
-
 export function RecipePage() {
   const { id } = useParams<{ id: string }>()
   const location = useLocation()
@@ -45,9 +41,21 @@ export function RecipePage() {
   const { addRecipe, hasRecipe } = useShoppingList()
   const { showToast } = useToast()
   const { user } = useAuth()
+  const { locale, t } = useLocale()
   const { isFavorite, foldersForRecipe } = useUserData()
   const navigate = useNavigate()
   const [saveOpen, setSaveOpen] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
+  const campingStoveLabels = getCampingStoveLabels(locale)
+  const priceLevelLabels = getPriceLevelLabels(locale)
+  const storageNeedLabels = getStorageNeedLabels(locale)
+  const dishwashingLevelLabels = getDishwashingLevelLabels(locale)
+  const waterNeedLabels = getWaterNeedLabels(locale)
+  const dishwashingCompact: Record<DishwashingLevel, string> = {
+    almostNothing: dishwashingLevelLabels.almostNothing,
+    little: dishwashingLevelLabels.little,
+    extra: dishwashingLevelLabels.extra,
+  }
   const locState = location.state as {
     from?: string
     entry?: string
@@ -198,13 +206,22 @@ export function RecipePage() {
         <button type="button" className="recipe-page__back" onClick={goBack}>
           {backLabel}
         </button>
-        <button
-          type="button"
-          className={`recipe-page__save-btn${savedSomewhere ? ' recipe-page__save-btn--on' : ''}`}
-          onClick={() => setSaveOpen(true)}
-        >
-          {savedSomewhere ? 'Lagret' : 'Lagre'}
-        </button>
+        <div className="recipe-page__top-actions">
+          <button
+            type="button"
+            className="recipe-page__share-btn"
+            onClick={() => setShareOpen(true)}
+          >
+            {t('share.menu')}
+          </button>
+          <button
+            type="button"
+            className={`recipe-page__save-btn${savedSomewhere ? ' recipe-page__save-btn--on' : ''}`}
+            onClick={() => setSaveOpen(true)}
+          >
+            {savedSomewhere ? t('recipe.saved') : t('recipe.save')}
+          </button>
+        </div>
       </div>
 
       <div className="recipe-page__image">
@@ -262,10 +279,10 @@ export function RecipePage() {
           className={`recipe-page__list-btn${alreadyOnList ? ' recipe-page__list-btn--on' : ''}`}
           onClick={onAddToList}
           aria-label={
-            alreadyOnList ? 'Åpne handleliste' : 'Legg til i handleliste'
+            alreadyOnList ? t('recipe.inShopping') : t('recipe.addShopping')
           }
         >
-          {alreadyOnList ? 'I handlelisten ›' : 'Legg til i handleliste'}
+          {alreadyOnList ? `${t('recipe.inShopping')} ›` : t('recipe.addShopping')}
         </button>
       </header>
 
@@ -274,10 +291,10 @@ export function RecipePage() {
       <SettStemningen recipe={recipe} />
 
       <section className="recipe-page__section">
-        <h2 className="recipe-page__section-title">Ingredienser</h2>
+        <h2 className="recipe-page__section-title">{t('recipe.ingredients')}</h2>
         <ul className="recipe-page__ingredients">
           {recipe.ingredients.map((ingredient) => (
-            <li key={`${ingredient.name}-${ingredient.unit}`}>
+            <li key={`${ingredient.id}-${ingredient.unit}`}>
               {formatScaledIngredient(ingredient, scale)}
             </li>
           ))}
@@ -285,7 +302,7 @@ export function RecipePage() {
       </section>
 
       <section className="recipe-page__section">
-        <h2 className="recipe-page__section-title">Slik gjør du</h2>
+        <h2 className="recipe-page__section-title">{t('recipe.steps')}</h2>
         <ol className="recipe-page__steps">
           {recipe.steps.map((step, index) => (
             <li key={step}>
@@ -314,6 +331,12 @@ export function RecipePage() {
         open={saveOpen}
         recipeId={recipe.id}
         onClose={() => setSaveOpen(false)}
+      />
+      <RecipeShareSheet
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        recipe={recipe}
+        portions={portions}
       />
     </article>
   )

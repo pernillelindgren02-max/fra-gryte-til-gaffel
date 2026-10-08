@@ -16,6 +16,12 @@ import type {
   TipImage,
   TipStatus,
 } from './tipsTypes'
+import {
+  normalizeTipBlock,
+  normalizeTipCategory,
+  normalizeTipImage,
+  normalizeTipListFields,
+} from './tipsNormalize'
 
 const BUCKET = 'tips'
 
@@ -31,23 +37,21 @@ export function tipImagePublicUrl(
 }
 
 function mapCategory(row: Record<string, unknown>): TipCategory {
-  return {
-    id: String(row.id),
-    slug: String(row.slug ?? ''),
-    name: String(row.name ?? ''),
-    sort_order: Number(row.sort_order) || 0,
-  }
+  return normalizeTipCategory({
+    ...row,
+    name: String(row.name_no ?? row.name ?? ''),
+  })
 }
 
 function mapListItem(
   row: Record<string, unknown>,
   category?: TipCategory | null,
 ): TipArticleListItem {
+  const fields = normalizeTipListFields(row, category)
   return {
     id: String(row.id),
     slug: String(row.slug ?? ''),
-    title: String(row.title ?? ''),
-    excerpt: String(row.excerpt ?? ''),
+    ...fields,
     category_id: row.category_id ? String(row.category_id) : null,
     category: category ?? null,
     status: (row.status === 'published' ? 'published' : 'draft') as TipStatus,
@@ -61,30 +65,26 @@ function mapListItem(
   }
 }
 
-function mapBlock(row: Record<string, unknown>): TipBlock {
-  const payload =
-    row.payload && typeof row.payload === 'object'
-      ? (row.payload as TipBlockPayload)
-      : {}
+function mapBlock(row: Record<string, unknown>, articleSlug = ''): TipBlock {
+  const block = normalizeTipBlock(row, articleSlug)
+  const withUrl = (p: TipBlockPayload): TipBlockPayload => ({
+    ...p,
+    url: tipImagePublicUrl(p.url) ?? p.url,
+  })
   return {
-    id: String(row.id),
-    article_id: String(row.article_id),
-    block_type: String(row.block_type) as TipBlockType,
-    sort_order: Number(row.sort_order) || 0,
-    payload: {
-      ...payload,
-      url: tipImagePublicUrl(payload.url) ?? payload.url,
-    },
+    ...block,
+    payload: withUrl(block.payload),
+    payloadNo: withUrl(block.payloadNo),
+    payloadEn: withUrl(block.payloadEn),
+    payloadEnAuto: withUrl(block.payloadEnAuto),
   }
 }
 
-function mapImage(row: Record<string, unknown>): TipImage {
+function mapImage(row: Record<string, unknown>, articleSlug = ''): TipImage {
+  const image = normalizeTipImage(row, articleSlug)
   return {
-    id: String(row.id),
-    article_id: String(row.article_id),
-    url: tipImagePublicUrl(String(row.url ?? '')) ?? '',
-    caption: String(row.caption ?? ''),
-    sort_order: Number(row.sort_order) || 0,
+    ...image,
+    url: tipImagePublicUrl(image.url) ?? '',
   }
 }
 
@@ -182,10 +182,15 @@ async function loadArticleExtras(
     )
   }
 
+  const slug = list.slug
   return {
     ...list,
-    blocks: ((blocksRes.data as Record<string, unknown>[]) ?? []).map(mapBlock),
-    images: ((imagesRes.data as Record<string, unknown>[]) ?? []).map(mapImage),
+    blocks: ((blocksRes.data as Record<string, unknown>[]) ?? []).map((row) =>
+      mapBlock(row, slug),
+    ),
+    images: ((imagesRes.data as Record<string, unknown>[]) ?? []).map((row) =>
+      mapImage(row, slug),
+    ),
     related_recipe_ids: (
       (recipesRes.data as { recipe_id: string }[]) ?? []
     ).map((r) => r.recipe_id),
@@ -241,7 +246,15 @@ export async function fetchTipByIdAdmin(
 export type TipArticleInput = {
   slug: string
   title: string
+  title_no?: string
+  title_en?: string
+  title_en_auto?: string
+  title_en_override?: boolean
   excerpt: string
+  excerpt_no?: string
+  excerpt_en?: string
+  excerpt_en_auto?: string
+  excerpt_en_override?: boolean
   category_id: string | null
   status: TipStatus
   is_featured: boolean
@@ -249,15 +262,44 @@ export type TipArticleInput = {
   hero_image_url: string | null
 }
 
+function articleInputToRow(input: TipArticleInput | Partial<TipArticleInput>) {
+  const titleNo = (input.title_no ?? input.title ?? '').trim()
+  const excerptNo = (input.excerpt_no ?? input.excerpt ?? '').trim()
+  const titleEnOverride =
+    Boolean(input.title_en_override) && Boolean((input.title_en || '').trim())
+  const excerptEnOverride =
+    Boolean(input.excerpt_en_override) &&
+    Boolean((input.excerpt_en || '').trim())
+  return {
+    slug: input.slug,
+    title: titleNo,
+    title_no: titleNo,
+    title_en: titleEnOverride ? (input.title_en || '').trim() : '',
+    title_en_auto: input.title_en_auto ?? '',
+    title_en_override: titleEnOverride,
+    excerpt: excerptNo,
+    excerpt_no: excerptNo,
+    excerpt_en: excerptEnOverride ? (input.excerpt_en || '').trim() : '',
+    excerpt_en_auto: input.excerpt_en_auto ?? '',
+    excerpt_en_override: excerptEnOverride,
+    category_id: input.category_id,
+    status: input.status,
+    is_featured: input.is_featured,
+    sort_order: input.sort_order,
+    hero_image_url: input.hero_image_url,
+  }
+}
+
 export async function createTipArticle(
   input: TipArticleInput,
 ): Promise<TipArticleListItem> {
   if (!supabase) throw new Error('Supabase er ikke konfigurert.')
   const now = new Date().toISOString()
+  const row = articleInputToRow(input)
   const { data, error } = await supabase
     .from('tip_articles')
     .insert({
-      ...input,
+      ...row,
       published_at: input.status === 'published' ? now : null,
       updated_at: now,
     })
@@ -273,8 +315,54 @@ export async function updateTipArticle(
 ): Promise<void> {
   if (!supabase) throw new Error('Supabase er ikke konfigurert.')
   const patch: Record<string, unknown> = {
-    ...input,
     updated_at: new Date().toISOString(),
+  }
+  if (input.slug != null) patch.slug = input.slug
+  if (
+    input.title != null ||
+    input.title_no != null ||
+    input.title_en != null ||
+    input.title_en_override != null
+  ) {
+    Object.assign(patch, articleInputToRow({
+      slug: input.slug ?? '',
+      title: input.title ?? input.title_no ?? '',
+      title_no: input.title_no,
+      title_en: input.title_en,
+      title_en_auto: input.title_en_auto,
+      title_en_override: input.title_en_override,
+      excerpt: input.excerpt ?? input.excerpt_no ?? '',
+      excerpt_no: input.excerpt_no,
+      excerpt_en: input.excerpt_en,
+      excerpt_en_auto: input.excerpt_en_auto,
+      excerpt_en_override: input.excerpt_en_override,
+      category_id: input.category_id ?? null,
+      status: input.status ?? 'draft',
+      is_featured: input.is_featured ?? false,
+      sort_order: input.sort_order ?? 0,
+      hero_image_url: input.hero_image_url ?? null,
+    }))
+  } else {
+    if (input.excerpt != null || input.excerpt_no != null) {
+      const excerptNo = (input.excerpt_no ?? input.excerpt ?? '').trim()
+      patch.excerpt = excerptNo
+      patch.excerpt_no = excerptNo
+    }
+    if (input.excerpt_en != null || input.excerpt_en_override != null) {
+      const override =
+        Boolean(input.excerpt_en_override) &&
+        Boolean((input.excerpt_en || '').trim())
+      patch.excerpt_en = override ? (input.excerpt_en || '').trim() : ''
+      patch.excerpt_en_override = override
+      if (input.excerpt_en_auto != null)
+        patch.excerpt_en_auto = input.excerpt_en_auto
+    }
+    if (input.category_id !== undefined) patch.category_id = input.category_id
+    if (input.status != null) patch.status = input.status
+    if (input.is_featured != null) patch.is_featured = input.is_featured
+    if (input.sort_order != null) patch.sort_order = input.sort_order
+    if (input.hero_image_url !== undefined)
+      patch.hero_image_url = input.hero_image_url
   }
   if (input.status === 'published') {
     patch.published_at = new Date().toISOString()
@@ -298,6 +386,10 @@ export async function replaceTipBlocks(
     block_type: TipBlockType
     sort_order: number
     payload: TipBlockPayload
+    payload_no?: TipBlockPayload
+    payload_en?: TipBlockPayload
+    payload_en_auto?: TipBlockPayload
+    payload_en_override?: boolean
   }>,
 ): Promise<void> {
   if (!supabase) throw new Error('Supabase er ikke konfigurert.')
@@ -307,20 +399,39 @@ export async function replaceTipBlocks(
     .eq('article_id', articleId)
   if (delErr) throw delErr
   if (blocks.length === 0) return
-  const rows = blocks.map((b) => ({
-    article_id: articleId,
-    block_type: b.block_type,
-    sort_order: b.sort_order,
-    payload: b.payload,
-    updated_at: new Date().toISOString(),
-  }))
+  const rows = blocks.map((b) => {
+    const payloadNo = b.payload_no ?? b.payload
+    const hasEn =
+      Boolean(b.payload_en_override) &&
+      b.payload_en &&
+      Object.keys(b.payload_en).length > 0
+    return {
+      article_id: articleId,
+      block_type: b.block_type,
+      sort_order: b.sort_order,
+      payload: payloadNo,
+      payload_no: payloadNo,
+      payload_en: hasEn ? b.payload_en : {},
+      payload_en_auto: b.payload_en_auto ?? {},
+      payload_en_override: Boolean(hasEn),
+      updated_at: new Date().toISOString(),
+    }
+  })
   const { error } = await supabase.from('tip_blocks').insert(rows)
   if (error) throw error
 }
 
 export async function replaceTipImages(
   articleId: string,
-  images: Array<{ url: string; caption: string; sort_order: number }>,
+  images: Array<{
+    url: string
+    caption: string
+    caption_no?: string
+    caption_en?: string
+    caption_en_auto?: string
+    caption_en_override?: boolean
+    sort_order: number
+  }>,
 ): Promise<void> {
   if (!supabase) throw new Error('Supabase er ikke konfigurert.')
   const { error: delErr } = await supabase
@@ -330,12 +441,22 @@ export async function replaceTipImages(
   if (delErr) throw delErr
   if (images.length === 0) return
   const { error } = await supabase.from('tip_images').insert(
-    images.map((img) => ({
-      article_id: articleId,
-      url: img.url,
-      caption: img.caption,
-      sort_order: img.sort_order,
-    })),
+    images.map((img) => {
+      const captionNo = (img.caption_no ?? img.caption).trim()
+      const override =
+        Boolean(img.caption_en_override) &&
+        Boolean((img.caption_en || '').trim())
+      return {
+        article_id: articleId,
+        url: img.url,
+        caption: captionNo,
+        caption_no: captionNo,
+        caption_en: override ? (img.caption_en || '').trim() : '',
+        caption_en_auto: img.caption_en_auto ?? '',
+        caption_en_override: override,
+        sort_order: img.sort_order,
+      }
+    }),
   )
   if (error) throw error
 }

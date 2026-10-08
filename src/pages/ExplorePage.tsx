@@ -13,12 +13,15 @@ import {
   ExploreResultsSkeleton,
   ExploreSkeleton,
 } from '../components/skeleton'
+import { useLocale } from '../context/LocaleContext'
 import { useRecipes } from '../context/RecipesContext'
 import { useSiteContent } from '../context/SiteContentContext'
 import {
   EXPLORE_CATEGORIES,
   getCategoryDef,
 } from '../data/exploreCategories'
+import { getBrand } from '../i18n/brand'
+import { localizeExploreSettings } from '../i18n/localizeExplore'
 import { emptyFilters, type FilterState, type Recipe } from '../data/recipes'
 import {
   clearExploreScrollFreeze,
@@ -134,7 +137,13 @@ function buildExploreBlocks(
 
 export function ExplorePage() {
   const { recipes, loading, error, refresh } = useRecipes()
-  const { explore, getCopy, theme } = useSiteContent()
+  const { explore: exploreRaw, getCopy, theme } = useSiteContent()
+  const { locale, t } = useLocale()
+  const brand = getBrand(locale)
+  const explore = useMemo(
+    () => localizeExploreSettings(exploreRaw, locale),
+    [exploreRaw, locale],
+  )
   const initial = useRef(loadExploreSession())
   const [searchQuery, setSearchQuery] = useState(initial.current.searchQuery)
   const [filters, setFilters] = useState<FilterState>(initial.current.filters)
@@ -175,8 +184,13 @@ export function ExplorePage() {
   }, [activeCategoryConfig, recipes])
 
   const curatedSections = useMemo(
-    () => buildCuratedSections(recipes, explore),
-    [recipes, explore],
+    () =>
+      buildCuratedSections(
+        recipes,
+        explore,
+        locale === 'en' ? 'Featured' : 'Utvalgt',
+      ),
+    [recipes, explore, locale],
   )
 
   const exploreBlocks = useMemo(
@@ -339,13 +353,23 @@ export function ExplorePage() {
               d="M48 88c-18-28 8-62 42-70 28-7 48 8 78 4 26-4 52-22 78-12 30 12 42 42 34 70-6 22 8 48-14 64-24 18-58 8-86 14-30 6-58 24-86 12-28-12-26-42-46-82Z"
             />
           </svg>
-          <p className="explore__brand" aria-label="Fra Gryte Til Gaffel">
-            <span className="explore__brand-line">Fra Gryte</span>
-            <span className="explore__brand-line">Til Gaffel</span>
+          <p className="explore__brand" aria-label={brand.name}>
+            {locale === 'en' ? (
+              <>
+                <span className="explore__brand-line">One Pot</span>
+                <span className="explore__brand-line">Wonder</span>
+              </>
+            ) : (
+              <>
+                <span className="explore__brand-line">Fra Gryte</span>
+                <span className="explore__brand-line">Til Gaffel</span>
+              </>
+            )}
           </p>
         </div>
         <h1 className="explore__tagline">
-          {getCopy('explore.tagline', 'En gryte unna noe godt')}
+          {t('explore.tagline') ||
+            getCopy('explore.tagline', 'En gryte unna noe godt')}
         </h1>
         {explore.blurb.trim() ? (
           <p className="explore__blurb">{explore.blurb}</p>
@@ -367,10 +391,13 @@ export function ExplorePage() {
         <ClearableSearchInput
           className="explore-search__clearable"
           label="Søk"
-          placeholder={getCopy(
-            'explore.search_placeholder',
-            'Søk etter oppskrift eller ingrediens',
-          )}
+          placeholder={
+            t('explore.searchPlaceholder') ||
+            getCopy(
+              'explore.search_placeholder',
+              'Søk etter oppskrift eller ingrediens',
+            )
+          }
           value={searchQuery}
           onChange={setSearchQuery}
           onClear={clearSearch}
@@ -380,8 +407,8 @@ export function ExplorePage() {
           className={`explore-search__filter-btn${activeFilterCount > 0 ? ' explore-search__filter-btn--active' : ''}`}
           aria-label={
             activeFilterCount > 0
-              ? `Filtre, ${activeFilterCount} aktive`
-              : 'Åpne filtre'
+              ? `${t('explore.filters')}, ${activeFilterCount}`
+              : t('explore.filters')
           }
           onClick={openFilterSheet}
         >
@@ -394,10 +421,17 @@ export function ExplorePage() {
         </button>
       </div>
 
-      <div className="explore-categories" aria-label="Kategorier">
+      <div className="explore-categories" aria-label={t('explore.categories')}>
         <ul className="explore-categories__track">
           {EXPLORE_CATEGORIES.map((cat) => {
             const selected = categoryId === cat.id
+            const cfg = categoryConfigs.find((c) => c.id === cat.id)
+            const label =
+              cfg?.title ||
+              (locale === 'en'
+                ? explore.categories.find((c) => c.id === cat.id)?.title
+                : null) ||
+              cat.label
             return (
               <li key={cat.id}>
                 <button
@@ -411,7 +445,7 @@ export function ExplorePage() {
                   <span className="explore-category__art">
                     <img src={cat.image} alt="" width={72} height={72} />
                   </span>
-                  <span className="explore-category__label">{cat.label}</span>
+                  <span className="explore-category__label">{label}</span>
                 </button>
               </li>
             )

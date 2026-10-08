@@ -1,0 +1,77 @@
+.lang-choice {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: color-mix(in srgb, #1a2e2c 42%, transparent);
+  animation: lang-choice-fade 0.25s ease-out;
+}
+
+@keyframes lang-choice-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.lang-choice__card {
+  width: min(100%, 22rem);
+  background: #f7f4ef;
+  border-radius: 1.15rem;
+  padding: 1.35rem 1.25rem 1.4rem;
+  box-shadow: 0 12px 40px color-mix(in srgb, #255957 20%, transparent);
+  text-align: center;
+  animation: lang-choice-up 0.28s ease-out;
+}
+
+@keyframes lang-choice-up {
+  from {
+    transform: translateY(12px);
+    opacity: 0.7;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.lang-choice__title {
+  margin: 0;
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 1.45rem;
+  color: var(--color-teal, #255957);
+}
+
+.lang-choice__lead {
+  margin: 0.45rem 0 1.1rem;
+  font-size: 0.95rem;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+.lang-choice__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.lang-choice__btn {
+  border: none;
+  font: inherit;
+  font-weight: 700;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  background: var(--color-teal, #255957);
+  color: white;
+}
+
+.lang-choice__btn--secondary {
+  background: white;
+  color: var(--color-teal, #255957);
+  border: 1px solid color-mix(in srgb, var(--color-teal, #255957) 28%, transparent);
+}

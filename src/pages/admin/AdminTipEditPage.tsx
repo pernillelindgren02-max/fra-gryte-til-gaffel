@@ -26,6 +26,17 @@ import {
   type TipImage,
   type TipStatus,
 } from '../../lib/tipsTypes'
+import {
+  suggestTipBlockPayloadEn,
+  suggestTipExcerptEn,
+  suggestTipTitleEn,
+} from '../../i18n/editorialAuto'
+import {
+  BilingualHint,
+  BilingualTextInput,
+  LangTabs,
+  type ContentLangTab,
+} from '../../components/admin/BilingualFields'
 import { toUserSaveError } from '../../lib/userErrors'
 import './Admin.css'
 
@@ -33,6 +44,9 @@ type DraftBlock = {
   key: string
   block_type: TipBlockType
   payload: TipBlockPayload
+  payloadEn: TipBlockPayload
+  payloadEnAuto: TipBlockPayload
+  payloadEnOverride: boolean
 }
 
 function emptyPayload(type: TipBlockType): TipBlockPayload {
@@ -55,13 +69,20 @@ function emptyPayload(type: TipBlockType): TipBlockPayload {
   }
 }
 
-function fromBlocks(blocks: TipBlock[]): DraftBlock[] {
+function fromBlocks(blocks: TipBlock[], articleSlug = ''): DraftBlock[] {
   return [...blocks]
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((b) => ({
       key: b.id,
       block_type: b.block_type,
-      payload: { ...b.payload },
+      payload: { ...(b.payloadNo ?? b.payload) },
+      payloadEn: { ...(b.payloadEn ?? {}) },
+      payloadEnAuto: {
+        ...(b.payloadEnAuto ??
+          suggestTipBlockPayloadEn(articleSlug, b.sort_order) ??
+          {}),
+      },
+      payloadEnOverride: Boolean(b.payloadEnOverride),
     }))
 }
 
@@ -78,8 +99,14 @@ export function AdminTipEditPage() {
   const [message, setMessage] = useState<string | null>(null)
 
   const [title, setTitle] = useState('')
+  const [titleEn, setTitleEn] = useState('')
+  const [titleEnAuto, setTitleEnAuto] = useState('')
+  const [titleEnOverride, setTitleEnOverride] = useState(false)
   const [slug, setSlug] = useState('')
   const [excerpt, setExcerpt] = useState('')
+  const [excerptEn, setExcerptEn] = useState('')
+  const [excerptEnAuto, setExcerptEnAuto] = useState('')
+  const [excerptEnOverride, setExcerptEnOverride] = useState(false)
   const [categoryId, setCategoryId] = useState<string>('')
   const [status, setStatus] = useState<TipStatus>('draft')
   const [featured, setFeatured] = useState(false)
@@ -87,11 +114,19 @@ export function AdminTipEditPage() {
   const [heroUrl, setHeroUrl] = useState<string | null>(null)
   const [blocks, setBlocks] = useState<DraftBlock[]>([])
   const [images, setImages] = useState<
-    Array<{ key: string; url: string; caption: string }>
+    Array<{
+      key: string
+      url: string
+      caption: string
+      captionEn: string
+      captionEnAuto: string
+      captionEnOverride: boolean
+    }>
   >([])
   const [relatedRecipes, setRelatedRecipes] = useState<string[]>([])
   const [relatedArticles, setRelatedArticles] = useState<string[]>([])
   const [articleId, setArticleId] = useState<string | null>(isNew ? null : id!)
+  const [lang, setLang] = useState<ContentLangTab>('no')
 
   useEffect(() => {
     void (async () => {
@@ -119,20 +154,32 @@ export function AdminTipEditPage() {
           return
         }
         setArticleId(row.id)
-        setTitle(row.title)
+        setTitle(row.titleNo || row.title)
+        setTitleEn(row.titleEn)
+        setTitleEnAuto(row.titleEnAuto || suggestTipTitleEn(row.slug, row.titleNo || row.title))
+        setTitleEnOverride(row.titleEnOverride)
         setSlug(row.slug)
-        setExcerpt(row.excerpt)
+        setExcerpt(row.excerptNo || row.excerpt)
+        setExcerptEn(row.excerptEn)
+        setExcerptEnAuto(
+          row.excerptEnAuto ||
+            suggestTipExcerptEn(row.slug, row.excerptNo || row.excerpt),
+        )
+        setExcerptEnOverride(row.excerptEnOverride)
         setCategoryId(row.category_id ?? '')
         setStatus(row.status)
         setFeatured(row.is_featured)
         setSortOrder(row.sort_order)
         setHeroUrl(row.hero_image_url)
-        setBlocks(fromBlocks(row.blocks))
+        setBlocks(fromBlocks(row.blocks, row.slug))
         setImages(
           row.images.map((img: TipImage) => ({
             key: img.id,
             url: img.url,
-            caption: img.caption,
+            caption: img.captionNo || img.caption,
+            captionEn: img.captionEn,
+            captionEnAuto: img.captionEnAuto,
+            captionEnOverride: img.captionEnOverride,
           })),
         )
         setRelatedRecipes(row.related_recipe_ids)
@@ -190,7 +237,14 @@ export function AdminTipEditPage() {
       const url = tipImagePublicUrl(path) ?? path
       setImages((prev) => [
         ...prev,
-        { key: `img-${Date.now()}`, url, caption: '' },
+        {
+          key: `img-${Date.now()}`,
+          url,
+          caption: '',
+          captionEn: '',
+          captionEnAuto: '',
+          captionEnOverride: false,
+        },
       ])
       setMessage('Bilde lagt til — husk å lagre.')
     } catch (err) {
@@ -204,10 +258,24 @@ export function AdminTipEditPage() {
     setSaving(true)
     setMessage(null)
     try {
+      const slugFinal = (slug.trim() || slugifyId(title) || 'tips').slice(0, 80)
+      const titleNo = title.trim() || 'Uten tittel'
+      const titleAuto =
+        titleEnAuto || suggestTipTitleEn(slugFinal, titleNo)
+      const excerptAuto =
+        excerptEnAuto || suggestTipExcerptEn(slugFinal, excerpt.trim())
       const payload = {
-        title: title.trim() || 'Uten tittel',
-        slug: (slug.trim() || slugifyId(title) || 'tips').slice(0, 80),
+        title: titleNo,
+        title_no: titleNo,
+        title_en: titleEnOverride ? titleEn.trim() : '',
+        title_en_auto: titleAuto,
+        title_en_override: titleEnOverride && Boolean(titleEn.trim()),
+        slug: slugFinal,
         excerpt: excerpt.trim(),
+        excerpt_no: excerpt.trim(),
+        excerpt_en: excerptEnOverride ? excerptEn.trim() : '',
+        excerpt_en_auto: excerptAuto,
+        excerpt_en_override: excerptEnOverride && Boolean(excerptEn.trim()),
         category_id: categoryId || null,
         status,
         is_featured: featured,
@@ -231,6 +299,13 @@ export function AdminTipEditPage() {
           block_type: b.block_type,
           sort_order: i + 1,
           payload: b.payload,
+          payload_no: b.payload,
+          payload_en: b.payloadEnOverride ? b.payloadEn : {},
+          payload_en_auto:
+            b.payloadEnAuto ||
+            suggestTipBlockPayloadEn(slugFinal, i + 1) ||
+            {},
+          payload_en_override: b.payloadEnOverride,
         })),
       )
       await replaceTipImages(
@@ -240,6 +315,10 @@ export function AdminTipEditPage() {
           .map((img, i) => ({
             url: img.url,
             caption: img.caption,
+            caption_no: img.caption,
+            caption_en: img.captionEnOverride ? img.captionEn : '',
+            caption_en_auto: img.captionEnAuto,
+            caption_en_override: img.captionEnOverride,
             sort_order: i + 1,
           })),
       )
@@ -297,18 +376,38 @@ export function AdminTipEditPage() {
 
       {message ? <p className="admin__message">{message}</p> : null}
 
+      <LangTabs value={lang} onChange={setLang} />
+      <BilingualHint>
+        {lang === 'no'
+          ? 'Norsk er hovedinnhold for tittel, beskrivelse og blokker.'
+          : 'English: automatic/default first. Custom EN marks Manual override. Clear restores automatic.'}
+      </BilingualHint>
+
       <fieldset className="admin-form__block">
         <legend>Grunninfo</legend>
-        <label className="admin-form__field">
-          <span>Tittel</span>
-          <input
-            value={title}
-            onChange={(e) => {
-              setTitle(e.target.value)
-              if (isNew && !slug) setSlug(slugifyId(e.target.value))
-            }}
-          />
-        </label>
+        <BilingualTextInput
+          lang={lang}
+          labelNo="Tittel (NO)"
+          labelEn="Title (EN)"
+          valueNo={title}
+          valueEn={titleEn}
+          autoEn={titleEnAuto || suggestTipTitleEn(slug, title)}
+          isOverride={titleEnOverride}
+          onChangeNo={(value) => {
+            setTitle(value)
+            setTitleEnAuto(suggestTipTitleEn(slug || slugifyId(value), value))
+            if (isNew && !slug) setSlug(slugifyId(value))
+          }}
+          onChangeEn={(value) => {
+            setTitleEn(value)
+            setTitleEnOverride(true)
+          }}
+          onClearOverride={() => {
+            setTitleEn('')
+            setTitleEnOverride(false)
+            setTitleEnAuto(suggestTipTitleEn(slug, title))
+          }}
+        />
         <label className="admin-form__field">
           <span>Slug (deep link)</span>
           <input
@@ -316,14 +415,30 @@ export function AdminTipEditPage() {
             onChange={(e) => setSlug(slugifyId(e.target.value))}
           />
         </label>
-        <label className="admin-form__field">
-          <span>Kort beskrivelse</span>
-          <textarea
-            rows={2}
-            value={excerpt}
-            onChange={(e) => setExcerpt(e.target.value)}
-          />
-        </label>
+        <BilingualTextInput
+          lang={lang}
+          labelNo="Kort beskrivelse (NO)"
+          labelEn="Excerpt (EN)"
+          valueNo={excerpt}
+          valueEn={excerptEn}
+          autoEn={excerptEnAuto || suggestTipExcerptEn(slug, excerpt)}
+          isOverride={excerptEnOverride}
+          multiline
+          rows={2}
+          onChangeNo={(value) => {
+            setExcerpt(value)
+            setExcerptEnAuto(suggestTipExcerptEn(slug, value))
+          }}
+          onChangeEn={(value) => {
+            setExcerptEn(value)
+            setExcerptEnOverride(true)
+          }}
+          onClearOverride={() => {
+            setExcerptEn('')
+            setExcerptEnOverride(false)
+            setExcerptEnAuto(suggestTipExcerptEn(slug, excerpt))
+          }}
+        />
         <label className="admin-form__field">
           <span>Kategori</span>
           <select
@@ -436,6 +551,10 @@ export function AdminTipEditPage() {
                   patchBlock(block.key, {
                     block_type: type,
                     payload: emptyPayload(type),
+                    payloadEn: {},
+                    payloadEnAuto:
+                      suggestTipBlockPayloadEn(slug, index + 1) ?? {},
+                    payloadEnOverride: false,
                   })
                 }}
               >
@@ -473,9 +592,44 @@ export function AdminTipEditPage() {
             </div>
             <BlockFields
               type={block.block_type}
-              payload={block.payload}
-              onChange={(payload) => patchBlock(block.key, { payload })}
+              payload={
+                lang === 'en'
+                  ? block.payloadEnOverride
+                    ? block.payloadEn
+                    : block.payloadEnAuto
+                  : block.payload
+              }
+              onChange={(payload) => {
+                if (lang === 'en') {
+                  patchBlock(block.key, {
+                    payloadEn: payload,
+                    payloadEnOverride: true,
+                    payloadEnAuto:
+                      block.payloadEnAuto ||
+                      suggestTipBlockPayloadEn(slug, index + 1) ||
+                      {},
+                  })
+                } else {
+                  patchBlock(block.key, { payload })
+                }
+              }}
             />
+            {lang === 'en' && block.payloadEnOverride ? (
+              <button
+                type="button"
+                className="admin__btn admin__btn--ghost admin-form__clear-en"
+                onClick={() =>
+                  patchBlock(block.key, {
+                    payloadEn: {},
+                    payloadEnOverride: false,
+                    payloadEnAuto:
+                      suggestTipBlockPayloadEn(slug, index + 1) ?? {},
+                  })
+                }
+              >
+                Clear block override — restore automatic
+              </button>
+            ) : null}
           </div>
         ))}
         <button
@@ -488,6 +642,9 @@ export function AdminTipEditPage() {
                 key: `new-${Date.now()}`,
                 block_type: 'text',
                 payload: emptyPayload('text'),
+                payloadEn: {},
+                payloadEnAuto: {},
+                payloadEnOverride: false,
               },
             ])
           }

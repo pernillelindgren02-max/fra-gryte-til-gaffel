@@ -9,59 +9,109 @@ import type {
   TimeRange,
   WaterNeed,
 } from './recipes'
+import { translate } from '../i18n/messages'
+import type { AppLocale } from '../i18n/types'
 
-export const timeRangeLabels: Record<TimeRange, string> = {
-  upTo20: '20 min eller mindre',
-  '21to30': '21–30',
-  '31to40': '31–40',
-  '41to60': '41–60',
+/** Stable internal values → translated labels. Default locale NO for legacy callers. */
+export function getTimeRangeLabels(
+  locale: AppLocale = 'no',
+): Record<TimeRange, string> {
+  return {
+    upTo20: translate(locale, 'time.upTo20'),
+    '21to30': translate(locale, 'time.21to30'),
+    '31to40': translate(locale, 'time.31to40'),
+    '41to60': translate(locale, 'time.41to60'),
+  }
 }
 
-export const preparationLevelLabels: Record<PreparationLevel, string> = {
-  noCutting: 'Ingen kutting',
-  someCutting: 'Litt kutting',
-  morePrep: 'Mer forberedelser',
+export function getPreparationLevelLabels(
+  locale: AppLocale = 'no',
+): Record<PreparationLevel, string> {
+  return {
+    noCutting: translate(locale, 'prep.noCutting'),
+    someCutting: translate(locale, 'prep.someCutting'),
+    morePrep: translate(locale, 'prep.morePrep'),
+  }
 }
 
-export const ingredientCountLabels: Record<IngredientCountRange, string> = {
-  '1to4': '1–4',
-  '5to6': '5–6',
-  '7to8': '7–8',
-  moreThan8: 'Mer enn 8',
+export function getIngredientCountLabels(
+  locale: AppLocale = 'no',
+): Record<IngredientCountRange, string> {
+  return {
+    '1to4': translate(locale, 'ingCount.1to4'),
+    '5to6': translate(locale, 'ingCount.5to6'),
+    '7to8': translate(locale, 'ingCount.7to8'),
+    moreThan8: translate(locale, 'ingCount.moreThan8'),
+  }
 }
 
-export const storageNeedLabels: Record<StorageNeed, string> = {
-  noCooling: 'Ingen kjøling nødvendig',
-  fewHoursOk: 'Tåler noen timer uten kjøling',
-  needsCooling: 'Krever kjøling',
+export function getStorageNeedLabels(
+  locale: AppLocale = 'no',
+): Record<StorageNeed, string> {
+  return {
+    noCooling: translate(locale, 'storage.noCooling'),
+    fewHoursOk: translate(locale, 'storage.fewHoursOk'),
+    needsCooling: translate(locale, 'storage.needsCooling'),
+  }
 }
 
-export const mealTypeLabels: Record<MealType, string> = {
-  breakfast: 'Frokost',
-  lunch: 'Lunsj',
-  dinner: 'Middag',
+export function getMealTypeLabels(
+  locale: AppLocale = 'no',
+): Record<MealType, string> {
+  return {
+    breakfast: translate(locale, 'meal.breakfast'),
+    lunch: translate(locale, 'meal.lunch'),
+    dinner: translate(locale, 'meal.dinner'),
+  }
 }
 
-export const priceLevelLabels: Record<PriceLevel, string> = {
-  cheap: 'Billig',
-  medium: 'Middels',
-  luxury: 'Luksus',
+export function getPriceLevelLabels(
+  locale: AppLocale = 'no',
+): Record<PriceLevel, string> {
+  return {
+    cheap: translate(locale, 'price.cheap'),
+    medium: translate(locale, 'price.medium'),
+    luxury: translate(locale, 'price.luxury'),
+  }
 }
 
-export const dishwashingLevelLabels: Record<DishwashingLevel, string> = {
-  almostNothing: 'Nesten ingenting',
-  little: 'Lite',
-  extra: 'Litt ekstra',
+export function getDishwashingLevelLabels(
+  locale: AppLocale = 'no',
+): Record<DishwashingLevel, string> {
+  return {
+    almostNothing: translate(locale, 'dishes.almostNothing'),
+    little: translate(locale, 'dishes.little'),
+    extra: translate(locale, 'dishes.extra'),
+  }
 }
 
-export const campingStoveLabels: Record<CampingStoveSuitability, string> = {
-  perfect: 'Perfekt på primus',
-  adaptable: 'Kan tilpasses primus',
-  indoorBest: 'Best inne, men fungerer på primus',
+export function getCampingStoveLabels(
+  locale: AppLocale = 'no',
+): Record<CampingStoveSuitability, string> {
+  return {
+    perfect: translate(locale, 'stove.perfect'),
+    adaptable: translate(locale, 'stove.adaptable'),
+    indoorBest: translate(locale, 'stove.indoorBest'),
+  }
 }
 
-export const waterNeedLabels: Record<WaterNeed, string> = {
-  almostNone: 'Nesten ikke vann',
-  some: 'Litt vann',
-  lots: 'Krever mye vann',
+export function getWaterNeedLabels(
+  locale: AppLocale = 'no',
+): Record<WaterNeed, string> {
+  return {
+    almostNone: translate(locale, 'water.almostNone'),
+    some: translate(locale, 'water.some'),
+    lots: translate(locale, 'water.lots'),
+  }
 }
+
+/** Legacy NO exports — prefer get*Labels(locale) in new code. */
+export const timeRangeLabels = getTimeRangeLabels('no')
+export const preparationLevelLabels = getPreparationLevelLabels('no')
+export const ingredientCountLabels = getIngredientCountLabels('no')
+export const storageNeedLabels = getStorageNeedLabels('no')
+export const mealTypeLabels = getMealTypeLabels('no')
+export const priceLevelLabels = getPriceLevelLabels('no')
+export const dishwashingLevelLabels = getDishwashingLevelLabels('no')
+export const campingStoveLabels = getCampingStoveLabels('no')
+export const waterNeedLabels = getWaterNeedLabels('no')

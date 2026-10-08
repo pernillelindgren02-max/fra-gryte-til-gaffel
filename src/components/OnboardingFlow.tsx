@@ -1,10 +1,17 @@
-import { useEffect, useRef, useState, type TouchEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type TouchEvent } from 'react'
+import { useLocale } from '../context/LocaleContext'
 import { useOnboarding } from '../context/OnboardingContext'
+import { localizeOnboardingSteps } from '../i18n/localizeOnboarding'
 import { trackEvent } from '../lib/analytics'
 import './OnboardingFlow.css'
 
 export function OnboardingFlow() {
-  const { open, steps, mode, closeFlow } = useOnboarding()
+  const { open, steps: rawSteps, mode, closeFlow } = useOnboarding()
+  const { locale, t } = useLocale()
+  const steps = useMemo(
+    () => localizeOnboardingSteps(rawSteps, locale),
+    [rawSteps, locale],
+  )
   const [index, setIndex] = useState(0)
   const [imgFailed, setImgFailed] = useState<Record<string, boolean>>({})
   const touchStartX = useRef<number | null>(null)
@@ -75,13 +82,18 @@ export function OnboardingFlow() {
 
   const previewHint =
     mode === 'preview'
-      ? 'Forhåndsvisning — endrer ikke din «første gang»-status'
+      ? t('onboarding.previewHint')
       : mode === 'replay'
-        ? 'Slik fungerer appen'
+        ? t('onboarding.replayHint')
         : null
 
   return (
-    <div className="onboarding" role="dialog" aria-modal="true" aria-label="Kom i gang">
+    <div
+      className="onboarding"
+      role="dialog"
+      aria-modal="true"
+      aria-label={t('onboarding.start')}
+    >
       <div
         className="onboarding__card"
         onTouchStart={onTouchStart}
@@ -126,7 +138,7 @@ export function OnboardingFlow() {
             className="onboarding__primary"
             onClick={goNext}
           >
-            {isLast ? 'Kom i gang' : 'Neste'}
+            {isLast ? t('onboarding.start') : t('onboarding.next')}
           </button>
           {!isLast ? (
             <button
@@ -134,7 +146,7 @@ export function OnboardingFlow() {
               className="onboarding__skip"
               onClick={onSkip}
             >
-              Hopp over
+              {t('onboarding.skip')}
             </button>
           ) : mode === 'preview' || mode === 'replay' ? (
             <button
@@ -142,7 +154,7 @@ export function OnboardingFlow() {
               className="onboarding__skip"
               onClick={() => closeFlow(true)}
             >
-              Lukk
+              {t('common.close')}
             </button>
           ) : null}
         </div>

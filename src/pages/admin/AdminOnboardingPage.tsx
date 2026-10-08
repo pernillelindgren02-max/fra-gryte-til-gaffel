@@ -11,6 +11,16 @@ import {
   upsertOnboardingStep,
 } from '../../lib/onboardingApi'
 import type { OnboardingStep } from '../../lib/onboardingDefaults'
+import {
+  suggestOnboardingBodyEn,
+  suggestOnboardingTitleEn,
+} from '../../i18n/editorialAuto'
+import {
+  BilingualHint,
+  BilingualTextInput,
+  LangTabs,
+  type ContentLangTab,
+} from '../../components/admin/BilingualFields'
 import { toUserSaveError } from '../../lib/userErrors'
 import './Admin.css'
 
@@ -20,6 +30,7 @@ export function AdminOnboardingPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [lang, setLang] = useState<ContentLangTab>('no')
 
   async function reload() {
     setLoading(true)
@@ -48,8 +59,16 @@ export function AdminOnboardingPage() {
     setSaving(true)
     try {
       await updateOnboardingStep(step.id, {
-        title: step.title,
-        body: step.body,
+        title: step.titleNo || step.title,
+        titleNo: step.titleNo || step.title,
+        titleEn: step.titleEn,
+        titleEnAuto: step.titleEnAuto,
+        titleEnOverride: step.titleEnOverride,
+        body: step.bodyNo || step.body,
+        bodyNo: step.bodyNo || step.body,
+        bodyEn: step.bodyEn,
+        bodyEnAuto: step.bodyEnAuto,
+        bodyEnOverride: step.bodyEnOverride,
         image_url: step.image_url,
         sort_order: step.sort_order,
         is_active: step.is_active,
@@ -136,7 +155,15 @@ export function AdminOnboardingPage() {
     try {
       const created = await upsertOnboardingStep({
         title: 'Nytt steg',
+        titleNo: 'Nytt steg',
+        titleEn: '',
+        titleEnAuto: '',
+        titleEnOverride: false,
         body: '',
+        bodyNo: '',
+        bodyEn: '',
+        bodyEnAuto: '',
+        bodyEnOverride: false,
         image_url: null,
         sort_order: steps.length + 1,
         is_active: true,
@@ -152,7 +179,8 @@ export function AdminOnboardingPage() {
   }
 
   async function onDelete(step: OnboardingStep) {
-    if (!window.confirm(`Slette «${step.title}» for godt?`)) return
+    if (!window.confirm(`Slette «${step.titleNo || step.title}» for godt?`))
+      return
     setSaving(true)
     try {
       await deleteOnboardingStep(step.id)
@@ -209,6 +237,13 @@ export function AdminOnboardingPage() {
         localStorage.
       </p>
 
+      <LangTabs value={lang} onChange={setLang} />
+      <BilingualHint>
+        {lang === 'no'
+          ? 'Norsk er hovedinnhold for hvert steg.'
+          : 'English: automatic/default first. Saving custom EN marks Manual override.'}
+      </BilingualHint>
+
       {message && <p className="admin__message">{message}</p>}
 
       {steps.length === 0 ? (
@@ -218,111 +253,165 @@ export function AdminOnboardingPage() {
         </p>
       ) : null}
 
-      {steps.map((step, index) => (
-        <fieldset key={step.id} className="admin-form__block">
-          <legend>
-            Steg {index + 1}{' '}
-            {!step.is_active ? (
-              <span className="admin__muted">(skjult)</span>
-            ) : null}
-          </legend>
+      {steps.map((step, index) => {
+        const titleNo = step.titleNo || step.title
+        const bodyNo = step.bodyNo || step.body
+        const titleAuto =
+          step.titleEnAuto || suggestOnboardingTitleEn(step.id, titleNo)
+        const bodyAuto =
+          step.bodyEnAuto || suggestOnboardingBodyEn(step.id, titleNo)
+        return (
+          <fieldset key={step.id} className="admin-form__block">
+            <legend>
+              Steg {index + 1}{' '}
+              {!step.is_active ? (
+                <span className="admin__muted">(skjult)</span>
+              ) : null}
+            </legend>
 
-          <div className="admin-form__reorder admin-form__reorder--row">
-            <button
-              type="button"
-              className="admin__btn admin__btn--ghost"
-              disabled={index === 0 || saving}
-              onClick={() => void onMove(index, -1)}
-            >
-              ↑ Opp
-            </button>
-            <button
-              type="button"
-              className="admin__btn admin__btn--ghost"
-              disabled={index === steps.length - 1 || saving}
-              onClick={() => void onMove(index, 1)}
-            >
-              ↓ Ned
-            </button>
-            <button
-              type="button"
-              className="admin__btn admin__btn--ghost"
-              disabled={saving}
-              onClick={() => void onToggleActive(step)}
-            >
-              {step.is_active ? 'Deaktiver' : 'Aktiver'}
-            </button>
-            <button
-              type="button"
-              className="admin__btn admin__btn--ghost"
-              disabled={saving}
-              onClick={() => void onDelete(step)}
-            >
-              Slett
-            </button>
-          </div>
-
-          <label className="admin-form__field">
-            <span>Tittel</span>
-            <input
-              value={step.title}
-              onChange={(e) => patchLocal(step.id, { title: e.target.value })}
-            />
-          </label>
-          <label className="admin-form__field">
-            <span>Tekst</span>
-            <textarea
-              rows={3}
-              value={step.body}
-              onChange={(e) => patchLocal(step.id, { body: e.target.value })}
-            />
-          </label>
-
-          <div className="admin-form__onboarding-image">
-            {step.image_url ? (
-              <img
-                src={step.image_url}
-                alt=""
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none'
-                  const empty = e.currentTarget.nextElementSibling
-                  if (empty instanceof HTMLElement) empty.hidden = false
-                }}
-              />
-            ) : null}
-            <div
-              className="admin-form__onboarding-image-empty"
-              hidden={Boolean(step.image_url)}
-            >
-              Ingen bilde
+            <div className="admin-form__reorder admin-form__reorder--row">
+              <button
+                type="button"
+                className="admin__btn admin__btn--ghost"
+                disabled={index === 0 || saving}
+                onClick={() => void onMove(index, -1)}
+              >
+                ↑ Opp
+              </button>
+              <button
+                type="button"
+                className="admin__btn admin__btn--ghost"
+                disabled={index === steps.length - 1 || saving}
+                onClick={() => void onMove(index, 1)}
+              >
+                ↓ Ned
+              </button>
+              <button
+                type="button"
+                className="admin__btn admin__btn--ghost"
+                disabled={saving}
+                onClick={() => void onToggleActive(step)}
+              >
+                {step.is_active ? 'Deaktiver' : 'Aktiver'}
+              </button>
+              <button
+                type="button"
+                className="admin__btn admin__btn--ghost"
+                disabled={saving}
+                onClick={() => void onDelete(step)}
+              >
+                Slett
+              </button>
             </div>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) =>
-                void onUpload(step, e.target.files?.[0] ?? null)
+
+            <BilingualTextInput
+              lang={lang}
+              labelNo="Tittel (NO)"
+              labelEn="Title (EN)"
+              valueNo={titleNo}
+              valueEn={step.titleEn}
+              autoEn={titleAuto}
+              isOverride={step.titleEnOverride}
+              onChangeNo={(value) =>
+                patchLocal(step.id, {
+                  title: value,
+                  titleNo: value,
+                  titleEnAuto: suggestOnboardingTitleEn(step.id, value),
+                  bodyEnAuto: suggestOnboardingBodyEn(step.id, value),
+                })
+              }
+              onChangeEn={(value) =>
+                patchLocal(step.id, {
+                  titleEn: value,
+                  titleEnOverride: true,
+                  titleEnAuto: titleAuto,
+                })
+              }
+              onClearOverride={() =>
+                patchLocal(step.id, {
+                  titleEn: '',
+                  titleEnOverride: false,
+                  titleEnAuto: suggestOnboardingTitleEn(step.id, titleNo),
+                })
               }
             />
+            <BilingualTextInput
+              lang={lang}
+              labelNo="Tekst (NO)"
+              labelEn="Body (EN)"
+              valueNo={bodyNo}
+              valueEn={step.bodyEn}
+              autoEn={bodyAuto}
+              isOverride={step.bodyEnOverride}
+              multiline
+              onChangeNo={(value) =>
+                patchLocal(step.id, {
+                  body: value,
+                  bodyNo: value,
+                })
+              }
+              onChangeEn={(value) =>
+                patchLocal(step.id, {
+                  bodyEn: value,
+                  bodyEnOverride: true,
+                  bodyEnAuto: bodyAuto,
+                })
+              }
+              onClearOverride={() =>
+                patchLocal(step.id, {
+                  bodyEn: '',
+                  bodyEnOverride: false,
+                  bodyEnAuto: suggestOnboardingBodyEn(step.id, titleNo),
+                })
+              }
+            />
+
+            <div className="admin-form__onboarding-image">
+              {step.image_url ? (
+                <img
+                  src={step.image_url}
+                  alt=""
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                    const empty = e.currentTarget.nextElementSibling
+                    if (empty instanceof HTMLElement) empty.hidden = false
+                  }}
+                />
+              ) : null}
+              <div
+                className="admin-form__onboarding-image-empty"
+                hidden={Boolean(step.image_url)}
+              >
+                Ingen bilde
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  void onUpload(step, e.target.files?.[0] ?? null)
+                }
+              />
+              <button
+                type="button"
+                className="admin__btn admin__btn--ghost"
+                disabled={saving || !step.image_url}
+                onClick={() => void onClearImage(step)}
+              >
+                Fjern bilde
+              </button>
+            </div>
+
             <button
               type="button"
-              className="admin__btn admin__btn--ghost"
-              disabled={saving || !step.image_url}
-              onClick={() => void onClearImage(step)}
+              className="admin__btn"
+              disabled={saving}
+              onClick={() => void saveStep(step)}
             >
-              Fjern bilde
+              Lagre steg
             </button>
-          </div>
-
-          <button
-            type="button"
-            className="admin__btn"
-            disabled={saving}
-            onClick={() => void saveStep(step)}
-          >
-            Lagre steg
-          </button>
-        </fieldset>
-      ))}
+          </fieldset>
+        )
+      })}
     </div>
   )
 }

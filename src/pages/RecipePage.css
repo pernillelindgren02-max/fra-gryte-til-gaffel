@@ -32,6 +32,27 @@
   gap: 0.75rem;
 }
 
+.recipe-page__top-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: flex-end;
+}
+
+.recipe-page__share-btn {
+  flex-shrink: 0;
+  min-height: var(--tap-min);
+  border: 1.5px solid color-mix(in srgb, var(--color-teal) 18%, transparent);
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  background: white;
+  color: var(--color-teal);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
 .recipe-page__back {
   align-self: flex-start;
   border: none;

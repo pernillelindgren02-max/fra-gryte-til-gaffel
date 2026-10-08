@@ -1,0 +1,97 @@
+.recipe-share-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  background: color-mix(in srgb, #1a2e2c 45%, transparent);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.recipe-share {
+  width: min(100%, 26rem);
+  background: #f7f4ef;
+  border-radius: 1.2rem 1.2rem 0 0;
+  padding: 1.15rem 1.2rem 1.5rem;
+  box-shadow: 0 -8px 28px color-mix(in srgb, #255957 16%, transparent);
+  animation: recipe-share-up 0.26s ease-out;
+}
+
+@keyframes recipe-share-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0.65;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.recipe-share__title {
+  margin: 0 0 0.85rem;
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 1.25rem;
+  color: var(--color-teal, #255957);
+}
+
+.recipe-share__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.recipe-share__btn {
+  border: none;
+  font: inherit;
+  font-weight: 700;
+  padding: 0.7rem 1rem;
+  border-radius: 0.85rem;
+  cursor: pointer;
+  background: white;
+  color: var(--color-teal, #255957);
+  border: 1px solid color-mix(in srgb, var(--color-teal, #255957) 18%, transparent);
+  text-align: left;
+}
+
+.recipe-share__btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.recipe-share__btn--primary {
+  background: var(--color-teal, #255957);
+  color: white;
+  border-color: transparent;
+}
+
+.recipe-share__btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  text-align: center;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.recipe-share__error {
+  margin: 0.55rem 0 0;
+  color: #8b2e2e;
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.recipe-share__status {
+  margin: 0.55rem 0 0;
+  font-size: 0.88rem;
+  opacity: 0.8;
+}
+
+@media (min-width: 640px) {
+  .recipe-share-backdrop {
+    align-items: center;
+  }
+
+  .recipe-share {
+    border-radius: 1.2rem;
+  }
+}

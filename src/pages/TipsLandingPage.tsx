@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { EmptyState } from '../components/EmptyState'
 import { InlineError } from '../components/InlineError'
+import { useLocale } from '../context/LocaleContext'
+import { localizeTipListItem } from '../i18n/localizeTips'
 import { fetchPublishedTips } from '../lib/tipsApi'
 import type { TipArticleListItem } from '../lib/tipsTypes'
 import { USER_ERRORS } from '../lib/userErrors'
@@ -23,7 +25,12 @@ function TipCardImage({ src, title }: { src: string | null; title: string }) {
 }
 
 export function TipsLandingPage() {
-  const [items, setItems] = useState<TipArticleListItem[]>([])
+  const { locale, t } = useLocale()
+  const [rawItems, setRawItems] = useState<TipArticleListItem[]>([])
+  const items = useMemo(
+    () => rawItems.map((item) => localizeTipListItem(item, locale)),
+    [rawItems, locale],
+  )
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -32,10 +39,10 @@ export function TipsLandingPage() {
     setError(null)
     try {
       const rows = await fetchPublishedTips()
-      setItems(rows)
+      setRawItems(rows)
     } catch {
       setError(USER_ERRORS.load)
-      setItems([])
+      setRawItems([])
     } finally {
       setLoading(false)
     }
@@ -54,12 +61,9 @@ export function TipsLandingPage() {
   return (
     <div className="tips-landing">
       <header className="tips-landing__header">
-        <p className="tips-landing__eyebrow">Feltguide</p>
-        <h1 className="tips-landing__title">Tips og triks</h1>
-        <p className="tips-landing__lead">
-          Korte, praktiske artikler for lite kjøkken, primus og tur — skrevet
-          for å brukes, ikke skumles.
-        </p>
+        <p className="tips-landing__eyebrow">{t('tips.eyebrow')}</p>
+        <h1 className="tips-landing__title">{t('tips.title')}</h1>
+        <p className="tips-landing__lead">{t('tips.lead')}</p>
       </header>
 
       {error ? (
@@ -78,9 +82,9 @@ export function TipsLandingPage() {
 
       {!loading && !error && items.length === 0 ? (
         <EmptyState
-          title="Ingen tips publisert ennå"
-          lead="Kom tilbake snart — eller sjekk Utforsk for oppskrifter i mellomtiden."
-          actionLabel="Til Utforsk"
+          title={t('tips.empty')}
+          lead={t('tips.lead')}
+          actionLabel={t('nav.explore')}
           to="/"
         />
       ) : null}
@@ -102,13 +106,13 @@ export function TipsLandingPage() {
             ) : null}
             <h2>{featured.title}</h2>
             <p>{featured.excerpt}</p>
-            <span className="tips-featured__cta">Les artikkelen</span>
+            <span className="tips-featured__cta">{t('tips.read')}</span>
           </div>
         </Link>
       ) : null}
 
       {rest.length > 0 ? (
-        <section className="tips-grid" aria-label="Flere tips">
+        <section className="tips-grid" aria-label={t('tips.more')}>
           {rest.map((article) => (
             <Link
               key={article.id}

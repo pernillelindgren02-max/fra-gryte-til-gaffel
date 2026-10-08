@@ -96,7 +96,8 @@ export function combineIngredients(
   const map = new Map<string, Acc>()
 
   for (const item of ingredients) {
-    const nameKey = normalizeName(item.name)
+    // Aggregate by canonical id when present — language-independent.
+    const nameKey = normalizeName(item.id || item.name)
     const family = familyOf(item.unit)
 
     if (

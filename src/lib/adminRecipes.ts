@@ -165,7 +165,15 @@ export function emptyDraftRecipe(): Recipe {
   return {
     id: '',
     name: '',
+    nameNo: '',
+    nameEn: '',
+    nameEnAuto: '',
+    nameEnOverride: false,
     shortDescription: '',
+    shortDescriptionNo: '',
+    shortDescriptionEn: '',
+    shortDescriptionEnAuto: '',
+    shortDescriptionEnOverride: false,
     image: '/images/recipes/placeholder-dish.jpg',
     timeMinutes: 20,
     servings: 2,
@@ -176,8 +184,21 @@ export function emptyDraftRecipe(): Recipe {
     dishwashingLevel: 'little',
     campingStoveSuitability: 'adaptable',
     waterNeed: 'some',
-    ingredients: [{ name: '', quantity: null, unit: null }],
+    ingredients: [
+      {
+        id: 'new-ingredient',
+        nameNo: '',
+        nameEn: '',
+        nameEnAuto: '',
+        nameEnOverride: false,
+        name: '',
+        quantity: null,
+        unit: null,
+      },
+    ],
     steps: [''],
+    stepsNo: [''],
+    stepsEn: [],
     practicalTags: [],
   }
 }

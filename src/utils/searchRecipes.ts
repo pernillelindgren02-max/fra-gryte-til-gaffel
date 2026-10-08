@@ -72,8 +72,20 @@ function expandToken(token: string): string[] {
 function recipeHaystack(recipe: Recipe): string {
   const parts = [
     recipe.name,
+    recipe.nameNo,
+    recipe.nameEn,
+    recipe.nameEnAuto,
     recipe.shortDescription,
-    ...recipe.ingredients.map((ingredient) => ingredient.name),
+    recipe.shortDescriptionNo,
+    recipe.shortDescriptionEn,
+    recipe.shortDescriptionEnAuto,
+    ...recipe.ingredients.flatMap((ingredient) => [
+      ingredient.name,
+      ingredient.nameNo,
+      ingredient.nameEn,
+      ingredient.nameEnAuto,
+      ingredient.id,
+    ]),
     ...recipe.practicalTags,
     mealTypeLabels[recipe.mealType],
     recipe.mealType,

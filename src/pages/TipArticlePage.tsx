@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { EmptyState } from '../components/EmptyState'
 import { InlineError } from '../components/InlineError'
 import { TipBlocks } from '../components/TipBlocks'
 import { useAuth } from '../context/AuthContext'
+import { useLocale } from '../context/LocaleContext'
 import { useRecipes } from '../context/RecipesContext'
+import { localizeTipArticle } from '../i18n/localizeTips'
 import { trackEvent } from '../lib/analytics'
 import { fetchTipBySlug } from '../lib/tipsApi'
 import type { TipArticle } from '../lib/tipsTypes'
@@ -16,8 +18,13 @@ export function TipArticlePage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { isAdmin } = useAuth()
+  const { locale, t } = useLocale()
   const { recipes } = useRecipes()
-  const [article, setArticle] = useState<TipArticle | null>(null)
+  const [rawArticle, setRawArticle] = useState<TipArticle | null>(null)
+  const article = useMemo(
+    () => (rawArticle ? localizeTipArticle(rawArticle, locale) : null),
+    [rawArticle, locale],
+  )
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [heroFailed, setHeroFailed] = useState(false)
@@ -31,11 +38,11 @@ export function TipArticlePage() {
     setHeroFailed(false)
     try {
       const row = await fetchTipBySlug(slug, { allowDraft })
-      setArticle(row)
+      setRawArticle(row)
       if (!row) setError(null)
     } catch {
       setError(USER_ERRORS.load)
-      setArticle(null)
+      setRawArticle(null)
     } finally {
       setLoading(false)
     }

@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import { localRecipes, type Recipe } from '../data/recipes'
+import { localizeRecipes } from '../i18n/localizeRecipe'
 import { mapRowToRecipe, type RecipeRow } from '../lib/recipeMapper'
 import { hasSpotifyMood } from '../lib/spotifyLink'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
@@ -16,6 +17,7 @@ import {
   logTechError,
   toUserLoadError,
 } from '../lib/userErrors'
+import { useLocale } from './LocaleContext'
 
 /** Dev-only: show local seed mood when cloud row has none (before SQL/admin fill). */
 function withLocalSpotifyDemo(recipes: Recipe[]): Recipe[] {
@@ -64,9 +66,9 @@ function safeMapRows(rows: RecipeRow[], url: string): Recipe[] {
 }
 
 export function RecipesProvider({ children }: { children: ReactNode }) {
-  // With Supabase, start empty so first paint can show skeletons until fetch
-  // settles (cloud rows or local fallback). Without Supabase, seed is instant.
-  const [recipes, setRecipes] = useState<Recipe[]>(
+  const { locale } = useLocale()
+  // Raw bilingual recipes; display fields resolved via locale below.
+  const [rawRecipes, setRawRecipes] = useState<Recipe[]>(
     isSupabaseConfigured ? [] : localRecipes,
   )
   const [loading, setLoading] = useState(isSupabaseConfigured)
@@ -75,7 +77,7 @@ export function RecipesProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     if (!supabase || !isSupabaseConfigured) {
-      setRecipes(localRecipes)
+      setRawRecipes(localRecipes)
       setSource('local')
       setError(null)
       setLoading(false)
@@ -92,7 +94,7 @@ export function RecipesProvider({ children }: { children: ReactNode }) {
 
       if (fetchError) {
         logTechError('RecipesContext.fetch', fetchError)
-        setRecipes(localRecipes)
+        setRawRecipes(localRecipes)
         setSource('local')
         setError(USER_ERRORS.cloudFallback)
         setLoading(false)
@@ -101,7 +103,7 @@ export function RecipesProvider({ children }: { children: ReactNode }) {
 
       const rows = (data as RecipeRow[] | null) ?? []
       if (!Array.isArray(rows) || rows.length === 0) {
-        setRecipes(localRecipes)
+        setRawRecipes(localRecipes)
         setSource('local')
         setError(null)
         setLoading(false)
@@ -111,19 +113,19 @@ export function RecipesProvider({ children }: { children: ReactNode }) {
       const url = supabaseUrl()
       const mapped = withLocalSpotifyDemo(safeMapRows(rows, url))
       if (mapped.length === 0) {
-        setRecipes(localRecipes)
+        setRawRecipes(localRecipes)
         setSource('local')
         setError(USER_ERRORS.cloudFallback)
         setLoading(false)
         return
       }
 
-      setRecipes(mapped)
+      setRawRecipes(mapped)
       setSource('supabase')
       setError(null)
       setLoading(false)
     } catch (err) {
-      setRecipes(localRecipes)
+      setRawRecipes(localRecipes)
       setSource('local')
       setError(toUserLoadError(err, 'RecipesContext'))
       setLoading(false)
@@ -133,6 +135,11 @@ export function RecipesProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void refresh()
   }, [refresh])
+
+  const recipes = useMemo(
+    () => localizeRecipes(rawRecipes, locale),
+    [rawRecipes, locale],
+  )
 
   const value = useMemo<RecipesContextValue>(
     () => ({

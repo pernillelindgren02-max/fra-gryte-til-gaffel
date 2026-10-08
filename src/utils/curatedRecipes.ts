@@ -98,6 +98,7 @@ export function getExploreCategories(
 export function buildCuratedSections(
   allRecipes: Recipe[],
   settings?: ExploreSettings | null,
+  featuredTitle = 'Utvalgt',
 ): CuratedSection[] {
   const byId = new Map(allRecipes.map((r) => [r.id, r]))
 
@@ -147,7 +148,7 @@ export function buildCuratedSections(
   if (featured.length > 0) {
     sections.push({
       id: 'featured',
-      title: 'Utvalgt',
+      title: featuredTitle,
       recipes: featured,
     })
   }

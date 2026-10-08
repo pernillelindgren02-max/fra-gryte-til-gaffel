@@ -2,7 +2,12 @@ export type ExploreSectionMode = 'auto' | 'manual'
 
 export type ExploreSectionConfig = {
   id: string
+  /** Legacy / resolved NO title mirror. */
   title: string
+  titleNo: string
+  titleEn: string
+  titleEnAuto: string
+  titleEnOverride: boolean
   mode: ExploreSectionMode
   recipe_ids: string[]
 }
@@ -11,6 +16,10 @@ export type ExploreSectionConfig = {
 export type ExploreCategoryConfig = {
   id: string
   title: string
+  titleNo: string
+  titleEn: string
+  titleEnAuto: string
+  titleEnOverride: boolean
   mode: ExploreSectionMode
   recipe_ids: string[]
 }
@@ -20,6 +29,10 @@ export type ExploreSettings = {
   sections: ExploreSectionConfig[]
   categories: ExploreCategoryConfig[]
   blurb: string
+  blurbNo: string
+  blurbEn: string
+  blurbEnAuto: string
+  blurbEnOverride: boolean
 }
 
 export type AppThemeTokens = {
@@ -36,81 +49,88 @@ export type AppThemeTokens = {
 
 export type AppCopyMap = Record<string, string>
 
+import {
+  suggestExploreBlurbEn,
+  suggestExploreCategoryEn,
+  suggestExploreSectionEn,
+} from '../i18n/editorialAuto'
+
+function withCategoryI18n(
+  id: string,
+  title: string,
+  partial?: Partial<ExploreCategoryConfig>,
+): ExploreCategoryConfig {
+  const titleNo = (partial?.titleNo || title || '').trim()
+  const titleEn = (partial?.titleEn || '').trim()
+  const titleEnAuto = (
+    partial?.titleEnAuto ||
+    suggestExploreCategoryEn(id, titleNo) ||
+    ''
+  ).trim()
+  const titleEnOverride =
+    Boolean(partial?.titleEnOverride) && Boolean(titleEn)
+  return {
+    id,
+    title: titleNo,
+    titleNo,
+    titleEn,
+    titleEnAuto,
+    titleEnOverride,
+    mode: partial?.mode === 'manual' ? 'manual' : 'auto',
+    recipe_ids: partial?.recipe_ids ?? [],
+  }
+}
+
+function withSectionI18n(
+  id: string,
+  title: string,
+  partial?: Partial<ExploreSectionConfig>,
+): ExploreSectionConfig {
+  const titleNo = (partial?.titleNo || title || '').trim()
+  const titleEn = (partial?.titleEn || '').trim()
+  const titleEnAuto = (
+    partial?.titleEnAuto ||
+    suggestExploreSectionEn(id, titleNo) ||
+    ''
+  ).trim()
+  const titleEnOverride =
+    Boolean(partial?.titleEnOverride) && Boolean(titleEn)
+  return {
+    id,
+    title: titleNo,
+    titleNo,
+    titleEn,
+    titleEnAuto,
+    titleEnOverride,
+    mode: partial?.mode === 'manual' ? 'manual' : 'auto',
+    recipe_ids: partial?.recipe_ids ?? [],
+  }
+}
+
 export const DEFAULT_EXPLORE_CATEGORIES: ExploreCategoryConfig[] = [
-  {
-    id: 'primus',
-    title: 'Perfekt til primus',
-    mode: 'auto',
-    recipe_ids: [],
-  },
-  {
-    id: 'few-ingredients',
-    title: 'Få ingredienser',
-    mode: 'auto',
-    recipe_ids: [],
-  },
-  {
-    id: 'quick',
-    title: 'Dårlig tid?',
-    mode: 'auto',
-    recipe_ids: [],
-  },
-  {
-    id: 'dinner',
-    title: 'Middag',
-    mode: 'auto',
-    recipe_ids: [],
-  },
-  {
-    id: 'breakfast',
-    title: 'Frokost',
-    mode: 'auto',
-    recipe_ids: [],
-  },
-  {
-    id: 'lunch',
-    title: 'Lunsj',
-    mode: 'auto',
-    recipe_ids: [],
-  },
-  {
-    id: 'dessert',
-    title: 'Dessert',
-    mode: 'auto',
-    recipe_ids: [],
-  },
+  withCategoryI18n('primus', 'Perfekt til primus'),
+  withCategoryI18n('few-ingredients', 'Få ingredienser'),
+  withCategoryI18n('quick', 'Dårlig tid?'),
+  withCategoryI18n('dinner', 'Middag'),
+  withCategoryI18n('breakfast', 'Frokost'),
+  withCategoryI18n('lunch', 'Lunsj'),
+  withCategoryI18n('dessert', 'Dessert'),
 ]
 
 export const DEFAULT_EXPLORE_SETTINGS: ExploreSettings = {
   featured_ids: [],
   sections: [
-    {
-      id: 'quick-easy',
-      title: 'Raskt og enkelt',
-      mode: 'auto',
-      recipe_ids: [],
-    },
-    {
-      id: 'primus',
-      title: 'Perfekt på primus',
-      mode: 'auto',
-      recipe_ids: [],
-    },
-    {
-      id: 'breakfast',
-      title: 'Frokost',
-      mode: 'auto',
-      recipe_ids: [],
-    },
-    {
-      id: 'dinner',
-      title: 'Middag',
-      mode: 'auto',
-      recipe_ids: [],
-    },
+    withSectionI18n('quick-easy', 'Raskt og enkelt'),
+    withSectionI18n('primus', 'Perfekt på primus'),
+    withSectionI18n('breakfast', 'Frokost'),
+    withSectionI18n('dinner', 'Middag'),
   ],
   categories: DEFAULT_EXPLORE_CATEGORIES,
   blurb: '',
+  blurbNo: '',
+  blurbEn: '',
+  blurbEnAuto: suggestExploreBlurbEn(''),
+  blurbEnOverride: false,
 }
 
 export const DEFAULT_COPY: AppCopyMap = {
@@ -201,3 +221,54 @@ export const COPY_FIELDS: { key: string; label: string; multiline?: boolean }[] 
     { key: 'handleliste.empty', label: 'Handleliste tom' },
     { key: 'hjemme.empty', label: 'Hjemme tom' },
   ]
+
+/** Normalize a partially saved category row into full bilingual shape. */
+export function normalizeExploreCategory(
+  row: Partial<ExploreCategoryConfig> & { id?: string; title?: string },
+): ExploreCategoryConfig {
+  const id = String(row.id ?? 'category')
+  const titleNo = String(row.titleNo ?? row.title ?? '').trim()
+  return withCategoryI18n(id, titleNo, {
+    ...row,
+    titleNo,
+    recipe_ids: Array.isArray(row.recipe_ids) ? row.recipe_ids.map(String) : [],
+  })
+}
+
+export function normalizeExploreSection(
+  row: Partial<ExploreSectionConfig> & { id?: string; title?: string },
+): ExploreSectionConfig {
+  const id = String(row.id ?? 'section')
+  const titleNo = String(row.titleNo ?? row.title ?? '').trim()
+  return withSectionI18n(id, titleNo, {
+    ...row,
+    titleNo,
+    recipe_ids: Array.isArray(row.recipe_ids) ? row.recipe_ids.map(String) : [],
+  })
+}
+
+export function normalizeExploreSettings(
+  raw: Partial<ExploreSettings> & { blurb?: string },
+): ExploreSettings {
+  const blurbNo = String(raw.blurbNo ?? raw.blurb ?? '').trim()
+  const blurbEn = String(raw.blurbEn ?? '').trim()
+  const blurbEnAuto = String(
+    raw.blurbEnAuto ?? suggestExploreBlurbEn(blurbNo) ?? '',
+  ).trim()
+  return {
+    featured_ids: Array.isArray(raw.featured_ids)
+      ? raw.featured_ids.map(String)
+      : [],
+    sections: (raw.sections ?? DEFAULT_EXPLORE_SETTINGS.sections).map(
+      normalizeExploreSection,
+    ),
+    categories: (raw.categories ?? DEFAULT_EXPLORE_CATEGORIES).map(
+      normalizeExploreCategory,
+    ),
+    blurb: blurbNo,
+    blurbNo,
+    blurbEn,
+    blurbEnAuto,
+    blurbEnOverride: Boolean(raw.blurbEnOverride) && Boolean(blurbEn),
+  }
+}

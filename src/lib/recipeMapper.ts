@@ -9,12 +9,26 @@ import type {
   StorageNeed,
   WaterNeed,
 } from '../data/recipes'
-import { recipeImageUrl } from '../data/recipes'
+import { ensureBilingualRecipe, recipeImageUrl } from '../data/recipes'
+import {
+  suggestEnglishDescription,
+  suggestEnglishTitle,
+} from '../i18n/autoEnglish'
+import { normalizeIngredient } from '../i18n/content'
+import { DEFAULT_LOCALE } from '../i18n/types'
 
 export type RecipeRow = {
   id: string
   name: string
+  name_no?: string | null
+  name_en?: string | null
+  name_en_auto?: string | null
+  name_en_override?: boolean | null
   short_description: string
+  short_description_no?: string | null
+  short_description_en?: string | null
+  short_description_en_auto?: string | null
+  short_description_en_override?: boolean | null
   meal_type: string
   time_minutes: number
   servings: number
@@ -24,8 +38,10 @@ export type RecipeRow = {
   dishwashing_level: string
   camping_stove_suitability: string
   water_need: string
-  ingredients: Ingredient[] | unknown
-  steps: string[] | unknown
+  ingredients: unknown
+  steps: unknown
+  steps_no?: unknown
+  steps_en?: unknown
   practical_tags: string[] | unknown
   image_path: string | null
   is_published: boolean
@@ -36,21 +52,6 @@ export type RecipeRow = {
   spotify_code_image?: string | null
   created_at?: string
   updated_at?: string
-}
-
-function asIngredients(value: unknown): Ingredient[] {
-  if (!Array.isArray(value)) return []
-  return value.map((item) => {
-    const row = item as Partial<Ingredient>
-    return {
-      name: String(row.name ?? ''),
-      quantity:
-        row.quantity === null || row.quantity === undefined
-          ? null
-          : Number(row.quantity),
-      unit: (row.unit ?? null) as Ingredient['unit'],
-    }
-  })
 }
 
 function asStringArray(value: unknown): string[] {
@@ -64,12 +65,59 @@ function asOptionalText(value: unknown): string | null {
   return text.length > 0 ? text : null
 }
 
+function asIngredients(value: unknown): Ingredient[] {
+  if (!Array.isArray(value)) return []
+  return value.map((item) =>
+    normalizeIngredient(
+      item as Parameters<typeof normalizeIngredient>[0],
+      DEFAULT_LOCALE,
+    ),
+  )
+}
+
 export function mapRowToRecipe(row: RecipeRow, supabaseUrl?: string): Recipe {
   const codePath = asOptionalText(row.spotify_code_image)
-  return {
+  const nameNo = String(row.name_no ?? row.name ?? '').trim()
+  const nameEn = String(row.name_en ?? '').trim()
+  const nameEnAuto = String(
+    row.name_en_auto ?? suggestEnglishTitle(row.id, nameNo) ?? '',
+  ).trim()
+  // Existing filled name_en without flag → treat as historical override
+  const nameEnOverride =
+    row.name_en_override == null
+      ? Boolean(nameEn)
+      : Boolean(row.name_en_override) && Boolean(nameEn)
+
+  const shortDescriptionNo = String(
+    row.short_description_no ?? row.short_description ?? '',
+  ).trim()
+  const shortDescriptionEn = String(row.short_description_en ?? '').trim()
+  const shortDescriptionEnAuto = String(
+    row.short_description_en_auto ??
+      suggestEnglishDescription(row.id, shortDescriptionNo) ??
+      '',
+  ).trim()
+  const shortDescriptionEnOverride =
+    row.short_description_en_override == null
+      ? Boolean(shortDescriptionEn)
+      : Boolean(row.short_description_en_override) &&
+        Boolean(shortDescriptionEn)
+
+  const stepsNo = asStringArray(row.steps_no ?? row.steps ?? [])
+  const stepsEn = asStringArray(row.steps_en ?? [])
+
+  return ensureBilingualRecipe({
     id: row.id,
-    name: row.name,
-    shortDescription: row.short_description,
+    name: nameNo,
+    nameNo,
+    nameEn,
+    nameEnAuto,
+    nameEnOverride,
+    shortDescription: shortDescriptionNo,
+    shortDescriptionNo,
+    shortDescriptionEn,
+    shortDescriptionEnAuto,
+    shortDescriptionEnOverride,
     image: recipeImageUrl(row.image_path, supabaseUrl),
     timeMinutes: row.time_minutes,
     servings: Number(row.servings) > 0 ? Number(row.servings) : 2,
@@ -82,7 +130,9 @@ export function mapRowToRecipe(row: RecipeRow, supabaseUrl?: string): Recipe {
       row.camping_stove_suitability as CampingStoveSuitability,
     waterNeed: row.water_need as WaterNeed,
     ingredients: asIngredients(row.ingredients),
-    steps: asStringArray(row.steps),
+    steps: stepsNo,
+    stepsNo,
+    stepsEn,
     practicalTags: asStringArray(row.practical_tags),
     spotifyTitle: asOptionalText(row.spotify_title),
     spotifyArtist: asOptionalText(row.spotify_artist),
@@ -90,7 +140,21 @@ export function mapRowToRecipe(row: RecipeRow, supabaseUrl?: string): Recipe {
     spotifyCodeImage: codePath
       ? recipeImageUrl(codePath, supabaseUrl)
       : null,
-  }
+  })
+}
+
+function ingredientsForDb(ingredients: Ingredient[]) {
+  return ingredients.map((ing) => ({
+    id: ing.id,
+    name_no: ing.nameNo || ing.name,
+    name_en: ing.nameEnOverride ? ing.nameEn || '' : '',
+    name_en_auto: ing.nameEnAuto || '',
+    name_en_override: Boolean(ing.nameEnOverride),
+    // legacy mirror for older clients
+    name: ing.nameNo || ing.name,
+    quantity: ing.quantity,
+    unit: ing.unit,
+  }))
 }
 
 export function mapRecipeToRow(
@@ -109,10 +173,32 @@ export function mapRecipeToRow(
         ? recipe.image.split('/recipe-images/').pop() ?? null
         : null)
 
+  const nameNo = recipe.nameNo || recipe.name
+  const shortNo = recipe.shortDescriptionNo || recipe.shortDescription
+  const stepsNo =
+    recipe.stepsNo?.length > 0 ? recipe.stepsNo : recipe.steps
+
+  const nameEnAuto =
+    recipe.nameEnAuto || suggestEnglishTitle(recipe.id, nameNo)
+  const shortEnAuto =
+    recipe.shortDescriptionEnAuto ||
+    suggestEnglishDescription(recipe.id, shortNo)
+
   return {
     id: recipe.id,
-    name: recipe.name,
-    short_description: recipe.shortDescription,
+    // Legacy columns stay Norwegian so old clients keep working
+    name: nameNo,
+    name_no: nameNo,
+    name_en: recipe.nameEnOverride ? recipe.nameEn || '' : '',
+    name_en_auto: nameEnAuto,
+    name_en_override: Boolean(recipe.nameEnOverride),
+    short_description: shortNo,
+    short_description_no: shortNo,
+    short_description_en: recipe.shortDescriptionEnOverride
+      ? recipe.shortDescriptionEn || ''
+      : '',
+    short_description_en_auto: shortEnAuto,
+    short_description_en_override: Boolean(recipe.shortDescriptionEnOverride),
     meal_type: recipe.mealType,
     time_minutes: recipe.timeMinutes,
     servings: recipe.servings > 0 ? recipe.servings : 2,
@@ -122,8 +208,10 @@ export function mapRecipeToRow(
     dishwashing_level: recipe.dishwashingLevel,
     camping_stove_suitability: recipe.campingStoveSuitability,
     water_need: recipe.waterNeed,
-    ingredients: recipe.ingredients,
-    steps: recipe.steps,
+    ingredients: ingredientsForDb(recipe.ingredients),
+    steps: stepsNo,
+    steps_no: stepsNo,
+    steps_en: recipe.stepsEn ?? [],
     practical_tags: recipe.practicalTags,
     image_path: imagePath,
     is_published: extras.is_published,
@@ -137,7 +225,8 @@ export function mapRecipeToRow(
       if (raw.includes('/recipe-images/')) {
         return raw.split('/recipe-images/').pop() ?? null
       }
-      if (raw.startsWith('/images/')) return raw.replace(/^\/images\/recipes\//, '')
+      if (raw.startsWith('/images/'))
+        return raw.replace(/^\/images\/recipes\//, '')
       if (raw.startsWith('http')) return raw
       return raw
     })(),

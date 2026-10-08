@@ -25,8 +25,29 @@ import {
 } from '../../data/recipes'
 import { useRecipes } from '../../context/RecipesContext'
 import { recipeImageUrl } from '../../data/recipes'
+import {
+  suggestEnglishDescription,
+  suggestEnglishIngredient,
+  suggestEnglishTitle,
+} from '../../i18n/autoEnglish'
 import './Admin.css'
 import { toUserSaveError } from '../../lib/userErrors'
+
+type ContentLangTab = 'no' | 'en'
+
+function EnSourceBadge({ isOverride }: { isOverride: boolean }) {
+  return (
+    <span
+      className={
+        isOverride
+          ? 'admin-en-badge admin-en-badge--override'
+          : 'admin-en-badge admin-en-badge--auto'
+      }
+    >
+      {isOverride ? 'Manual override' : 'Automatic / default'}
+    </span>
+  )
+}
 
 const UNITS: IngredientUnit[] = [
   'g',
@@ -63,6 +84,7 @@ export function AdminRecipeEditPage() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [idLocked, setIdLocked] = useState(!isNew)
+  const [contentLang, setContentLang] = useState<ContentLangTab>('no')
 
   useEffect(() => {
     if (isNew) return
@@ -211,14 +233,62 @@ export function AdminRecipeEditPage() {
       .split(',')
       .map((t) => t.trim())
       .filter(Boolean)
+    const nameNo = (draft.nameNo || draft.name).trim()
+    const shortNo = (
+      draft.shortDescriptionNo || draft.shortDescription
+    ).trim()
+    const nameEnAuto =
+      draft.nameEnAuto?.trim() || suggestEnglishTitle(id, nameNo)
+    const shortEnAuto =
+      draft.shortDescriptionEnAuto?.trim() ||
+      suggestEnglishDescription(id, shortNo)
+    const nameEnOverride =
+      Boolean(draft.nameEnOverride) && Boolean((draft.nameEn || '').trim())
+    const shortEnOverride =
+      Boolean(draft.shortDescriptionEnOverride) &&
+      Boolean((draft.shortDescriptionEn || '').trim())
+    const stepsNo =
+      draft.stepsNo?.length > 0
+        ? draft.stepsNo.map((s) => s.trim()).filter(Boolean)
+        : draft.steps.map((s) => s.trim()).filter(Boolean)
     const recipe: Recipe = {
       ...draft,
       id,
-      name: draft.name.trim(),
-      shortDescription: draft.shortDescription.trim(),
+      name: nameNo,
+      nameNo,
+      nameEn: nameEnOverride ? (draft.nameEn || '').trim() : '',
+      nameEnAuto,
+      nameEnOverride,
+      shortDescription: shortNo,
+      shortDescriptionNo: shortNo,
+      shortDescriptionEn: shortEnOverride
+        ? (draft.shortDescriptionEn || '').trim()
+        : '',
+      shortDescriptionEnAuto: shortEnAuto,
+      shortDescriptionEnOverride: shortEnOverride,
       servings: draft.servings > 0 ? draft.servings : 2,
-      ingredients: draft.ingredients.filter((i) => i.name.trim()),
-      steps: draft.steps.map((s) => s.trim()).filter(Boolean),
+      ingredients: draft.ingredients
+        .filter((i) => (i.nameNo || i.name).trim())
+        .map((i) => {
+          const n = (i.nameNo || i.name).trim()
+          const ingId = (i.id || n).trim()
+          const nameEnAutoIng =
+            i.nameEnAuto?.trim() || suggestEnglishIngredient(ingId, n)
+          const nameEnOverrideIng =
+            Boolean(i.nameEnOverride) && Boolean((i.nameEn || '').trim())
+          return {
+            ...i,
+            id: ingId,
+            nameNo: n,
+            nameEn: nameEnOverrideIng ? (i.nameEn || '').trim() : '',
+            nameEnAuto: nameEnAutoIng,
+            nameEnOverride: nameEnOverrideIng,
+            name: n,
+          }
+        }),
+      steps: stepsNo,
+      stepsNo,
+      stepsEn: (draft.stepsEn || []).map((s) => s.trim()).filter(Boolean),
       practicalTags,
       spotifyTitle: draft.spotifyTitle?.trim() || null,
       spotifyArtist: draft.spotifyArtist?.trim() || null,
@@ -296,29 +366,218 @@ export function AdminRecipeEditPage() {
           />
         </label>
 
-        <label className="admin-form__field">
-          <span>Navn</span>
-          <input
-            value={draft.name}
-            onChange={(e) => {
-              const name = e.target.value
-              updateField('name', name)
-              if (isNew && !idLocked) {
-                updateField('id', slugifyId(name))
+        <fieldset className="admin-form__block">
+          <legend>Språk / Language</legend>
+          <div className="admin-filter-tabs" role="tablist" aria-label="Language">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={contentLang === 'no'}
+              className={
+                contentLang === 'no'
+                  ? 'admin-filter-tabs__btn admin-filter-tabs__btn--active'
+                  : 'admin-filter-tabs__btn'
               }
-            }}
-            required
-          />
-        </label>
+              onClick={() => setContentLang('no')}
+            >
+              Norsk
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={contentLang === 'en'}
+              className={
+                contentLang === 'en'
+                  ? 'admin-filter-tabs__btn admin-filter-tabs__btn--active'
+                  : 'admin-filter-tabs__btn'
+              }
+              onClick={() => setContentLang('en')}
+            >
+              English
+            </button>
+          </div>
+          <p className="admin__muted">
+            {contentLang === 'no'
+              ? 'Norsk er hovedinnhold og lagres alltid.'
+              : 'English: automatic/default first. Saving a custom value marks Manual override. Clear restores automatic English.'}
+          </p>
 
-        <label className="admin-form__field">
-          <span>Kort beskrivelse</span>
-          <textarea
-            rows={3}
-            value={draft.shortDescription}
-            onChange={(e) => updateField('shortDescription', e.target.value)}
-          />
-        </label>
+          {contentLang === 'no' ? (
+            <>
+              <label className="admin-form__field">
+                <span>Navn (NO)</span>
+                <input
+                  value={draft.nameNo || draft.name}
+                  onChange={(e) => {
+                    const name = e.target.value
+                    const auto = suggestEnglishTitle(
+                      draft.id || slugifyId(name),
+                      name,
+                    )
+                    setDraft((prev) => ({
+                      ...prev,
+                      name,
+                      nameNo: name,
+                      nameEnAuto: auto,
+                      id:
+                        isNew && !idLocked
+                          ? slugifyId(name)
+                          : prev.id,
+                    }))
+                  }}
+                  required
+                />
+              </label>
+              <label className="admin-form__field">
+                <span>Kort beskrivelse (NO)</span>
+                <textarea
+                  rows={3}
+                  value={draft.shortDescriptionNo || draft.shortDescription}
+                  onChange={(e) => {
+                    const text = e.target.value
+                    const auto = suggestEnglishDescription(
+                      draft.id,
+                      text,
+                    )
+                    setDraft((prev) => ({
+                      ...prev,
+                      shortDescription: text,
+                      shortDescriptionNo: text,
+                      shortDescriptionEnAuto: auto,
+                    }))
+                  }}
+                />
+              </label>
+            </>
+          ) : (
+            <>
+              <label className="admin-form__field">
+                <span className="admin-form__label-row">
+                  Title (EN)
+                  <EnSourceBadge isOverride={draft.nameEnOverride} />
+                </span>
+                <input
+                  value={
+                    draft.nameEnOverride
+                      ? draft.nameEn || ''
+                      : draft.nameEnAuto ||
+                        suggestEnglishTitle(
+                          draft.id,
+                          draft.nameNo || draft.name,
+                        )
+                  }
+                  onChange={(e) => {
+                    const value = e.target.value
+                    setDraft((prev) => ({
+                      ...prev,
+                      nameEn: value,
+                      nameEnOverride: true,
+                      nameEnAuto:
+                        prev.nameEnAuto ||
+                        suggestEnglishTitle(
+                          prev.id,
+                          prev.nameNo || prev.name,
+                        ),
+                    }))
+                  }}
+                  placeholder={
+                    draft.nameEnAuto ||
+                    suggestEnglishTitle(
+                      draft.id,
+                      draft.nameNo || draft.name,
+                    ) ||
+                    'Automatic English title'
+                  }
+                />
+                {draft.nameEnOverride && (
+                  <button
+                    type="button"
+                    className="admin__btn admin__btn--ghost admin-form__clear-en"
+                    onClick={() => {
+                      const auto =
+                        draft.nameEnAuto ||
+                        suggestEnglishTitle(
+                          draft.id,
+                          draft.nameNo || draft.name,
+                        )
+                      setDraft((prev) => ({
+                        ...prev,
+                        nameEn: '',
+                        nameEnOverride: false,
+                        nameEnAuto: auto,
+                      }))
+                    }}
+                  >
+                    Clear override — restore automatic
+                  </button>
+                )}
+              </label>
+              <label className="admin-form__field">
+                <span className="admin-form__label-row">
+                  Short description (EN)
+                  <EnSourceBadge
+                    isOverride={draft.shortDescriptionEnOverride}
+                  />
+                </span>
+                <textarea
+                  rows={3}
+                  value={
+                    draft.shortDescriptionEnOverride
+                      ? draft.shortDescriptionEn || ''
+                      : draft.shortDescriptionEnAuto ||
+                        suggestEnglishDescription(
+                          draft.id,
+                          draft.shortDescriptionNo ||
+                            draft.shortDescription,
+                        )
+                  }
+                  onChange={(e) => {
+                    const value = e.target.value
+                    setDraft((prev) => ({
+                      ...prev,
+                      shortDescriptionEn: value,
+                      shortDescriptionEnOverride: true,
+                      shortDescriptionEnAuto:
+                        prev.shortDescriptionEnAuto ||
+                        suggestEnglishDescription(
+                          prev.id,
+                          prev.shortDescriptionNo ||
+                            prev.shortDescription,
+                        ),
+                    }))
+                  }}
+                  placeholder={
+                    draft.shortDescriptionEnAuto ||
+                    'Automatic English when available — otherwise Norwegian fallback'
+                  }
+                />
+                {draft.shortDescriptionEnOverride && (
+                  <button
+                    type="button"
+                    className="admin__btn admin__btn--ghost admin-form__clear-en"
+                    onClick={() => {
+                      const auto =
+                        draft.shortDescriptionEnAuto ||
+                        suggestEnglishDescription(
+                          draft.id,
+                          draft.shortDescriptionNo ||
+                            draft.shortDescription,
+                        )
+                      setDraft((prev) => ({
+                        ...prev,
+                        shortDescriptionEn: '',
+                        shortDescriptionEnOverride: false,
+                        shortDescriptionEnAuto: auto,
+                      }))
+                    }}
+                  >
+                    Clear override — restore automatic
+                  </button>
+                )}
+              </label>
+            </>
+          )}
+        </fieldset>
 
         <div className="admin-form__grid">
           <label className="admin-form__field">
@@ -554,15 +813,85 @@ export function AdminRecipeEditPage() {
                 </button>
               </div>
               <input
-                placeholder="Navn"
-                value={ingredient.name}
-                onChange={(e) =>
+                placeholder="Navn (NO)"
+                value={ingredient.nameNo || ingredient.name}
+                onChange={(e) => {
+                  const nameNo = e.target.value
+                  const id = ingredient.id || nameNo
                   updateIngredient(index, {
                     ...ingredient,
-                    name: e.target.value,
+                    nameNo,
+                    name: nameNo,
+                    id,
+                    nameEnAuto: suggestEnglishIngredient(id, nameNo),
                   })
-                }
+                }}
               />
+              <div className="admin-form__en-ing">
+                <input
+                  placeholder={
+                    ingredient.nameEnAuto ||
+                    suggestEnglishIngredient(
+                      ingredient.id,
+                      ingredient.nameNo || ingredient.name,
+                    ) ||
+                    'Name (EN auto)'
+                  }
+                  value={
+                    ingredient.nameEnOverride
+                      ? ingredient.nameEn || ''
+                      : ingredient.nameEnAuto ||
+                        suggestEnglishIngredient(
+                          ingredient.id,
+                          ingredient.nameNo || ingredient.name,
+                        )
+                  }
+                  onChange={(e) =>
+                    updateIngredient(index, {
+                      ...ingredient,
+                      nameEn: e.target.value,
+                      nameEnOverride: true,
+                      nameEnAuto:
+                        ingredient.nameEnAuto ||
+                        suggestEnglishIngredient(
+                          ingredient.id,
+                          ingredient.nameNo || ingredient.name,
+                        ),
+                    })
+                  }
+                  title={
+                    ingredient.nameEnOverride
+                      ? 'Manual override'
+                      : 'Automatic / default'
+                  }
+                />
+                {ingredient.nameEnOverride ? (
+                  <button
+                    type="button"
+                    className="admin__btn admin__btn--ghost"
+                    title="Restore automatic English"
+                    onClick={() =>
+                      updateIngredient(index, {
+                        ...ingredient,
+                        nameEn: '',
+                        nameEnOverride: false,
+                        nameEnAuto:
+                          ingredient.nameEnAuto ||
+                          suggestEnglishIngredient(
+                            ingredient.id,
+                            ingredient.nameNo || ingredient.name,
+                          ),
+                      })
+                    }
+                  >
+                    ↺
+                  </button>
+                ) : (
+                  <span className="admin-en-badge admin-en-badge--auto admin-en-badge--tiny">
+                    Auto
+                  </span>
+                )}
+              </div>
               <input
                 type="number"
                 step="any"
@@ -613,7 +942,16 @@ export function AdminRecipeEditPage() {
                 ...prev,
                 ingredients: [
                   ...prev.ingredients,
-                  { name: '', quantity: null, unit: null },
+                  {
+                    id: `ing-${Date.now()}`,
+                    nameNo: '',
+                    nameEn: '',
+                    nameEnAuto: '',
+                    nameEnOverride: false,
+                    name: '',
+                    quantity: null,
+                    unit: null,
+                  },
                 ],
               }))
             }

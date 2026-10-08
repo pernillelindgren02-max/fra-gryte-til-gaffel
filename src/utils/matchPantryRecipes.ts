@@ -12,7 +12,10 @@ export interface PantryMatch {
   missing: string[]
 }
 
-/** Exact match on normalized ingredient name only (one recipe). */
+/**
+ * Match via canonical ingredient ids (and normalized NO/EN names for pantry
+ * entries typed as free text). Display strings stay language-specific.
+ */
 export function matchRecipeAgainstPantry(
   pantryNames: string[],
   recipe: Recipe,
@@ -25,8 +28,14 @@ export function matchRecipeAgainstPantry(
   const have: string[] = []
   const missing: string[] = []
   for (const ingredient of recipe.ingredients) {
-    const key = normalizeIngredientName(ingredient.name)
-    if (pantry.has(key)) have.push(ingredient.name)
+    const keys = [
+      normalizeIngredientName(ingredient.id),
+      normalizeIngredientName(ingredient.nameNo),
+      normalizeIngredientName(ingredient.nameEn),
+      normalizeIngredientName(ingredient.name),
+    ].filter(Boolean)
+    const hit = keys.some((k) => pantry.has(k))
+    if (hit) have.push(ingredient.name)
     else missing.push(ingredient.name)
   }
   if (have.length === 0) return null
@@ -40,7 +49,7 @@ export function matchRecipeAgainstPantry(
   }
 }
 
-/** Compact label for Explore cards — same match rules as Hjemme. */
+/** Compact label for Explore cards — pass localized strings from caller when possible. */
 export function formatPantryMatchLabel(match: PantryMatch): string {
   const { matchCount, totalCount, missing } = match
   if (missing.length === 0) return 'Du har alt du trenger'
@@ -72,12 +81,14 @@ export function matchRecipesByPantry(
     .slice(0, limit)
 }
 
-/** Unique ingredient names from the library (for optional typing hints). */
+/** Unique ingredient display names from the library (locale-resolved on recipe). */
 export function getKnownIngredientNames(recipeList: Recipe[]): string[] {
   const set = new Set<string>()
   for (const recipe of recipeList) {
     for (const ingredient of recipe.ingredients) {
-      set.add(ingredient.name)
+      if (ingredient.name) set.add(ingredient.name)
+      if (ingredient.nameNo) set.add(ingredient.nameNo)
+      if (ingredient.nameEn) set.add(ingredient.nameEn)
     }
   }
   return [...set].sort((a, b) => a.localeCompare(b, 'nb'))

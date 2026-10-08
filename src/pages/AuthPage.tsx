@@ -3,10 +3,12 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { FeedbackSheet } from '../components/FeedbackSheet'
 import { InlineError } from '../components/InlineError'
 import { useAuth } from '../context/AuthContext'
+import { useLocale } from '../context/LocaleContext'
 import { useNotifications } from '../context/NotificationsContext'
 import { useOnboarding } from '../context/OnboardingContext'
 import { useSiteContent } from '../context/SiteContentContext'
 import { useToast } from '../context/ToastContext'
+import type { AppLocale } from '../i18n/types'
 import { getLastAdminPath } from '../lib/adminPath'
 import { USER_ERRORS, toUserSaveError } from '../lib/userErrors'
 import './admin/Admin.css'
@@ -15,6 +17,7 @@ import './AuthPage.css'
 export function AuthPage() {
   const { user, configured, loading, isAdmin, signIn, signUp, signOut } =
     useAuth()
+  const { locale, setLocale, t } = useLocale()
   const { getCopy } = useSiteContent()
   const { openReplay } = useOnboarding()
   const {
@@ -114,28 +117,54 @@ export function AuthPage() {
     )
   }
 
+  function LanguagePicker() {
+    return (
+      <fieldset className="auth-page__lang">
+        <legend className="auth-page__lang-legend">{t('auth.language')}</legend>
+        <p className="auth-page__pref-hint">{t('auth.languageHint')}</p>
+        <div className="auth-page__lang-options" role="radiogroup">
+          {([
+            { id: 'no', label: t('lang.norsk') },
+            { id: 'en', label: t('lang.english') },
+          ] as const).map((opt) => (
+            <label key={opt.id} className="auth-page__lang-option">
+              <input
+                type="radio"
+                name="app-locale"
+                checked={locale === opt.id}
+                onChange={() => void setLocale(opt.id as AppLocale)}
+              />
+              <span>{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+    )
+  }
+
   if (user) {
     return (
       <div className="auth-page">
-        <h1 className="auth-page__title">Konto</h1>
+        <h1 className="auth-page__title">{t('auth.title')}</h1>
         <p className="auth-page__lead">
-          Innlogget som <strong>{user.email}</strong>
+          {t('auth.loggedInAs')} <strong>{user.email}</strong>
         </p>
+        <LanguagePicker />
         <div className="auth-page__links">
-          <Link to="/favoritter">Mine favoritter og mapper</Link>
+          <Link to="/favoritter">{t('auth.myFavorites')}</Link>
           <button
             type="button"
             className="auth-page__link-btn"
             onClick={() => openReplay()}
           >
-            Slik fungerer appen
+            {t('auth.howItWorks')}
           </button>
           <button
             type="button"
             className="auth-page__link-btn"
             onClick={() => setFeedbackOpen(true)}
           >
-            Gi tilbakemelding
+            {t('auth.feedback')}
           </button>
         </div>
         <FeedbackSheet
@@ -159,17 +188,14 @@ export function AuthPage() {
                   showToast(err)
                 } else {
                   setError(null)
-                  showToast('Preferanse lagret.')
+                  showToast(t('common.save'))
                 }
               })()
             }}
           />
-          <span>Varsler om nye oppskrifter</span>
+          <span>{t('auth.notifyRecipes')}</span>
         </label>
-        <p className="auth-page__pref-hint">
-          Når dette er på, kan du få beskjed om nye oppskrifter senere (push).
-          Det er ingen varsel-innboks i appen.
-        </p>
+        <p className="auth-page__pref-hint">{t('auth.notifyHint')}</p>
         {notifError && (
           <InlineError
             compact
@@ -191,7 +217,7 @@ export function AuthPage() {
           className="auth-page__submit auth-page__submit--ghost"
           onClick={() => void signOut()}
         >
-          Logg ut
+          {t('auth.logout')}
         </button>
       </div>
     )
@@ -200,8 +226,9 @@ export function AuthPage() {
   return (
     <div className="auth-page">
       <h1 className="auth-page__title">
-        {mode === 'login' ? 'Logg inn' : 'Opprett konto'}
+        {mode === 'login' ? t('auth.login') : t('auth.signup')}
       </h1>
+      <LanguagePicker />
       <p className="auth-page__lead">
         {getCopy(
           'favoritter.helper',

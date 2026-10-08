@@ -4,6 +4,9 @@ import {
   DEFAULT_EXPLORE_CATEGORIES,
   DEFAULT_EXPLORE_SETTINGS,
   DEFAULT_THEME,
+  normalizeExploreCategory,
+  normalizeExploreSection,
+  normalizeExploreSettings,
   type AppCopyMap,
   type AppThemeTokens,
   type ExploreCategoryConfig,
@@ -20,53 +23,41 @@ function asSections(value: unknown): ExploreSectionConfig[] {
   if (!Array.isArray(value) || value.length === 0) {
     return DEFAULT_EXPLORE_SETTINGS.sections
   }
-  return value.map((item) => {
-    const row = item as Partial<ExploreSectionConfig>
-    return {
-      id: String(row.id ?? 'section'),
-      title: String(row.title ?? ''),
-      mode: row.mode === 'manual' ? 'manual' : 'auto',
-      recipe_ids: asStringArray(row.recipe_ids),
-    }
-  })
+  return value.map((item) =>
+    normalizeExploreSection(item as Partial<ExploreSectionConfig>),
+  )
 }
 
 function asCategories(value: unknown): ExploreCategoryConfig[] {
   if (!Array.isArray(value) || value.length === 0) {
     return DEFAULT_EXPLORE_CATEGORIES
   }
-  const parsed = value.map((item) => {
-    const row = item as Partial<ExploreCategoryConfig>
-    return {
-      id: String(row.id ?? 'category'),
-      title: String(row.title ?? ''),
-      mode: row.mode === 'manual' ? ('manual' as const) : ('auto' as const),
-      recipe_ids: asStringArray(row.recipe_ids),
-    }
-  })
-  // Keep default order/ids; merge saved overrides when present.
+  const parsed = value.map((item) =>
+    normalizeExploreCategory(item as Partial<ExploreCategoryConfig>),
+  )
   return DEFAULT_EXPLORE_CATEGORIES.map((defaults) => {
     const saved = parsed.find((c) => c.id === defaults.id)
     return saved
-      ? {
+      ? normalizeExploreCategory({
           ...defaults,
-          title: saved.title || defaults.title,
-          mode: saved.mode,
-          recipe_ids: saved.recipe_ids,
-        }
+          ...saved,
+          titleNo: saved.titleNo || saved.title || defaults.titleNo,
+        })
       : defaults
   })
 }
 
-/** sections column may be a legacy array or { feed, categories }. */
+/** sections column may be a legacy array or { feed, categories, blurb_* }. */
 function parseSectionsColumn(value: unknown): {
   sections: ExploreSectionConfig[]
   categories: ExploreCategoryConfig[]
+  blurbMeta: Partial<ExploreSettings>
 } {
   if (Array.isArray(value)) {
     return {
       sections: asSections(value),
       categories: DEFAULT_EXPLORE_CATEGORIES,
+      blurbMeta: {},
     }
   }
   if (value && typeof value === 'object') {
@@ -74,15 +65,32 @@ function parseSectionsColumn(value: unknown): {
       feed?: unknown
       sections?: unknown
       categories?: unknown
+      blurb_en?: unknown
+      blurbEn?: unknown
+      blurb_en_auto?: unknown
+      blurbEnAuto?: unknown
+      blurb_en_override?: unknown
+      blurbEnOverride?: unknown
+      blurb_no?: unknown
+      blurbNo?: unknown
     }
     return {
       sections: asSections(row.feed ?? row.sections),
       categories: asCategories(row.categories),
+      blurbMeta: {
+        blurbNo: row.blurbNo != null ? String(row.blurbNo) : undefined,
+        blurbEn: String(row.blurbEn ?? row.blurb_en ?? ''),
+        blurbEnAuto: String(row.blurbEnAuto ?? row.blurb_en_auto ?? ''),
+        blurbEnOverride: Boolean(
+          row.blurbEnOverride ?? row.blurb_en_override,
+        ),
+      },
     }
   }
   return {
     sections: DEFAULT_EXPLORE_SETTINGS.sections,
     categories: DEFAULT_EXPLORE_CATEGORIES,
+    blurbMeta: {},
   }
 }
 
@@ -95,27 +103,38 @@ export async function fetchExploreSettings(): Promise<ExploreSettings> {
     .maybeSingle()
   if (error || !data) return DEFAULT_EXPLORE_SETTINGS
   const parsed = parseSectionsColumn(data.sections)
-  return {
+  const blurbNo = String(
+    parsed.blurbMeta.blurbNo ?? data.blurb ?? '',
+  ).trim()
+  return normalizeExploreSettings({
     featured_ids: asStringArray(data.featured_ids),
     sections: parsed.sections,
     categories: parsed.categories,
-    blurb: String(data.blurb ?? ''),
-  }
+    blurb: blurbNo,
+    blurbNo,
+    blurbEn: parsed.blurbMeta.blurbEn,
+    blurbEnAuto: parsed.blurbMeta.blurbEnAuto,
+    blurbEnOverride: parsed.blurbMeta.blurbEnOverride,
+  })
 }
 
 export async function saveExploreSettings(
   settings: ExploreSettings,
 ): Promise<void> {
   if (!supabase) throw new Error('Supabase er ikke konfigurert.')
+  const normalized = normalizeExploreSettings(settings)
   const { error } = await supabase.from('explore_settings').upsert({
     id: 'default',
-    featured_ids: settings.featured_ids,
-    // Keep a single JSON column — no schema migration required.
+    featured_ids: normalized.featured_ids,
     sections: {
-      feed: settings.sections,
-      categories: settings.categories,
+      feed: normalized.sections,
+      categories: normalized.categories,
+      blurbNo: normalized.blurbNo,
+      blurbEn: normalized.blurbEnOverride ? normalized.blurbEn : '',
+      blurbEnAuto: normalized.blurbEnAuto,
+      blurbEnOverride: normalized.blurbEnOverride,
     },
-    blurb: settings.blurb,
+    blurb: normalized.blurbNo,
     updated_at: new Date().toISOString(),
   })
   if (error) throw error

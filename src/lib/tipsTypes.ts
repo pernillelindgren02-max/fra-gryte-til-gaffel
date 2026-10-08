@@ -27,7 +27,12 @@ export type TipBlock = {
   article_id: string
   block_type: TipBlockType
   sort_order: number
+  /** Resolved payload for active locale. */
   payload: TipBlockPayload
+  payloadNo: TipBlockPayload
+  payloadEn: TipBlockPayload
+  payloadEnAuto: TipBlockPayload
+  payloadEnOverride: boolean
 }
 
 export type TipImage = {
@@ -35,6 +40,10 @@ export type TipImage = {
   article_id: string
   url: string
   caption: string
+  captionNo: string
+  captionEn: string
+  captionEnAuto: string
+  captionEnOverride: boolean
   sort_order: number
 }
 
@@ -42,6 +51,10 @@ export type TipCategory = {
   id: string
   slug: string
   name: string
+  nameNo: string
+  nameEn: string
+  nameEnAuto: string
+  nameEnOverride: boolean
   sort_order: number
 }
 
@@ -49,7 +62,15 @@ export type TipArticleListItem = {
   id: string
   slug: string
   title: string
+  titleNo: string
+  titleEn: string
+  titleEnAuto: string
+  titleEnOverride: boolean
   excerpt: string
+  excerptNo: string
+  excerptEn: string
+  excerptEnAuto: string
+  excerptEnOverride: boolean
   category_id: string | null
   category?: TipCategory | null
   status: TipStatus

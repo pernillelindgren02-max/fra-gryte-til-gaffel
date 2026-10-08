@@ -15,7 +15,9 @@ import { OfflineBanner } from './components/OfflineBanner'
 import { OnboardingFlow } from './components/OnboardingFlow'
 import { PathMemory } from './components/PathMemory'
 import { RouteScroll } from './components/RouteScroll'
+import { LanguageChoiceSheet } from './components/LanguageChoiceSheet'
 import { AuthProvider } from './context/AuthContext'
+import { LocaleProvider, useLocale } from './context/LocaleContext'
 import { NotificationsProvider } from './context/NotificationsContext'
 import {
   OnboardingProvider,
@@ -55,13 +57,22 @@ import './App.css'
 function OnboardingBootstrap() {
   const location = useLocation()
   const { loading, mode, steps, openFirst } = useOnboarding()
+  const { needsLanguageChoice } = useLocale()
 
   useEffect(() => {
+    if (needsLanguageChoice) return
     if (loading || mode !== null) return
     if (location.pathname.startsWith('/admin')) return
     if (steps.length === 0) return
     openFirst()
-  }, [loading, mode, steps.length, location.pathname, openFirst])
+  }, [
+    needsLanguageChoice,
+    loading,
+    mode,
+    steps.length,
+    location.pathname,
+    openFirst,
+  ])
 
   return null
 }
@@ -93,6 +104,7 @@ function AppChrome() {
       <RouteScroll />
       <PathMemory />
       <AnalyticsBootstrap />
+      <LanguageChoiceSheet />
       <OnboardingBootstrap />
       <OnboardingFlow />
       {!isAdminRoute && <OfflineBanner />}
@@ -149,25 +161,27 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <SiteContentProvider>
-          <RecipesProvider>
-            <UserDataProvider>
-              <NotificationsProvider>
-                <PantryProvider>
-                  <ShoppingListProvider>
-                    <ToastProvider>
-                      <BrowserRouter>
-                        <OnboardingProvider>
-                          <AppChrome />
-                        </OnboardingProvider>
-                      </BrowserRouter>
-                    </ToastProvider>
-                  </ShoppingListProvider>
-                </PantryProvider>
-              </NotificationsProvider>
-            </UserDataProvider>
-          </RecipesProvider>
-        </SiteContentProvider>
+        <LocaleProvider>
+          <SiteContentProvider>
+            <RecipesProvider>
+              <UserDataProvider>
+                <NotificationsProvider>
+                  <PantryProvider>
+                    <ShoppingListProvider>
+                      <ToastProvider>
+                        <BrowserRouter>
+                          <OnboardingProvider>
+                            <AppChrome />
+                          </OnboardingProvider>
+                        </BrowserRouter>
+                      </ToastProvider>
+                    </ShoppingListProvider>
+                  </PantryProvider>
+                </NotificationsProvider>
+              </UserDataProvider>
+            </RecipesProvider>
+          </SiteContentProvider>
+        </LocaleProvider>
       </AuthProvider>
     </ErrorBoundary>
   )

@@ -1,12 +1,15 @@
 import {
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
   type TouchEvent,
 } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useLocale } from '../context/LocaleContext'
+import { getBrand } from '../i18n/brand'
 import './AppNav.css'
 
 type NavItem = {
@@ -14,30 +17,6 @@ type NavItem = {
   label: string
   match: (path: string) => boolean
 }
-
-const MAIN_ITEMS: NavItem[] = [
-  { to: '/', label: 'Utforsk', match: (path) => path === '/' },
-  {
-    to: '/tips',
-    label: 'Tips og triks',
-    match: (path) => path.startsWith('/tips'),
-  },
-  {
-    to: '/favoritter',
-    label: 'Favoritter',
-    match: (path) => path.startsWith('/favoritter'),
-  },
-  {
-    to: '/handleliste',
-    label: 'Handleliste',
-    match: (path) => path.startsWith('/handleliste'),
-  },
-  {
-    to: '/hjemme',
-    label: 'Hjemme',
-    match: (path) => path.startsWith('/hjemme'),
-  },
-]
 
 function GryteIcon() {
   return (
@@ -88,6 +67,7 @@ function GryteIcon() {
 
 export function AppNav() {
   const { user, loading } = useAuth()
+  const { locale, t } = useLocale()
   const location = useLocation()
   const path = location.pathname
   const [open, setOpen] = useState(false)
@@ -95,8 +75,36 @@ export function AppNav() {
   const closeRef = useRef<HTMLButtonElement>(null)
   const touchStartY = useRef<number | null>(null)
 
-  const accountLabel = user ? 'Konto' : 'Logg inn'
+  const MAIN_ITEMS: NavItem[] = useMemo(
+    () => [
+      { to: '/', label: t('nav.explore'), match: (p) => p === '/' },
+      {
+        to: '/tips',
+        label: t('nav.tips'),
+        match: (p) => p.startsWith('/tips'),
+      },
+      {
+        to: '/favoritter',
+        label: t('nav.favorites'),
+        match: (p) => p.startsWith('/favoritter'),
+      },
+      {
+        to: '/handleliste',
+        label: t('nav.shopping'),
+        match: (p) => p.startsWith('/handleliste'),
+      },
+      {
+        to: '/hjemme',
+        label: t('nav.home'),
+        match: (p) => p.startsWith('/hjemme'),
+      },
+    ],
+    [t],
+  )
+
+  const accountLabel = user ? t('nav.account') : t('auth.login')
   const accountActive = path.startsWith('/konto')
+  const brandName = getBrand(locale).name
 
   useEffect(() => {
     setOpen(false)
@@ -163,7 +171,7 @@ export function AppNav() {
           >
             <div className="app-nav__sheet-handle" aria-hidden="true" />
             <div className="app-nav__sheet-header">
-              <p className="app-nav__sheet-brand">Fra gryte til gaffel</p>
+              <p className="app-nav__sheet-brand">{brandName}</p>
               <button
                 ref={closeRef}
                 type="button"

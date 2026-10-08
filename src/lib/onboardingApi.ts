@@ -1,8 +1,13 @@
 import { supabase } from './supabase'
 import {
   DEFAULT_ONBOARDING_STEPS,
+  normalizeOnboardingStep,
   type OnboardingStep,
 } from './onboardingDefaults'
+import {
+  suggestOnboardingBodyEn,
+  suggestOnboardingTitleEn,
+} from '../i18n/editorialAuto'
 
 const BUCKET = 'onboarding'
 
@@ -18,18 +23,12 @@ export function onboardingImagePublicUrl(
 }
 
 function mapRow(row: Record<string, unknown>): OnboardingStep {
-  return {
-    id: String(row.id),
-    title: String(row.title ?? ''),
-    body: String(row.body ?? ''),
+  return normalizeOnboardingStep({
+    ...row,
     image_url: onboardingImagePublicUrl(
       row.image_url == null ? null : String(row.image_url),
     ),
-    sort_order: Number(row.sort_order) || 0,
-    is_active: Boolean(row.is_active),
-    created_at: row.created_at ? String(row.created_at) : undefined,
-    updated_at: row.updated_at ? String(row.updated_at) : undefined,
-  }
+  })
 }
 
 /** Active steps for the consumer onboarding flow. */
@@ -57,18 +56,41 @@ export async function fetchAllOnboardingSteps(): Promise<OnboardingStep[]> {
   return ((data as Record<string, unknown>[]) ?? []).map(mapRow)
 }
 
-export async function upsertOnboardingStep(
-  step: Partial<OnboardingStep> & { title: string },
-): Promise<OnboardingStep> {
-  if (!supabase) throw new Error('Supabase er ikke konfigurert.')
-  const payload: Record<string, unknown> = {
-    title: step.title.trim(),
-    body: (step.body ?? '').trim(),
+function stepToDbPayload(step: Partial<OnboardingStep> & { title?: string }) {
+  const titleNo = (step.titleNo || step.title || '').trim()
+  const bodyNo = (step.bodyNo || step.body || '').trim()
+  const titleEnAuto =
+    step.titleEnAuto?.trim() || suggestOnboardingTitleEn(step.id || '', titleNo)
+  const bodyEnAuto =
+    step.bodyEnAuto?.trim() || suggestOnboardingBodyEn(step.id || '', titleNo)
+  const titleEnOverride =
+    Boolean(step.titleEnOverride) && Boolean((step.titleEn || '').trim())
+  const bodyEnOverride =
+    Boolean(step.bodyEnOverride) && Boolean((step.bodyEn || '').trim())
+
+  return {
+    title: titleNo,
+    title_no: titleNo,
+    title_en: titleEnOverride ? (step.titleEn || '').trim() : '',
+    title_en_auto: titleEnAuto,
+    title_en_override: titleEnOverride,
+    body: bodyNo,
+    body_no: bodyNo,
+    body_en: bodyEnOverride ? (step.bodyEn || '').trim() : '',
+    body_en_auto: bodyEnAuto,
+    body_en_override: bodyEnOverride,
     image_url: step.image_url?.trim() || null,
     sort_order: step.sort_order ?? 0,
     is_active: step.is_active ?? true,
     updated_at: new Date().toISOString(),
   }
+}
+
+export async function upsertOnboardingStep(
+  step: Partial<OnboardingStep> & { title: string },
+): Promise<OnboardingStep> {
+  if (!supabase) throw new Error('Supabase er ikke konfigurert.')
+  const payload: Record<string, unknown> = stepToDbPayload(step)
   if (step.id && !step.id.startsWith('local-')) {
     payload.id = step.id
   }
@@ -83,20 +105,47 @@ export async function upsertOnboardingStep(
 
 export async function updateOnboardingStep(
   id: string,
-  patch: Partial<
-    Pick<
-      OnboardingStep,
-      'title' | 'body' | 'image_url' | 'sort_order' | 'is_active'
-    >
-  >,
+  patch: Partial<OnboardingStep>,
 ): Promise<void> {
   if (!supabase) throw new Error('Supabase er ikke konfigurert.')
+  const payload = stepToDbPayload({ ...patch, id, title: patch.titleNo || patch.title || '' })
+  // Only send fields that were intended when patch is partial toggles
+  const update: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  }
+  if (
+    patch.title != null ||
+    patch.titleNo != null ||
+    patch.titleEn != null ||
+    patch.titleEnOverride != null ||
+    patch.titleEnAuto != null
+  ) {
+    update.title = payload.title
+    update.title_no = payload.title_no
+    update.title_en = payload.title_en
+    update.title_en_auto = payload.title_en_auto
+    update.title_en_override = payload.title_en_override
+  }
+  if (
+    patch.body != null ||
+    patch.bodyNo != null ||
+    patch.bodyEn != null ||
+    patch.bodyEnOverride != null ||
+    patch.bodyEnAuto != null
+  ) {
+    update.body = payload.body
+    update.body_no = payload.body_no
+    update.body_en = payload.body_en
+    update.body_en_auto = payload.body_en_auto
+    update.body_en_override = payload.body_en_override
+  }
+  if (patch.image_url !== undefined) update.image_url = payload.image_url
+  if (patch.sort_order !== undefined) update.sort_order = payload.sort_order
+  if (patch.is_active !== undefined) update.is_active = payload.is_active
+
   const { error } = await supabase
     .from('onboarding_steps')
-    .update({
-      ...patch,
-      updated_at: new Date().toISOString(),
-    })
+    .update(update)
     .eq('id', id)
   if (error) throw error
 }

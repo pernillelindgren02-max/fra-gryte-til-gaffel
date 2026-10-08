@@ -362,6 +362,52 @@
   padding: 0 0.35rem;
 }
 
+.admin-form__label-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.admin-en-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.4rem;
+  width: fit-content;
+}
+
+.admin-en-badge--auto {
+  background: color-mix(in srgb, var(--color-pale-green, #d5dba2) 70%, white);
+  color: var(--color-teal, #255957);
+}
+
+.admin-en-badge--override {
+  background: color-mix(in srgb, #c45c26 18%, white);
+  color: #7a3410;
+}
+
+.admin-en-badge--tiny {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.35rem;
+  align-self: center;
+}
+
+.admin-form__clear-en {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+}
+
+.admin-form__en-ing {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.25rem;
+  align-items: center;
+}
+
 .admin-form__preview {
   width: min(100%, 16rem);
   aspect-ratio: 4 / 3;

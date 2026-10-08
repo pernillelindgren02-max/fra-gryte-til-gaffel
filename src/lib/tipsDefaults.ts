@@ -3,8 +3,9 @@ import type {
   TipArticleListItem,
   TipCategory,
 } from './tipsTypes'
+import { hydrateTipArticle, normalizeTipCategory } from './tipsNormalize'
 
-export const DEFAULT_TIP_CATEGORIES: TipCategory[] = [
+const RAW_TIP_CATEGORIES = [
   { id: 'cat-primus', slug: 'primus', name: 'Primus', sort_order: 1 },
   {
     id: 'cat-lite-kjokken',
@@ -29,12 +30,16 @@ export const DEFAULT_TIP_CATEGORIES: TipCategory[] = [
   },
 ]
 
+export const DEFAULT_TIP_CATEGORIES: TipCategory[] = RAW_TIP_CATEGORIES.map(
+  normalizeTipCategory,
+)
+
 function cat(slug: string) {
   return DEFAULT_TIP_CATEGORIES.find((c) => c.slug === slug) ?? null
 }
 
 /** Local seed articles when Supabase is empty / offline — mirrors SQL seed. */
-export const DEFAULT_TIP_ARTICLES: TipArticle[] = [
+const RAW_TIP_ARTICLES = [
   {
     id: 'local-tip-1',
     slug: 'primus-for-nybegynnere',
@@ -42,7 +47,7 @@ export const DEFAULT_TIP_ARTICLES: TipArticle[] = [
     excerpt: 'Trygg start: tenning, koking og slukking uten stress.',
     category_id: 'cat-primus',
     category: cat('primus'),
-    status: 'published',
+    status: 'published' as const,
     is_featured: true,
     sort_order: 1,
     hero_image_url: '/images/tips/primus-hero.svg',
@@ -165,7 +170,7 @@ export const DEFAULT_TIP_ARTICLES: TipArticle[] = [
       'Én gryte, smartere rekkefølge — og nesten tørr oppvaskklut.',
     category_id: 'cat-lite-oppvask',
     category: cat('lite-oppvask'),
-    status: 'published',
+    status: 'published' as const,
     is_featured: false,
     sort_order: 2,
     hero_image_url: '/images/tips/oppvask-hero.svg',
@@ -237,7 +242,7 @@ export const DEFAULT_TIP_ARTICLES: TipArticle[] = [
       'Når kjøkkenet er lite og tid er knapp — slik lager du likevel skikkelig mat.',
     category_id: 'cat-student',
     category: cat('studentkjokken'),
-    status: 'published',
+    status: 'published' as const,
     is_featured: false,
     sort_order: 3,
     hero_image_url: '/images/tips/student-hero.svg',
@@ -308,7 +313,10 @@ export const DEFAULT_TIP_ARTICLES: TipArticle[] = [
     related_recipe_ids: [],
     related_article_ids: ['local-tip-2'],
   },
-]
+] as unknown as TipArticle[]
+
+export const DEFAULT_TIP_ARTICLES: TipArticle[] =
+  RAW_TIP_ARTICLES.map(hydrateTipArticle)
 
 export function toListItem(article: TipArticle): TipArticleListItem {
   const {
